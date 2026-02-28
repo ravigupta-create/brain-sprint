@@ -183,6 +183,7 @@ body{
 .block-item .block-handle{color:var(--fg3);margin-right:4px;font-size:18px;flex-shrink:0}
 .block-item .block-text{font-size:14px;line-height:1.4}
 .block-item.distractor{border-style:dashed;border-color:var(--fg3)}
+.block-drag-ghost{position:fixed;pointer-events:none;z-index:1000;opacity:0.85;box-shadow:0 4px 16px rgba(0,0,0,0.25);max-width:90vw}
 /* Challenge 2: Economy */
 .economy-scenario{font-family:'Noto Serif',serif;font-size:16px;line-height:1.6;margin-bottom:20px}
 .slider-group{margin-bottom:16px}
@@ -2126,7 +2127,7 @@ function renderBlocks(puzzle) {
   let html = `<div style="margin-bottom:12px"><strong>${puzzle.name}</strong></div>`;
   html += `<div class="blocks-container" id="blocks-container">`;
   puzzle.blocks.forEach((text, i) => {
-    html += `<div class="block-item" draggable="true" data-idx="${i}" onclick="tapBlock(${i})" ontouchstart="touchStartBlock(event,${i})" ontouchend="touchEndBlock(event)">
+    html += `<div class="block-item" draggable="true" data-idx="${i}" onclick="tapBlock(${i})">
       <span class="block-handle">⠿</span>
       <span class="block-num">${i+1}</span>
       <span class="block-text">${text}</span>
@@ -2142,6 +2143,7 @@ function renderBlocks(puzzle) {
 function setupBlocksDragDrop() {
   const container = document.getElementById('blocks-container');
   if (!container) return;
+  // Desktop HTML5 drag-and-drop
   let dragIdx = null;
   container.addEventListener('dragstart', (e) => {
     const item = e.target.closest('.block-item');
@@ -2172,16 +2174,65 @@ function setupBlocksDragDrop() {
     document.querySelectorAll('.block-item').forEach(b => b.classList.remove('drag-over','dragging'));
     dragIdx = null;
   });
+  // Mobile touch drag-and-drop
+  const ts = {idx:-1, ghost:null, moved:false, sx:0, sy:0};
+  function onTouchMove(e) {
+    const t = e.touches[0];
+    if (!ts.moved && Math.abs(t.clientX - ts.sx) + Math.abs(t.clientY - ts.sy) > 10) {
+      ts.moved = true;
+      const src = container.querySelectorAll('.block-item')[ts.idx];
+      ts.ghost = src.cloneNode(true);
+      ts.ghost.className = 'block-item block-drag-ghost';
+      ts.ghost.style.width = src.offsetWidth + 'px';
+      document.body.appendChild(ts.ghost);
+      src.classList.add('dragging');
+    }
+    if (ts.moved && ts.ghost) {
+      e.preventDefault();
+      ts.ghost.style.left = (t.clientX - ts.ghost.offsetWidth / 2) + 'px';
+      ts.ghost.style.top = (t.clientY - ts.ghost.offsetHeight / 2) + 'px';
+      container.querySelectorAll('.block-item').forEach(b => b.classList.remove('drag-over'));
+      ts.ghost.style.display = 'none';
+      const under = document.elementFromPoint(t.clientX, t.clientY);
+      ts.ghost.style.display = '';
+      if (under) {
+        const bi = under.closest('.block-item');
+        if (bi) bi.classList.add('drag-over');
+      }
+    }
+  }
+  function onTouchEnd(e) {
+    if (ts.moved && ts.ghost) {
+      const t = e.changedTouches[0];
+      ts.ghost.style.display = 'none';
+      const under = document.elementFromPoint(t.clientX, t.clientY);
+      ts.ghost.remove();
+      ts.ghost = null;
+      container.querySelectorAll('.block-item').forEach(b => b.classList.remove('drag-over','dragging'));
+      if (under) {
+        const bi = under.closest('.block-item');
+        if (bi) {
+          const dropIdx = parseInt(bi.dataset.idx);
+          if (ts.idx !== dropIdx) swapBlocks(ts.idx, dropIdx);
+        }
+      }
+    }
+    ts.idx = -1; ts.moved = false;
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+  }
+  container.querySelectorAll('.block-item').forEach((el, i) => {
+    el.addEventListener('touchstart', (e) => {
+      if (GS.challengeState.blocks.submitted) return;
+      ts.idx = parseInt(el.dataset.idx); ts.moved = false;
+      ts.sx = e.touches[0].clientX; ts.sy = e.touches[0].clientY;
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.addEventListener('touchmove', onTouchMove, {passive:false});
+      document.addEventListener('touchend', onTouchEnd);
+    }, {passive:true});
+  });
 }
-
-// Touch drag support
-let touchDragIdx = null;
-let touchClone = null;
-function touchStartBlock(e, idx) {
-  // Only handle if it looks like a drag (not a tap)
-  touchDragIdx = idx;
-}
-function touchEndBlock(e) { touchDragIdx = null; }
 
 // Tap-to-swap
 function tapBlock(idx) {
