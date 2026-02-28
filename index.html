@@ -356,7 +356,7 @@ input[type=range]::-webkit-slider-thumb{
 .escape-dot.done{background:var(--green)}
 .escape-narrative{
   font-family:'Noto Serif',serif;font-size:17px;line-height:1.8;
-  margin-bottom:24px;min-height:80px;max-height:40vh;overflow-y:auto;
+  margin-bottom:24px;min-height:80px;max-height:40vh;overflow-y:auto;overscroll-behavior:contain;
 }
 .escape-choices{display:flex;flex-direction:column;gap:10px}
 .escape-choice{
@@ -422,7 +422,7 @@ input[type=range]::-webkit-slider-thumb{
 .modal-overlay.active{display:flex}
 .modal{
   background:var(--modal-bg);border-radius:var(--radius-lg);
-  padding:24px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;
+  padding:24px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;overscroll-behavior:contain;
   animation:pop 0.3s ease;
 }
 .modal h2{font-family:'Noto Serif',serif;margin-bottom:16px}
@@ -569,8 +569,8 @@ input[type=range]::-webkit-slider-thumb{
 }
 @media(max-width:480px){
   .wordro-tile{width:44px;height:44px;font-size:20px}
-  .wordro-key{height:42px;font-size:12px;min-width:26px;max-width:38px}
-  .wordro-key.wide{min-width:44px;max-width:56px}
+  .wordro-key{height:44px;font-size:13px;min-width:36px;max-width:42px}
+  .wordro-key.wide{min-width:48px;max-width:60px}
   .wordro-kb-row{gap:3px}
 }
 
@@ -724,7 +724,7 @@ input[type=range]::-webkit-slider-thumb{
 }
 
 /* Challenge 7: Number Grid */
-.numgrid-board{display:inline-grid;gap:0;margin:0 auto 16px;border:2px solid var(--text)}
+.numgrid-board{display:inline-grid;gap:1px;margin:0 auto 16px;border:2px solid var(--text)}
 .numgrid-board .ng-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;border:1px solid var(--border);cursor:pointer;background:var(--bg);transition:background .15s}
 .numgrid-board .ng-cell.ng-given{background:var(--hover);cursor:default;color:var(--text)}
 .numgrid-board .ng-cell.ng-selected{background:var(--accent-light);outline:2px solid var(--accent);z-index:2;position:relative}
@@ -787,7 +787,7 @@ input[type=range]::-webkit-slider-thumb{
 .deduction-questions{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .deduction-q-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;text-align:left;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;font-family:inherit}
 .deduction-q-btn:hover{border-color:var(--accent);background:var(--accent-light)}
-.deduction-responses{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin:12px 0;max-height:220px;overflow-y:auto}
+.deduction-responses{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin:12px 0;max-height:220px;overflow-y:auto;overscroll-behavior:contain}
 .deduction-resp{font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)}
 .deduction-resp:last-child{border-bottom:none}
 .deduction-resp .dr-name{font-weight:700;margin-right:4px}
@@ -859,16 +859,27 @@ input[type=range]::-webkit-slider-thumb{
   .memory-card-front,.memory-card-back{font-size:22px}
   .maze-cell{font-size:10px}
   .mosaic-cell{font-size:15px;min-height:38px}
-  .mosaic-token{width:34px;height:34px;font-size:15px}
-  .mosaic-token.linked{min-width:60px;height:34px;padding:0 4px}
-  .mosaic-token.linked .linked-val{width:24px;height:24px;font-size:12px}
+  .mosaic-token{width:40px;height:40px;font-size:15px}
+  .mosaic-token.linked{min-width:66px;height:40px;padding:0 4px}
+  .mosaic-token.linked .linked-val{width:28px;height:28px;font-size:13px}
   .mosaic-token.linked .linked-bridge{width:8px;height:3px}
-  .mosaic-token.linked.vertical-orient{width:34px;min-width:34px;min-height:60px;padding:4px 0}
+  .mosaic-token.linked.vertical-orient{width:40px;min-width:40px;min-height:66px;padding:4px 0}
   .mosaic-token.linked.vertical-orient .linked-bridge{width:3px;height:8px}
   .mosaic-zone-label{font-size:8px}
   .mosaic-pool{gap:6px;padding:8px}
   .numgrid-board .ng-cell{font-size:15px}
   .numgrid-pad button{width:38px;height:38px;font-size:16px}
+}
+@media(hover:none)and (pointer:coarse){
+  .card:hover{border-color:var(--border);box-shadow:var(--card-shadow)}
+  .card.selected:hover{border-color:var(--accent);background:var(--accent-light)}
+  .btn-primary:hover{background:var(--accent)}
+  .btn-secondary:hover{background:var(--bg3)}
+  .btn-outline:hover{background:transparent}
+  .header button:hover{opacity:1}
+  .deduction-q-btn:hover{border-color:var(--border);background:var(--bg2)}
+  .wordhive-hex.wh-outer:hover{background:var(--hover);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+  .numgrid-board .ng-cell:hover{z-index:auto;position:static}
 }
 </style>
 </head>
@@ -3981,7 +3992,7 @@ function submitWordsearch() {
     }
   });
   // Disable further taps
-  document.querySelectorAll('.ws-cell').forEach(cell => { cell.onclick = null; cell.style.cursor = 'default'; });
+  document.querySelectorAll('.ws-cell').forEach(cell => { cell.disabled = true; cell.style.pointerEvents = 'none'; cell.style.cursor = 'default'; });
   document.getElementById('ws-feedback').innerHTML = `<div style="color:${score===100?'var(--green)':'var(--orange)'};font-weight:700;animation:pop 0.4s">${score===100?'✓ Perfect!':'Submitted!'} Score: ${score}/100 (${state.foundWords.length}/${state.puzzle.words.length} words)</div>
     <button class="btn btn-primary btn-lg btn-full" style="margin-top:12px" onclick="showNextOrFinish()">Continue →</button>`;
   document.getElementById('btn-submit-challenge').style.display = 'none';
@@ -5918,7 +5929,7 @@ function submitWordro() {
     });
   }
   // Disable keyboard
-  document.querySelectorAll('.wordro-key').forEach(k => { k.onclick = null; k.style.cursor = 'default'; });
+  document.querySelectorAll('.wordro-key').forEach(k => { k.disabled = true; k.style.pointerEvents = 'none'; k.style.cursor = 'default'; });
   const msgEl = document.getElementById('wordro-msg');
   if (msgEl) {
     const label = state.won ? 'Solved' : 'Failed';
