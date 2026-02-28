@@ -6158,12 +6158,13 @@ function computeWordrobotAnalysis(state) {
       if (_fbNum(gc, _wbCodes[remaining[ri]]) === actualFbN) newRemaining.push(remaining[ri]);
     }
 
-    // --- Words left data for UI (avoids filterCandidates in rendering) ---
+    // --- Words left data for UI (always based on full 12,953 word bank) ---
+    const totalBank = _wbCodes.length;
     const wordsLeftCount = newRemaining.length;
     const displayWords = newRemaining.filter(idx => !_hideWords.has(_wbUpper[idx])).map(idx => _wbUpper[idx]);
     const wordsLeftList = wordsLeftCount < 5 && wordsLeftCount > 0
-      ? `${wordsLeftCount} left: ${displayWords.join(', ')}`
-      : `${wordsLeftCount} left`;
+      ? `${wordsLeftCount.toLocaleString()}/${totalBank.toLocaleString()}: ${displayWords.join(', ')}`
+      : `${wordsLeftCount.toLocaleString()}/${totalBank.toLocaleString()}`;
 
     perGuess.push({
       word: guess.word, result: guess.result,
@@ -6337,7 +6338,7 @@ function showWordrobotAnalysis() {
             <span class="wg-word">Your Guesses</span>
             <span class="wg-stat">Skill</span>
             <span class="wg-stat">Luck</span>
-            <span class="wg-remaining">Words Left</span>
+            <span class="wg-remaining">Remaining</span>
           </div>
           ${guessRowsHtml}
         </div>
