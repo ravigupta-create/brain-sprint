@@ -7637,7 +7637,7 @@ function getMosaicPuzzle() {
   const diff = GS.difficulty || 'easy';
   const cfg = {
     easy:    {rows:3,cols:4,valueRange:4,ruleTypes:['sum','same'],par:60,linkedPairs:0},
-    medium:  {rows:4,cols:4,valueRange:5,ruleTypes:['sum','same','different'],par:90,linkedPairs:0},
+    medium:  {rows:4,cols:4,valueRange:5,ruleTypes:['sum','same','different'],par:90,linkedPairs:2},
     hard:    {rows:4,cols:5,valueRange:6,ruleTypes:['sum','same','different','ascending'],par:120,linkedPairs:3},
     extreme: {rows:5,cols:5,valueRange:6,ruleTypes:['sum','same','different','ascending'],par:150,linkedPairs:4}
   }[diff];
@@ -7759,7 +7759,7 @@ function generateMosaicZoneValues(zone, valueRange, ruleTypes) {
       values = [];
       for (let i = 0; i < n; i++) values.push(Math.floor(Math.random() * valueRange) + 1);
       const s = values.reduce((a,b) => a+b, 0);
-      ruleDisplay = `\u03A3 ${s}`;
+      ruleDisplay = `${s}`;
       break;
     }
     case 'same': {
@@ -7774,7 +7774,7 @@ function generateMosaicZoneValues(zone, valueRange, ruleTypes) {
         values = [];
         for (let i = 0; i < n; i++) values.push(Math.floor(Math.random() * valueRange) + 1);
         const s = values.reduce((a,b) => a+b, 0);
-        ruleDisplay = `\u03A3 ${s}`;
+        ruleDisplay = `${s}`;
         zone.rule = 'sum';
         return {values, rule:'sum', ruleDisplay};
       }
@@ -7815,14 +7815,14 @@ function generateMosaicZoneValues(zone, valueRange, ruleTypes) {
 function showMosaicSymbolGuide() {
   const c = document.getElementById('game-container');
   const diff = GS.difficulty || 'easy';
-  const hasLinked = diff === 'hard' || diff === 'extreme';
+  const hasLinked = diff === 'medium' || diff === 'hard' || diff === 'extreme';
   let html = `<div class="intro-screen" style="text-align:left">`;
   html += `<div style="text-align:center;font-size:28px;font-weight:800;margin-bottom:16px">Mosaic Symbol Guide</div>`;
   html += `<div style="display:flex;flex-direction:column;gap:14px">`;
   // Sum rule
   html += `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border-radius:var(--radius-lg)">
-    <div style="min-width:56px;text-align:center;font-size:22px;font-weight:800;color:var(--accent)">\u03A3 12</div>
-    <div><div style="font-weight:700;margin-bottom:2px">Sum</div><div style="font-size:13px;color:var(--fg2)">All numbers in the zone must add up to the shown total.</div></div>
+    <div style="min-width:56px;text-align:center;font-size:22px;font-weight:800;color:var(--accent)">12</div>
+    <div><div style="font-weight:700;margin-bottom:2px">Sum</div><div style="font-size:13px;color:var(--fg2)">A plain number means all cells in the zone must add up to that total.</div></div>
   </div>`;
   // Same rule
   html += `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border-radius:var(--radius-lg)">
