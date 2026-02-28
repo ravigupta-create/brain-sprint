@@ -846,6 +846,7 @@ input[type=range]::-webkit-slider-thumb{
 .mosaic-token.linked.vertical-orient .linked-bridge{width:4px;height:10px}
 .mosaic-token.linked.vertical-orient .linked-orient{top:auto;bottom:1px;right:2px}
 .mosaic-cell.linked-cell{box-shadow:inset 0 0 0 2px rgba(99,102,241,0.3)}
+.mosaic-zone-error{color:#e74c3c;font-size:10px;margin-left:3px;vertical-align:middle}
 .mosaic-token.dragging{opacity:0.3;transform:scale(0.9)}
 .mosaic-cell.drop-target{box-shadow:inset 0 0 0 3px var(--accent)!important;filter:brightness(1.15)}
 .mosaic-drag-ghost{position:fixed;pointer-events:none;z-index:1000;opacity:0.85;transform:scale(1.1);box-shadow:0 4px 12px rgba(0,0,0,0.25)}
@@ -8109,11 +8110,11 @@ function placeMosaicToken(r, c) {
 
 function checkMosaicSolution() {
   if (mosaicState.checked) return;
-  mosaicState.checked = true;
-  document.getElementById('mosaic-check-btn').style.display = 'none';
   const st = mosaicState;
   let correct = 0;
   const total = st.puzzle.zones.length;
+  // Clear previous error indicators
+  document.querySelectorAll('.mosaic-zone-error').forEach(el => el.remove());
   st.puzzle.zones.forEach(zone => {
     const vals = zone.cells.map(({r,c}) => st.grid[r][c]);
     let ok = false;
@@ -8137,22 +8138,53 @@ function checkMosaicSolution() {
       const cell = document.getElementById(`mcell-${r}-${c}`);
       cell.classList.add(ok ? 'zone-correct' : 'zone-wrong');
     });
+    // Add red circle next to zone label if wrong
+    if (!ok) {
+      const topLeft = zone.cells[0];
+      const cell = document.getElementById(`mcell-${topLeft.r}-${topLeft.c}`);
+      const label = cell.querySelector('.mosaic-zone-label');
+      if (label) {
+        const dot = document.createElement('span');
+        dot.className = 'mosaic-zone-error';
+        dot.textContent = '\u25CF';
+        label.appendChild(dot);
+      }
+    }
   });
-  const score = Math.round((correct / total) * 100);
-  setTimeout(() => endMosaic(score, correct, total), 800);
+  if (correct === total) {
+    // All correct — finish
+    mosaicState.checked = true;
+    document.getElementById('mosaic-check-btn').style.display = 'none';
+    const score = 100;
+    setTimeout(() => endMosaic(score, correct, total), 800);
+  } else {
+    // Some wrong — let user keep trying
+    st.mosaicAttempts = (st.mosaicAttempts || 0) + 1;
+    // Remove flash classes after animation
+    setTimeout(() => {
+      document.querySelectorAll('.mosaic-cell.zone-correct,.mosaic-cell.zone-wrong').forEach(el => {
+        el.classList.remove('zone-correct', 'zone-wrong');
+      });
+    }, 700);
+  }
 }
 
 function endMosaic(score, correctZones, totalZones) {
+  const attempts = (mosaicState.mosaicAttempts || 0);
+  // Deduct points for extra attempts: -10 per retry, min 10
+  const finalScore = Math.max(10, score - (attempts * 10));
   const c = document.getElementById('game-container');
+  const attemptsNote = attempts > 0 ? `<div style="font-size:13px;color:var(--fg2);margin-bottom:4px">${attempts} retr${attempts === 1 ? 'y' : 'ies'} (-${attempts * 10} pts)</div>` : '';
   c.innerHTML = `
     <div class="result-card animate-pop" style="text-align:center;padding:32px 20px">
       <div style="font-size:48px;margin-bottom:12px">🎨</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${score >= 80 ? 'Excellent!' : score >= 50 ? 'Good effort!' : 'Keep practicing!'}</div>
-      <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:8px">${score}%</div>
-      <div style="font-size:15px;color:var(--fg2);margin-bottom:20px">${correctZones} of ${totalZones} zones correct</div>
-      <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue \u2192</button>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${finalScore >= 80 ? 'Excellent!' : finalScore >= 50 ? 'Good effort!' : 'Keep practicing!'}</div>
+      <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:8px">${finalScore}%</div>
+      <div style="font-size:15px;color:var(--fg2);margin-bottom:4px">${correctZones} of ${totalZones} zones correct</div>
+      ${attemptsNote}
+      <button class="btn btn-primary btn-lg btn-full" style="margin-top:16px" onclick="showNextOrFinish()">Continue \u2192</button>
     </div>`;
-  GS.results['mosaic'] = score;
+  GS.results['mosaic'] = finalScore;
   document.getElementById('btn-submit-challenge').style.display = 'none';
 }
 
