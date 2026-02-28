@@ -8315,10 +8315,10 @@ function loadCurrentChallenge() {
   });
   html += `</div>`;
   html += `<div class="intro-tip">💡 ${info.tip}</div>`;
-  html += `<button class="btn btn-primary btn-lg btn-full" onclick="beginChallenge()">Start Game</button>`;
   if (ch === 'mosaic') {
-    html += `<button class="btn btn-secondary btn-lg btn-full" style="margin-top:8px" onclick="showMosaicSymbolGuide()">Symbol Guide</button>`;
+    html += `<button class="btn btn-secondary btn-lg btn-full" style="margin-bottom:8px" onclick="showMosaicSymbolGuide()">Symbol Guide</button>`;
   }
+  html += `<button class="btn btn-primary btn-lg btn-full" onclick="beginChallenge()">Start Game</button>`;
   html += `</div>`;
   c.innerHTML = html;
 }
