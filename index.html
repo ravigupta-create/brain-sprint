@@ -197,7 +197,7 @@ input[type=range]{
   background:var(--border);border-radius:3px;outline:none;
 }
 input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  -webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
   background:var(--accent);cursor:pointer;border:2px solid #fff;
   box-shadow:0 1px 4px rgba(0,0,0,0.2);
 }
@@ -259,7 +259,7 @@ input[type=range]::-webkit-slider-thumb{
   border-radius:4px;outline:none;cursor:pointer;
 }
 .eco-range::-webkit-slider-thumb{
-  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  -webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;
   background:var(--accent);cursor:pointer;border:3px solid var(--card-bg);
   box-shadow:0 2px 8px rgba(99,102,241,0.35);transition:transform 0.15s, box-shadow 0.15s;
 }
@@ -798,14 +798,14 @@ input[type=range]::-webkit-slider-thumb{
 /* Challenge 11: Memory Flip */
 .memory-stats{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;color:var(--fg2);margin-bottom:12px}
 .memory-stats span{padding:4px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
-.memory-grid{display:grid;gap:8px;margin:0 auto;max-width:400px;perspective:600px}
-.memory-card{position:relative;aspect-ratio:1;cursor:pointer;perspective:600px;-webkit-tap-highlight-color:transparent;will-change:transform}
-.memory-card-inner{position:relative;width:100%;height:100%;transition:transform 0.4s;transform-style:preserve-3d}
-.memory-card.flipped .memory-card-inner{transform:rotateY(180deg)}
-.memory-card.matched .memory-card-inner{transform:rotateY(180deg)}
-.memory-card-front,.memory-card-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--border)}
+.memory-grid{display:grid;gap:8px;margin:0 auto;max-width:400px;-webkit-perspective:600px;perspective:600px}
+.memory-card{position:relative;aspect-ratio:1;cursor:pointer;-webkit-perspective:600px;perspective:600px;-webkit-tap-highlight-color:transparent;will-change:transform}
+.memory-card-inner{position:relative;width:100%;height:100%;transition:transform 0.4s;-webkit-transform-style:preserve-3d;transform-style:preserve-3d}
+.memory-card.flipped .memory-card-inner{-webkit-transform:rotateY(180deg);transform:rotateY(180deg)}
+.memory-card.matched .memory-card-inner{-webkit-transform:rotateY(180deg);transform:rotateY(180deg)}
+.memory-card-front,.memory-card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--border)}
 .memory-card-front{background:var(--accent);color:#fff;font-size:20px}
-.memory-card-back{background:var(--card-bg);transform:rotateY(180deg)}
+.memory-card-back{background:var(--card-bg);-webkit-transform:rotateY(180deg);transform:rotateY(180deg)}
 .memory-card.matched .memory-card-back{border-color:var(--green);background:rgba(106,170,100,0.1)}
 @keyframes memoryMatch{0%{transform:rotateY(180deg) scale(1)}50%{transform:rotateY(180deg) scale(1.15)}100%{transform:rotateY(180deg) scale(1)}}
 .memory-card.match-anim .memory-card-inner{animation:memoryMatch 0.4s ease}
