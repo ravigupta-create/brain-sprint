@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brain Sprint — Daily Challenge</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
 <style>
@@ -82,6 +82,7 @@ body{
 }
 .card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(99,102,241,0.15)}
 .card.selected{border-color:var(--accent);background:var(--accent-light)}
+.btn,.wordro-key,.ws-cell,.ng-cell,.memory-card,.wordhive-hex,.pulse-tap-area,.block-item,.mosaic-token,.mosaic-cell,.escape-choice,.option-btn,.deduction-char,.deduction-q-btn,.mode-card,.diff-card,.challenge-card,.numgrid-pad button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   padding:12px 24px;border-radius:var(--radius);border:none;
@@ -355,7 +356,7 @@ input[type=range]::-webkit-slider-thumb{
 .escape-dot.done{background:var(--green)}
 .escape-narrative{
   font-family:'Noto Serif',serif;font-size:17px;line-height:1.8;
-  margin-bottom:24px;min-height:80px;
+  margin-bottom:24px;min-height:80px;max-height:40vh;overflow-y:auto;
 }
 .escape-choices{display:flex;flex-direction:column;gap:10px}
 .escape-choice{
@@ -475,7 +476,7 @@ input[type=range]::-webkit-slider-thumb{
   background:var(--bg2);border:1px solid var(--border);border-radius:3px;
   font-weight:700;font-family:'Courier New',monospace;
   cursor:pointer;aspect-ratio:1;transition:all 0.15s;
-  -webkit-tap-highlight-color:transparent;
+  -webkit-tap-highlight-color:transparent;min-width:0;min-height:22px;
 }
 .ws-cell:hover{background:var(--accent-light)}
 .ws-cell.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -568,7 +569,9 @@ input[type=range]::-webkit-slider-thumb{
 }
 @media(max-width:480px){
   .wordro-tile{width:44px;height:44px;font-size:20px}
-  .wordro-key{height:42px;font-size:12px}
+  .wordro-key{height:42px;font-size:12px;min-width:26px;max-width:38px}
+  .wordro-key.wide{min-width:44px;max-width:56px}
+  .wordro-kb-row{gap:3px}
 }
 
 /* Wordrobot Analysis Panel */
@@ -722,7 +725,7 @@ input[type=range]::-webkit-slider-thumb{
 
 /* Challenge 7: Number Grid */
 .numgrid-board{display:inline-grid;gap:0;margin:0 auto 16px;border:2px solid var(--text)}
-.numgrid-board .ng-cell{width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;border:1px solid var(--border);cursor:pointer;background:var(--bg);transition:background .15s}
+.numgrid-board .ng-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;border:1px solid var(--border);cursor:pointer;background:var(--bg);transition:background .15s}
 .numgrid-board .ng-cell.ng-given{background:var(--hover);cursor:default;color:var(--text)}
 .numgrid-board .ng-cell.ng-selected{background:var(--accent-light);outline:2px solid var(--accent);z-index:2;position:relative}
 .numgrid-board .ng-cell:hover{z-index:1;position:relative}
@@ -796,7 +799,7 @@ input[type=range]::-webkit-slider-thumb{
 .memory-stats{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;color:var(--fg2);margin-bottom:12px}
 .memory-stats span{padding:4px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
 .memory-grid{display:grid;gap:8px;margin:0 auto;max-width:400px;perspective:600px}
-.memory-card{position:relative;aspect-ratio:1;cursor:pointer;perspective:600px}
+.memory-card{position:relative;aspect-ratio:1;cursor:pointer;perspective:600px;-webkit-tap-highlight-color:transparent;will-change:transform}
 .memory-card-inner{position:relative;width:100%;height:100%;transition:transform 0.4s;transform-style:preserve-3d}
 .memory-card.flipped .memory-card-inner{transform:rotateY(180deg)}
 .memory-card.matched .memory-card-inner{transform:rotateY(180deg)}
@@ -864,6 +867,8 @@ input[type=range]::-webkit-slider-thumb{
   .mosaic-token.linked.vertical-orient .linked-bridge{width:3px;height:8px}
   .mosaic-zone-label{font-size:8px}
   .mosaic-pool{gap:6px;padding:8px}
+  .numgrid-board .ng-cell{font-size:15px}
+  .numgrid-pad button{width:38px;height:38px;font-size:16px}
 }
 </style>
 </head>
@@ -3845,7 +3850,8 @@ function placeWsWord(grid, word, directions, gridSize) {
 function renderWordsearch(puzzle) {
   GS.challengeState.wordsearch = { puzzle, foundWords:[], selectedCells:[] };
   const c = document.getElementById('game-container');
-  const fontSize = puzzle.gridSize <= 8 ? 16 : puzzle.gridSize <= 10 ? 14 : puzzle.gridSize <= 12 ? 12 : 11;
+  const isMobile = window.innerWidth <= 480;
+  const fontSize = puzzle.gridSize <= 8 ? 16 : puzzle.gridSize <= 10 ? 14 : puzzle.gridSize <= 12 ? (isMobile ? 13 : 12) : (isMobile ? 12 : 11);
   let html = `<div style="margin-bottom:8px;text-align:center"><strong>Theme: ${puzzle.theme}</strong></div>`;
   html += `<div class="ws-wordlist" id="ws-wordlist">`;
   if (puzzle.showWords) {
@@ -6508,8 +6514,9 @@ function renderNumgrid(data) {
   };
 
   const c = document.getElementById('game-container');
+  const ngCellSize = Math.min(38, Math.floor((Math.min(window.innerWidth, 600) - 40) / size));
   let html = `<div style="text-align:center">`;
-  html += `<div class="numgrid-board" style="grid-template-columns:repeat(${size},38px)">`;
+  html += `<div class="numgrid-board" style="grid-template-columns:repeat(${size},${ngCellSize}px)">`;
   for (let r = 0; r < size; r++) {
     for (let col = 0; col < size; col++) {
       const given = puzzle[r][col] !== 0;
@@ -7581,7 +7588,7 @@ function renderMaze(puzzle) {
     if (GS.challengeState.maze.finished) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
-    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
     if (Math.abs(dx) > Math.abs(dy)) {
       moveMazePlayer(0, dx > 0 ? 1 : -1);
     } else {
