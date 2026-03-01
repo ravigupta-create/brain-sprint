@@ -477,7 +477,7 @@ input[type=range]::-webkit-slider-thumb{
   background:var(--bg2);border:1px solid var(--border);border-radius:3px;
   font-weight:700;font-family:'Courier New',monospace;
   cursor:pointer;aspect-ratio:1;transition:background 0.15s,border-color 0.15s,color 0.15s;
-  -webkit-tap-highlight-color:transparent;min-width:0;min-height:22px;
+  -webkit-tap-highlight-color:transparent;min-width:0;min-height:28px;
 }
 .ws-cell:hover{background:var(--accent-light)}
 .ws-cell.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -548,7 +548,7 @@ input[type=range]::-webkit-slider-thumb{
   display:flex;gap:4px;justify-content:center;width:100%;
 }
 .wordro-key{
-  min-width:30px;height:48px;
+  min-width:36px;height:48px;
   display:flex;align-items:center;justify-content:center;
   background:var(--bg3);color:var(--fg);
   border:none;border-radius:8px;
@@ -733,7 +733,7 @@ input[type=range]::-webkit-slider-thumb{
 .numgrid-board .ng-cell.ng-error{background:#ffe0e0;color:#c00}
 .numgrid-board .ng-cell.ng-correct{background:#d4edda;color:#155724}
 .numgrid-pad{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-.numgrid-pad button{width:42px;height:42px;font-size:18px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer}
+.numgrid-pad button{width:44px;height:44px;font-size:18px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer}
 .numgrid-pad button:hover{background:var(--hover)}
 .numgrid-pad button.ng-pad-clear{width:auto;padding:0 12px;font-size:14px}
 .ng-box-right{border-right:2px solid var(--text) !important}
@@ -788,7 +788,7 @@ input[type=range]::-webkit-slider-thumb{
 .deduction-char .dc-name{font-size:13px;font-weight:700}
 .deduction-char .dc-role{font-size:11px;color:var(--fg2)}
 .deduction-questions{display:flex;flex-direction:column;gap:8px;margin:12px 0}
-.deduction-q-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;text-align:left;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s,border-color 0.15s;font-family:inherit}
+.deduction-q-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:left;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s,border-color 0.15s;font-family:inherit;min-height:44px}
 .deduction-q-btn:hover{border-color:var(--accent);background:var(--accent-light)}
 .deduction-responses{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin:12px 0;max-height:220px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .deduction-resp{font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)}
@@ -826,6 +826,9 @@ input[type=range]::-webkit-slider-thumb{
 .maze-cell.visited{background:var(--accent-light)}
 .maze-cell.player{background:var(--accent);color:#fff;font-weight:800;border-radius:50%}
 .maze-cell.goal{background:rgba(106,170,100,0.15)}
+.maze-dpad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,48px);gap:4px;justify-content:center;margin-top:12px}
+.maze-dpad button{border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px}
+.maze-dpad button:active{background:var(--accent-light)}
 /* Challenge 13: Mosaic */
 .mosaic-stats{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;color:var(--fg2);margin-bottom:12px}
 .mosaic-stats span{padding:4px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
@@ -836,7 +839,7 @@ input[type=range]::-webkit-slider-thumb{
 .mosaic-cell.selected-cell{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
 .mosaic-zone-label{position:absolute;top:2px;left:4px;font-size:9px;font-weight:600;color:var(--fg2);pointer-events:none;line-height:1;white-space:nowrap}
 .mosaic-pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px;background:var(--bg2);border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:12px}
-.mosaic-token{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--radius);background:var(--card-bg);border:2px solid var(--border);font-size:18px;font-weight:700;cursor:pointer;transition:background 0.15s,border-color 0.15s,transform 0.15s,opacity 0.15s,box-shadow 0.15s}
+.mosaic-token{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:var(--radius);background:var(--card-bg);border:2px solid var(--border);font-size:18px;font-weight:700;cursor:pointer;transition:background 0.15s,border-color 0.15s,transform 0.15s,opacity 0.15s,box-shadow 0.15s}
 .mosaic-token:hover{border-color:var(--accent);transform:scale(1.05)}
 .mosaic-token.selected-token{border-color:var(--accent);background:var(--accent-light);transform:scale(1.1);box-shadow:0 0 0 3px rgba(99,102,241,0.3)}
 .mosaic-token.used{opacity:0.25;pointer-events:none;transform:scale(0.9)}
@@ -862,16 +865,16 @@ input[type=range]::-webkit-slider-thumb{
   .memory-card-front,.memory-card-back{font-size:22px}
   .maze-cell{font-size:10px}
   .mosaic-cell{font-size:15px;min-height:38px}
-  .mosaic-token{width:40px;height:40px;font-size:15px}
-  .mosaic-token.linked{min-width:66px;height:40px;padding:0 4px}
+  .mosaic-token{width:44px;height:44px;font-size:15px}
+  .mosaic-token.linked{min-width:70px;height:44px;padding:0 4px}
   .mosaic-token.linked .linked-val{width:28px;height:28px;font-size:13px}
   .mosaic-token.linked .linked-bridge{width:8px;height:3px}
-  .mosaic-token.linked.vertical-orient{width:40px;min-width:40px;min-height:66px;padding:4px 0}
+  .mosaic-token.linked.vertical-orient{width:44px;min-width:44px;min-height:70px;padding:4px 0}
   .mosaic-token.linked.vertical-orient .linked-bridge{width:3px;height:8px}
   .mosaic-zone-label{font-size:8px}
   .mosaic-pool{gap:6px;padding:8px}
   .numgrid-board .ng-cell{font-size:15px}
-  .numgrid-pad button{width:38px;height:38px;font-size:16px}
+  .numgrid-pad button{width:44px;height:44px;font-size:16px}
 }
 @media(hover:none)and (pointer:coarse){
   .card:hover{border-color:var(--border);box-shadow:var(--card-shadow)}
@@ -7657,6 +7660,11 @@ function renderMaze(puzzle) {
       html += `<div class="${cls}" id="mz-${r}-${cc}">${content}</div>`;
     }
   }
+  html += `</div>`;
+  html += `<div class="maze-dpad">`;
+  html += `<div></div><button onclick="moveMazePlayer(-1,0)">↑</button><div></div>`;
+  html += `<button onclick="moveMazePlayer(0,-1)">←</button><div></div><button onclick="moveMazePlayer(0,1)">→</button>`;
+  html += `<div></div><button onclick="moveMazePlayer(1,0)">↓</button><div></div>`;
   html += `</div></div>`;
   c.innerHTML = html;
 
