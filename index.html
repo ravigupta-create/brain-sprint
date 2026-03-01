@@ -738,6 +738,8 @@ input[type=range]::-webkit-slider-thumb{
 .numgrid-pad button.ng-pad-clear{width:auto;padding:0 12px;font-size:14px}
 .ng-box-right{border-right:2px solid var(--text) !important}
 .ng-box-bottom{border-bottom:2px solid var(--text) !important}
+.ng-drag-ghost{position:fixed;pointer-events:none;z-index:1000;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border-radius:8px;background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.25);opacity:0.9}
+.numgrid-board .ng-cell.ng-drop-target{outline:3px solid var(--accent);outline-offset:-3px;background:var(--accent-light)}
 
 /* Challenge 8: Word Bloom */
 .wordhive-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -6567,6 +6569,7 @@ function renderNumgrid(data) {
     else if (e.key === 'ArrowRight' && GS.challengeState.selectedC < size - 1) tapNumgridCell(GS.challengeState.selectedR, GS.challengeState.selectedC + 1);
   };
   document.addEventListener('keydown', GS.challengeState._keyHandler);
+  initNumgridDragDrop();
 }
 
 function tapNumgridCell(r, c) {
@@ -6592,6 +6595,85 @@ function updateNumgridUI() {
     cell.classList.remove('ng-selected', 'ng-error', 'ng-correct');
     if (r === st.selectedR && c === st.selectedC) cell.classList.add('ng-selected');
     cell.textContent = st.grid[r][c] || '';
+  });
+}
+
+function initNumgridDragDrop() {
+  const st = GS.challengeState;
+  const padBtns = document.querySelectorAll('.numgrid-pad button:not(.ng-pad-clear)');
+  // Desktop HTML5 drag
+  padBtns.forEach(btn => {
+    btn.setAttribute('draggable', 'true');
+    btn.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', btn.textContent);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+  });
+  document.querySelectorAll('.ng-cell:not(.ng-given)').forEach(cell => {
+    cell.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; cell.classList.add('ng-drop-target'); });
+    cell.addEventListener('dragleave', () => cell.classList.remove('ng-drop-target'));
+    cell.addEventListener('drop', e => {
+      e.preventDefault();
+      cell.classList.remove('ng-drop-target');
+      const num = parseInt(e.dataTransfer.getData('text/plain'));
+      if (num >= 1 && num <= st.size) {
+        const r = +cell.dataset.r, c = +cell.dataset.c;
+        st.selectedR = r; st.selectedC = c;
+        st.grid[r][c] = num;
+        updateNumgridUI();
+      }
+    });
+  });
+  // Mobile touch drag
+  const ts = {val:0, ghost:null, moved:false, sx:0, sy:0};
+  function onTouchMove(e) {
+    const t = e.touches[0];
+    if (!ts.moved && Math.abs(t.clientX - ts.sx) + Math.abs(t.clientY - ts.sy) > 10) {
+      ts.moved = true;
+      ts.ghost = document.createElement('div');
+      ts.ghost.className = 'ng-drag-ghost';
+      ts.ghost.textContent = ts.val;
+      document.body.appendChild(ts.ghost);
+    }
+    if (ts.moved && ts.ghost) {
+      e.preventDefault();
+      ts.ghost.style.left = (t.clientX - 21) + 'px';
+      ts.ghost.style.top = (t.clientY - 21) + 'px';
+      document.querySelectorAll('.ng-cell.ng-drop-target').forEach(el => el.classList.remove('ng-drop-target'));
+      ts.ghost.style.pointerEvents = 'none';
+      const under = document.elementFromPoint(t.clientX, t.clientY);
+      if (under) { const nc = under.closest('.ng-cell:not(.ng-given)'); if (nc) nc.classList.add('ng-drop-target'); }
+    }
+  }
+  function onTouchEnd(e) {
+    if (ts.moved && ts.ghost) {
+      const t = e.changedTouches[0];
+      ts.ghost.style.pointerEvents = 'none';
+      const under = document.elementFromPoint(t.clientX, t.clientY);
+      ts.ghost.remove(); ts.ghost = null;
+      document.querySelectorAll('.ng-cell.ng-drop-target').forEach(el => el.classList.remove('ng-drop-target'));
+      if (under) {
+        const nc = under.closest('.ng-cell:not(.ng-given)');
+        if (nc) {
+          const r = +nc.dataset.r, c = +nc.dataset.c;
+          st.selectedR = r; st.selectedC = c;
+          st.grid[r][c] = ts.val;
+          updateNumgridUI();
+        }
+      }
+    }
+    ts.val = 0; ts.moved = false;
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+  }
+  padBtns.forEach(btn => {
+    btn.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      ts.val = parseInt(btn.textContent);
+      ts.sx = t.clientX; ts.sy = t.clientY; ts.moved = false;
+      document.addEventListener('touchmove', onTouchMove, {passive:false});
+      document.addEventListener('touchend', onTouchEnd);
+    }, {passive:true});
   });
 }
 
