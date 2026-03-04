@@ -83,7 +83,7 @@ body{
 }
 .card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(99,102,241,0.15)}
 .card.selected{border-color:var(--accent);background:var(--accent-light)}
-.btn,.wordro-key,.ws-cell,.ng-cell,.memory-card,.wordhive-hex,.pulse-tap-area,.block-item,.mosaic-token,.mosaic-cell,.escape-choice,.option-btn,.deduction-char,.deduction-q-btn,.mode-card,.diff-card,.challenge-card,.numgrid-pad button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn,.wordro-key,.nc-key,.ws-cell,.ng-cell,.memory-card,.wordhive-hex,.pulse-tap-area,.block-item,.mosaic-token,.mosaic-cell,.escape-choice,.option-btn,.deduction-char,.deduction-q-btn,.mode-card,.diff-card,.challenge-card,.numgrid-pad button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   padding:12px 24px;border-radius:var(--radius);border:none;
@@ -573,6 +573,68 @@ input[type=range]::-webkit-slider-thumb{
   .wordro-key{height:44px;font-size:13px;min-width:36px;max-width:42px}
   .wordro-key.wide{min-width:48px;max-width:60px}
   .wordro-kb-row{gap:3px}
+}
+
+/* Number Crunch */
+.nc-board{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  margin:10px auto;
+}
+.nc-row{
+  display:flex;gap:4px;
+}
+.nc-tile{
+  width:42px;height:50px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;font-family:'Libre Franklin',sans-serif;
+  border:2px solid var(--border);border-radius:10px;
+  background:var(--card-bg);color:var(--fg);
+  transition:border-color 0.1s;
+}
+.nc-tile.filled{border-color:var(--border2)}
+.nc-tile.correct{
+  background:#3b82f6;color:#fff;border-color:#3b82f6;
+}
+.nc-tile.present{
+  background:#f97316;color:#fff;border-color:#f97316;
+}
+.nc-tile.absent{
+  background:var(--fg3);color:#fff;border-color:var(--fg3);opacity:0.7;
+}
+.nc-tile.reveal{animation:wordroFlip 0.5s ease}
+.nc-tile.pop{animation:wordroPopTile 0.1s ease}
+.nc-keyboard{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  margin-top:12px;width:100%;max-width:500px;margin-left:auto;margin-right:auto;
+}
+.nc-kb-row{
+  display:flex;gap:4px;justify-content:center;width:100%;
+}
+.nc-key{
+  min-width:36px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg3);color:var(--fg);
+  border:none;border-radius:8px;
+  font-size:16px;font-weight:700;font-family:'Libre Franklin',sans-serif;
+  cursor:pointer;flex:1;max-width:44px;
+  transition:background 0.15s,color 0.15s,opacity 0.15s,transform 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.nc-key:hover{opacity:0.8}
+.nc-key:active{transform:scale(0.95)}
+.nc-key.wide{min-width:55px;max-width:65px;font-size:12px}
+.nc-key.correct{background:#3b82f6;color:#fff}
+.nc-key.present{background:#f97316;color:#fff}
+.nc-key.absent{background:var(--fg3);color:#fff;opacity:0.5}
+.nc-msg{
+  text-align:center;font-weight:600;font-size:14px;
+  min-height:24px;margin-top:4px;
+}
+@media(max-width:480px){
+  .nc-tile{width:36px;height:44px;font-size:18px}
+  .nc-key{height:44px;font-size:14px;min-width:34px;max-width:40px}
+  .nc-key.wide{min-width:48px;max-width:60px}
+  .nc-kb-row{gap:3px}
 }
 
 /* Wordrobot Analysis Panel */
@@ -1133,9 +1195,9 @@ const GS = {
   attempts: {},
 };
 const MULTIPLIERS = { easy: 1, medium: 1.5, hard: 2, extreme: 3 };
-const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic' };
-const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨' };
-const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic'];
+const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch' };
+const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮' };
+const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch'];
 
 // --- localStorage ---
 function lsGet(k, def) { try { const v = localStorage.getItem('bs-'+k); return v ? JSON.parse(v) : def; } catch { return def; } }
@@ -1455,6 +1517,37 @@ function showCompletedPuzzleResults(ch, score) {
         };
         setTimeout(swapBtn, 200);
       });
+      return;
+    }
+  }
+  if (ch === 'numcrunch') {
+    const savedState = lsGet('daily-numcrunch-state-'+getDailyDateStr(), null);
+    if (savedState) {
+      const puzzle = savedState.puzzle;
+      const guesses = savedState.guesses;
+      let html = '<div style="text-align:center">';
+      html += '<div class="nc-board">';
+      for (let r = 0; r < puzzle.maxGuesses; r++) {
+        html += '<div class="nc-row">';
+        for (let col = 0; col < puzzle.length; col++) {
+          html += '<div class="nc-tile" id="nc-review-' + r + '-' + col + '"></div>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+      html += '<div class="nc-msg">' + (savedState.won ? '<span style="color:var(--green)">Solved!</span>' : 'The equation was <strong>' + puzzle.equation + '</strong>') + '</div>';
+      html += '<button class="btn btn-secondary btn-lg" onclick="goToLanding()" style="min-width:200px;margin-top:16px">Back</button>';
+      html += '</div>';
+      c.innerHTML = html;
+      for (let r = 0; r < guesses.length; r++) {
+        const g = guesses[r];
+        for (let col = 0; col < puzzle.length; col++) {
+          const tile = document.getElementById('nc-review-' + r + '-' + col);
+          if (!tile) continue;
+          tile.textContent = g.word[col];
+          tile.classList.add(g.result[col]);
+        }
+      }
       return;
     }
   }
@@ -8416,6 +8509,337 @@ function endMosaic(score, correctZones, totalZones) {
   document.getElementById('btn-submit-challenge').style.display = 'none';
 }
 
+// ==================== CHALLENGE 14: NUMBER CRUNCH ====================
+
+function getNumcrunchPuzzle() {
+  const diff = GS.difficulty || 'easy';
+  const configs = {
+    easy:    { length: 6, maxGuesses: 6, ops: ['+','-'] },
+    medium:  { length: 7, maxGuesses: 6, ops: ['+','-'] },
+    hard:    { length: 8, maxGuesses: 5, ops: ['+','-','*'] },
+    extreme: { length: 8, maxGuesses: 4, ops: ['+','-','*','/'] }
+  };
+  const cfg = configs[diff] || configs.easy;
+  const { length, maxGuesses, ops } = cfg;
+
+  for (let attempt = 0; attempt < 5000; attempt++) {
+    const op = ops[Math.floor(Math.random() * ops.length)];
+    let a, b, result;
+    if (op === '+') {
+      a = Math.floor(Math.random() * 99) + 1;
+      b = Math.floor(Math.random() * 99) + 1;
+      result = a + b;
+    } else if (op === '-') {
+      a = Math.floor(Math.random() * 99) + 2;
+      b = Math.floor(Math.random() * (a - 1)) + 1;
+      result = a - b;
+    } else if (op === '*') {
+      a = Math.floor(Math.random() * 30) + 2;
+      b = Math.floor(Math.random() * 20) + 2;
+      result = a * b;
+    } else if (op === '/') {
+      b = Math.floor(Math.random() * 12) + 2;
+      result = Math.floor(Math.random() * 20) + 1;
+      a = b * result;
+    }
+    if (result <= 0) continue;
+    const eq = '' + a + op + b + '=' + result;
+    if (eq.length === length) {
+      return { equation: eq, length, maxGuesses, difficulty: diff };
+    }
+  }
+  // Fallback
+  const fallbacks = { 6: '9+3=12', 7: '15+7=22', 8: '23+45=68' };
+  const eq = fallbacks[length] || '9+3=12';
+  return { equation: eq, length: eq.length, maxGuesses, difficulty: diff };
+}
+
+function renderNumcrunch(puzzle) {
+  const c = document.getElementById('game-container');
+  const state = {
+    puzzle,
+    guesses: [],
+    currentGuess: '',
+    currentRow: 0,
+    gameOver: false,
+    won: false,
+    revealInProgress: false,
+    keyStates: {}
+  };
+  GS.challengeState.numcrunch = state;
+
+  let html = '<div style="text-align:center">';
+  // Board
+  html += '<div class="nc-board" id="nc-board">';
+  for (let r = 0; r < puzzle.maxGuesses; r++) {
+    html += '<div class="nc-row" id="nc-row-' + r + '">';
+    for (let col = 0; col < puzzle.length; col++) {
+      html += '<div class="nc-tile" id="nc-tile-' + r + '-' + col + '"></div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Message area
+  html += '<div class="nc-msg" id="nc-msg"></div>';
+
+  // Keyboard
+  const rows = [
+    ['1','2','3','4','5','6','7','8','9','0'],
+    ['+','-','*','/','='],
+    ['ENTER','DEL']
+  ];
+  html += '<div class="nc-keyboard" id="nc-keyboard">';
+  rows.forEach(row => {
+    html += '<div class="nc-kb-row">';
+    row.forEach(key => {
+      const isWide = (key === 'ENTER' || key === 'DEL');
+      const label = key === 'DEL' ? '⌫' : key;
+      html += `<button class="nc-key${isWide?' wide':''}" id="nc-key-${key}" onclick="numcrunchKeyPress('${key}')">${label}</button>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  c.innerHTML = html;
+  document.getElementById('btn-submit-challenge').style.display = 'none';
+
+  // Physical keyboard support
+  state._keyHandler = function(e) {
+    if (document.getElementById('lockout-screen').style.display !== 'none') return;
+    if (state.gameOver) return;
+    if (e.key === 'Enter' || e.key === 'Return') { numcrunchKeyPress('ENTER'); e.preventDefault(); }
+    else if (e.key === 'Backspace' || e.key === 'Delete') { numcrunchKeyPress('DEL'); e.preventDefault(); }
+    else if (/^[0-9+\-*\/=]$/.test(e.key)) { numcrunchKeyPress(e.key); e.preventDefault(); }
+  };
+  document.addEventListener('keydown', state._keyHandler);
+}
+
+function numcrunchKeyPress(key) {
+  const state = GS.challengeState.numcrunch;
+  if (!state || state.gameOver || state.revealInProgress) return;
+
+  const msgEl = document.getElementById('nc-msg');
+  if (msgEl && key !== 'ENTER') msgEl.textContent = '';
+
+  if (key === 'DEL') {
+    if (state.currentGuess.length > 0) {
+      state.currentGuess = state.currentGuess.slice(0, -1);
+      numcrunchUpdateCurrentRow();
+    }
+    return;
+  }
+
+  if (key === 'ENTER') {
+    numcrunchSubmitGuess();
+    return;
+  }
+
+  // Digit or operator key
+  if (state.currentGuess.length < state.puzzle.length) {
+    state.currentGuess += key;
+    numcrunchUpdateCurrentRow();
+    // Pop animation
+    const tile = document.getElementById('nc-tile-' + state.currentRow + '-' + (state.currentGuess.length - 1));
+    if (tile) {
+      tile.classList.add('pop');
+      setTimeout(() => tile.classList.remove('pop'), 100);
+    }
+  }
+}
+
+function numcrunchUpdateCurrentRow() {
+  const state = GS.challengeState.numcrunch;
+  for (let col = 0; col < state.puzzle.length; col++) {
+    const tile = document.getElementById('nc-tile-' + state.currentRow + '-' + col);
+    if (!tile) continue;
+    if (col < state.currentGuess.length) {
+      tile.textContent = state.currentGuess[col];
+      tile.classList.add('filled');
+    } else {
+      tile.textContent = '';
+      tile.classList.remove('filled');
+    }
+  }
+}
+
+function numcrunchSubmitGuess() {
+  const state = GS.challengeState.numcrunch;
+  const msgEl = document.getElementById('nc-msg');
+
+  if (state.currentGuess.length !== state.puzzle.length) {
+    msgEl.textContent = 'Not enough characters';
+    msgEl.style.color = 'var(--red)';
+    const row = document.getElementById('nc-row-' + state.currentRow);
+    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+    return;
+  }
+
+  // Validate: must contain exactly one '='
+  const eqParts = state.currentGuess.split('=');
+  if (eqParts.length !== 2 || !eqParts[0] || !eqParts[1]) {
+    msgEl.textContent = 'Must contain exactly one = sign';
+    msgEl.style.color = 'var(--red)';
+    const row = document.getElementById('nc-row-' + state.currentRow);
+    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+    return;
+  }
+
+  // Validate math: left side must equal right side
+  let leftVal, rightVal;
+  try {
+    // Only allow digits and +-*/
+    if (!/^[0-9+\-*\/]+$/.test(eqParts[0]) || !/^[0-9]+$/.test(eqParts[1])) {
+      throw new Error('invalid');
+    }
+    leftVal = Function('"use strict"; return (' + eqParts[0] + ')')();
+    rightVal = parseInt(eqParts[1], 10);
+  } catch {
+    msgEl.textContent = 'Invalid equation';
+    msgEl.style.color = 'var(--red)';
+    const row = document.getElementById('nc-row-' + state.currentRow);
+    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+    return;
+  }
+
+  if (leftVal !== rightVal || !Number.isFinite(leftVal)) {
+    msgEl.textContent = 'Equation is not correct';
+    msgEl.style.color = 'var(--red)';
+    const row = document.getElementById('nc-row-' + state.currentRow);
+    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+    return;
+  }
+
+  const guess = state.currentGuess;
+  const answer = state.puzzle.equation;
+  const len = state.puzzle.length;
+  const result = Array(len).fill('absent');
+
+  // First pass: correct (exact match)
+  const answerChars = answer.split('');
+  const guessChars = guess.split('');
+  for (let i = 0; i < len; i++) {
+    if (guessChars[i] === answerChars[i]) {
+      result[i] = 'correct';
+      answerChars[i] = null;
+      guessChars[i] = null;
+    }
+  }
+  // Second pass: present
+  for (let i = 0; i < len; i++) {
+    if (guessChars[i] === null) continue;
+    const idx = answerChars.indexOf(guessChars[i]);
+    if (idx !== -1) {
+      result[i] = 'present';
+      answerChars[idx] = null;
+    }
+  }
+
+  state.guesses.push({ word: guess, result });
+  msgEl.textContent = '';
+
+  // Lock input during reveal
+  state.revealInProgress = true;
+
+  // Reveal tiles with flip animation
+  const row = state.currentRow;
+  for (let col = 0; col < len; col++) {
+    const tile = document.getElementById('nc-tile-' + row + '-' + col);
+    if (!tile) continue;
+    const delay = col * 300;
+    setTimeout(() => {
+      tile.classList.add('reveal');
+      setTimeout(() => {
+        tile.classList.add(result[col]);
+        tile.classList.remove('reveal', 'filled');
+      }, 250);
+    }, delay);
+  }
+
+  // Update keyboard and check win/loss after animation
+  setTimeout(() => {
+    for (let i = 0; i < len; i++) {
+      const ch = guess[i];
+      const keyEl = document.getElementById('nc-key-' + ch);
+      if (!keyEl) continue;
+      const current = state.keyStates[ch];
+      if (result[i] === 'correct') {
+        state.keyStates[ch] = 'correct';
+      } else if (result[i] === 'present' && current !== 'correct') {
+        state.keyStates[ch] = 'present';
+      } else if (!current) {
+        state.keyStates[ch] = 'absent';
+      }
+      keyEl.className = 'nc-key' + (state.keyStates[ch] ? ' ' + state.keyStates[ch] : '');
+    }
+
+    const won = result.every(r => r === 'correct');
+    state.currentRow++;
+    state.currentGuess = '';
+
+    if (won) {
+      state.gameOver = true;
+      state.won = true;
+      msgEl.textContent = 'Brilliant!';
+      msgEl.style.color = 'var(--green)';
+      for (let col = 0; col < len; col++) {
+        const tile = document.getElementById('nc-tile-' + (state.currentRow - 1) + '-' + col);
+        if (tile) { setTimeout(() => tile.classList.add('animate-bounce'), col * 100); }
+      }
+      if (state._keyHandler) document.removeEventListener('keydown', state._keyHandler);
+      setTimeout(() => submitNumcrunch(), 1800);
+    } else if (state.currentRow >= state.puzzle.maxGuesses) {
+      state.gameOver = true;
+      state.won = false;
+      msgEl.innerHTML = `The equation was <strong>${answer}</strong>`;
+      msgEl.style.color = 'var(--red)';
+      if (state._keyHandler) document.removeEventListener('keydown', state._keyHandler);
+      setTimeout(() => submitNumcrunch(), 1500);
+    }
+    state.revealInProgress = false;
+  }, len * 300 + 300);
+}
+
+function submitNumcrunch() {
+  const state = GS.challengeState.numcrunch;
+  if (!state) return;
+  let score = 0;
+  if (state.won) {
+    const guessNum = state.guesses.length;
+    switch(guessNum) {
+      case 1: score = 100; break;
+      case 2: score = 90; break;
+      case 3: score = 75; break;
+      case 4: score = 60; break;
+      case 5: score = 40; break;
+      case 6: score = 25; break;
+    }
+  }
+  GS.results.numcrunch = score;
+  if (GS.mode === 'daily') {
+    setDailyCompletion('numcrunch', score);
+    lsSet('daily-numcrunch-state-'+getDailyDateStr(), {
+      guesses: state.guesses,
+      won: state.won,
+      puzzle: { equation: state.puzzle.equation, length: state.puzzle.length, maxGuesses: state.puzzle.maxGuesses }
+    });
+  }
+  // Disable keyboard
+  document.querySelectorAll('.nc-key').forEach(k => { k.disabled = true; k.style.pointerEvents = 'none'; k.style.cursor = 'default'; });
+  const msgEl = document.getElementById('nc-msg');
+  if (msgEl) {
+    const label = state.won ? 'Solved' : 'Failed';
+    msgEl.innerHTML = `<div style="color:${state.won?'var(--green)':'var(--red)'};font-weight:700;animation:pop 0.4s">${label}! Score: ${score}/100 (${state.guesses.length}/${state.puzzle.maxGuesses} guesses)</div>`;
+  }
+  const c = document.getElementById('game-container');
+  c.innerHTML += `
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue \u2192</button>
+    </div>`;
+  document.getElementById('btn-submit-challenge').style.display = 'none';
+}
+
 // ==================== INTEGRATION ====================
 
 const CHALLENGE_INSTRUCTIONS = {
@@ -8536,6 +8960,16 @@ const CHALLENGE_INSTRUCTIONS = {
       'When all cells are filled, press Check — score is based on zones solved correctly'
     ],
     tip: 'Pay attention to the rule on each zone. Tap a selected linked pair to rotate it before placing!'
+  },
+  numcrunch: {
+    steps: [
+      'Guess the hidden math equation',
+      'Type digits and operators, then press Enter',
+      'Green = right character, right spot',
+      'Orange = right character, wrong spot',
+      'Gray = character not in the equation'
+    ],
+    tip: 'Your guess must be a valid equation (e.g., 12+34=46). The = sign is part of the equation!'
   }
 };
 
@@ -8603,6 +9037,7 @@ function beginChallenge() {
     case 'memory': renderMemory(getMemoryPuzzle()); break;
     case 'maze': renderMaze(getMazePuzzle()); break;
     case 'mosaic': renderMosaic(getMosaicPuzzle()); break;
+    case 'numcrunch': renderNumcrunch(getNumcrunchPuzzle()); break;
   }
 }
 
@@ -8615,7 +9050,8 @@ function submitChallenge() {
     case 'wordro': submitWordro(); break;
     case 'numgrid': submitNumgrid(); break;
     case 'wordhive': submitWordhive(); break;
-    // paradox, escape, pulse, deduction, memory, maze, and mosaic handle their own submission
+    case 'numcrunch': numcrunchSubmitGuess(); break;
+    // paradox, escape, pulse, deduction, memory, maze, mosaic, and numcrunch handle their own submission
   }
 }
 
