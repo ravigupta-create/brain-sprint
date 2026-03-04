@@ -890,6 +890,15 @@ input[type=range]::-webkit-slider-thumb{
 </style>
 </head>
 <body>
+<!-- LOCKOUT SCREEN -->
+<div id="lockout-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px">
+  <div style="font-size:48px;margin-bottom:16px">🚫</div>
+  <div style="font-size:22px;font-weight:700;color:var(--fg);margin-bottom:8px">Access Locked</div>
+  <div style="color:var(--fg2);margin-bottom:24px;max-width:320px">This site has been locked. Enter the password to continue.</div>
+  <input type="text" id="lockout-input" placeholder="Enter password" maxlength="20" autocomplete="off" style="width:240px;padding:12px 16px;font-size:16px;border:2px solid var(--border);border-radius:var(--radius);text-align:center;background:var(--bg2);color:var(--fg);outline:none">
+  <div id="lockout-error" style="color:var(--red);margin-top:8px;font-size:14px;min-height:20px"></div>
+  <button onclick="tryUnlockSite()" style="margin-top:12px;padding:12px 32px;font-size:16px;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer">Unlock</button>
+</div>
 <!-- HEADER -->
 <div class="header">
   <div class="left">
@@ -5693,6 +5702,7 @@ function renderWordro(puzzle) {
 
   // Physical keyboard support
   state._keyHandler = function(e) {
+    if (document.getElementById('lockout-screen').style.display !== 'none') return;
     if (state.gameOver) return;
     if (e.key === 'Enter' || e.key === 'Return') { wordroKeyPress('ENTER'); e.preventDefault(); }
     else if (e.key === 'Backspace' || e.key === 'Delete') { wordroKeyPress('DEL'); e.preventDefault(); }
@@ -5739,6 +5749,13 @@ function wordroKeyPress(key) {
     if (tile) {
       tile.classList.add('pop');
       setTimeout(() => tile.classList.remove('pop'), 100);
+    }
+    // Curse word check
+    if (_checkCurse(state.currentGuess)) {
+      state.currentGuess = '';
+      wordroUpdateCurrentRow();
+      lockSite();
+      return;
     }
   }
 }
@@ -6743,22 +6760,20 @@ function loadBloomWords() {
 
 function getWordhivePuzzle() {
   const diff = GS.difficulty;
-  let targetPct, centerPool, minLen;
-  if (diff === 'easy')        { targetPct = 0.40; centerPool = 'earstlnio'; minLen = 3; }
-  else if (diff === 'medium') { targetPct = 0.55; centerPool = 'earstlniodcuh'; minLen = 4; }
-  else if (diff === 'hard')   { targetPct = 0.70; centerPool = null; minLen = 4; }
-  else                        { targetPct = 0.85; centerPool = null; minLen = 5; }
+  // Difficulty only affects how many words you need for a perfect score
+  let targetPct;
+  if (diff === 'easy')        { targetPct = 0.30; }
+  else if (diff === 'medium') { targetPct = 0.50; }
+  else if (diff === 'hard')   { targetPct = 0.70; }
+  else                        { targetPct = 0.90; }
 
-  // Build combined word pool based on minLen
+  const minLen = 3;
+  const centerPool = 'earstlnio';
+
+  // Build combined word pool (always include all lengths 3-7)
   const fiveLetterWords = WORDRO_ANSWERS.map(w => w.toLowerCase());
-  let allWords;
-  if (minLen < 5) {
-    const shortWords = BLOOM_WORDS.filter(w => w.length >= minLen && w.length <= 7);
-    const combined = new Set([...shortWords, ...fiveLetterWords]);
-    allWords = [...combined];
-  } else {
-    allWords = fiveLetterWords;
-  }
+  const shortWords = BLOOM_WORDS.filter(w => w.length >= minLen && w.length <= 7);
+  const allWords = [...new Set([...shortWords, ...fiveLetterWords])];
 
   let bestSet = null, bestCenter = null, bestValid = [];
 
@@ -6767,14 +6782,9 @@ function getWordhivePuzzle() {
     const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
     const shuffled = rngShuffle(alphabet);
     const letters = shuffled.slice(0, 7);
-    // Pick center letter (biased by difficulty)
-    let center;
-    if (centerPool) {
-      const poolLetters = letters.filter(l => centerPool.includes(l));
-      center = poolLetters.length > 0 ? rngPick(poolLetters) : rngPick(letters);
-    } else {
-      center = rngPick(letters);
-    }
+    // Pick center letter (biased toward common letters)
+    const poolLetters = letters.filter(l => centerPool.includes(l));
+    const center = poolLetters.length > 0 ? rngPick(poolLetters) : rngPick(letters);
     const letterSet = new Set(letters);
     // Find valid words: >= minLen, uses only these letters, includes center
     const valid = allWords.filter(w => {
@@ -6783,7 +6793,7 @@ function getWordhivePuzzle() {
       for (const ch of w) if (!letterSet.has(ch)) return false;
       return true;
     });
-    if (valid.length >= 8 && valid.length <= 50) {
+    if (valid.length >= 8 && valid.length <= 100) {
       bestSet = letters;
       bestCenter = center;
       bestValid = valid;
@@ -6871,12 +6881,14 @@ function updateWordhiveHiveUI() {
 }
 
 function wordhiveTap(letter) {
+  if (GS.challengeState.done) return;
   GS.challengeState.input += letter;
   updateWordhiveInputUI();
 }
 
 function wordhiveDelete() {
   const st = GS.challengeState;
+  if (st.done) return;
   st.input = st.input.slice(0, -1);
   updateWordhiveInputUI();
 }
@@ -6891,6 +6903,7 @@ function wordhiveShuffle() {
 
 function wordhiveEnter() {
   const st = GS.challengeState;
+  if (st.done) return;
   const word = st.input.toLowerCase();
   st.input = '';
 
@@ -6912,6 +6925,14 @@ function wordhiveEnter() {
   if (st.validWords.includes(word)) {
     st.found.push(word);
     st.message = 'Nice!';
+    updateWordhiveInputUI();
+    // Lock input when target reached
+    if (st.found.length >= st.target) {
+      st.done = true;
+      st.message = 'Target reached!';
+      updateWordhiveInputUI();
+    }
+    return;
   } else {
     st.message = 'Not in word list';
   }
@@ -8772,8 +8793,88 @@ function tryResetDaily() {
   }
 }
 
+// ==================== LOCKOUT SYSTEM ====================
+const _BLOCKED = [
+  'fuck','shit','damn','hell','ass','bitch','dick','cock','cunt','piss',
+  'slut','whore','fag','nig','tit','wank','twat','prick','arse','bollock'
+];
+
+function _checkCurse(text) {
+  const t = text.toLowerCase();
+  return _BLOCKED.some(w => t.includes(w));
+}
+
+let _lockAttempts = 0;
+
+function lockSite() {
+  localStorage.setItem('bs_locked', '1');
+  _lockAttempts = 0;
+  _showLockScreen();
+}
+
+function _showLockScreen() {
+  if (localStorage.getItem('bs_banned') === '1') {
+    _showBanned();
+    return;
+  }
+  const el = document.getElementById('lockout-screen');
+  el.style.display = 'flex';
+  document.getElementById('lockout-input').style.display = '';
+  document.getElementById('lockout-error').textContent = '';
+  document.getElementById('lockout-input').value = '';
+  document.querySelector('#lockout-screen button').style.display = '';
+  document.querySelector('#lockout-screen div:nth-child(3)').textContent =
+    'This site has been locked. Enter the password to continue.';
+  setTimeout(() => document.getElementById('lockout-input').focus(), 50);
+  document.getElementById('lockout-input').onkeydown = (e) => {
+    if (e.key === 'Enter') tryUnlockSite();
+  };
+}
+
+function _showBanned() {
+  const el = document.getElementById('lockout-screen');
+  el.style.display = 'flex';
+  document.getElementById('lockout-input').style.display = 'none';
+  document.querySelector('#lockout-screen button').style.display = 'none';
+  document.getElementById('lockout-error').textContent = '';
+  document.querySelector('#lockout-screen div:nth-child(3)').textContent =
+    'Access has been permanently revoked.';
+}
+
+function tryUnlockSite() {
+  const val = document.getElementById('lockout-input').value.trim();
+  if (val.toLowerCase() === 'saavan') {
+    localStorage.removeItem('bs_locked');
+    _lockAttempts = 0;
+    document.getElementById('lockout-screen').style.display = 'none';
+  } else {
+    _lockAttempts++;
+    if (_lockAttempts >= 2) {
+      localStorage.setItem('bs_banned', '1');
+      _showBanned();
+      return;
+    }
+    document.getElementById('lockout-error').textContent =
+      'Wrong password (' + (2 - _lockAttempts) + ' attempt left)';
+    const inp = document.getElementById('lockout-input');
+    inp.style.animation = 'shake 0.4s';
+    setTimeout(() => inp.style.animation = '', 400);
+    inp.value = '';
+    inp.focus();
+  }
+}
+
+function checkLockOnLoad() {
+  if (localStorage.getItem('bs_banned') === '1') {
+    _showBanned();
+  } else if (localStorage.getItem('bs_locked') === '1') {
+    _showLockScreen();
+  }
+}
+
 // ==================== INIT ====================
 function init() {
+  checkLockOnLoad();
   initTheme();
   loadBloomWords();
   // Show today's date on the Daily button and calendar icon
