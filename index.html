@@ -6758,27 +6758,35 @@ function loadBloomWords() {
     });
 }
 
+function _buildBloomPool() {
+  if (GS._bloomPool) return GS._bloomPool;
+  const pool = new Set();
+  // Add all words.txt words (3-7 letters)
+  BLOOM_WORDS.forEach(w => { if (w.length >= 3 && w.length <= 7) pool.add(w.toLowerCase()); });
+  // Add full WORDRO_BANK (12,953 five-letter words)
+  WORDRO_BANK.forEach(w => pool.add(w.toLowerCase()));
+  // Add WORDRO_ANSWERS
+  WORDRO_ANSWERS.forEach(w => pool.add(w.toLowerCase()));
+  GS._bloomPool = [...pool];
+  return GS._bloomPool;
+}
+
 function getWordhivePuzzle() {
   const diff = GS.difficulty;
-  // Difficulty only affects how many words you need for a perfect score
-  let targetPct;
-  if (diff === 'easy')        { targetPct = 0.30; }
-  else if (diff === 'medium') { targetPct = 0.50; }
-  else if (diff === 'hard')   { targetPct = 0.70; }
-  else                        { targetPct = 0.90; }
+  // Difficulty only affects how many words you need to find
+  let target;
+  if (diff === 'easy')        { target = 5; }
+  else if (diff === 'medium') { target = 12; }
+  else if (diff === 'hard')   { target = 20; }
+  else                        { target = 30; }
 
   const minLen = 3;
   const centerPool = 'earstlnio';
-
-  // Build combined word pool (always include all lengths 3-7)
-  const fiveLetterWords = WORDRO_ANSWERS.map(w => w.toLowerCase());
-  const shortWords = BLOOM_WORDS.filter(w => w.length >= minLen && w.length <= 7);
-  const allWords = [...new Set([...shortWords, ...fiveLetterWords])];
+  const allWords = _buildBloomPool();
 
   let bestSet = null, bestCenter = null, bestValid = [];
 
-  for (let attempt = 0; attempt < 200; attempt++) {
-    // Pick 7 unique letters
+  for (let attempt = 0; attempt < 300; attempt++) {
     const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
     const shuffled = rngShuffle(alphabet);
     const letters = shuffled.slice(0, 7);
@@ -6786,20 +6794,21 @@ function getWordhivePuzzle() {
     const poolLetters = letters.filter(l => centerPool.includes(l));
     const center = poolLetters.length > 0 ? rngPick(poolLetters) : rngPick(letters);
     const letterSet = new Set(letters);
-    // Find valid words: >= minLen, uses only these letters, includes center
+    // Find valid words: uses only these 7 letters, includes center letter
     const valid = allWords.filter(w => {
-      if (w.length < minLen || w.length > 7) return false;
+      if (w.length < minLen) return false;
       if (!w.includes(center)) return false;
       for (const ch of w) if (!letterSet.has(ch)) return false;
       return true;
     });
-    if (valid.length >= 8 && valid.length <= 100) {
+    // Want puzzles with many possible words (at least target + buffer)
+    if (valid.length >= Math.max(target + 5, 20)) {
       bestSet = letters;
       bestCenter = center;
       bestValid = valid;
       break;
     }
-    if (valid.length >= 5 && (!bestSet || valid.length > bestValid.length)) {
+    if (valid.length >= target && (!bestSet || valid.length > bestValid.length)) {
       bestSet = letters;
       bestCenter = center;
       bestValid = valid;
@@ -6807,14 +6816,12 @@ function getWordhivePuzzle() {
   }
 
   if (!bestSet) {
-    // Absolute fallback
     bestSet = ['a','r','i','s','e','l','t'];
     bestCenter = 'a';
     const ls = new Set(bestSet);
-    bestValid = allWords.filter(w => w.length >= minLen && w.length <= 7 && w.includes('a') && [...w].every(ch => ls.has(ch)));
+    bestValid = allWords.filter(w => w.length >= minLen && w.includes('a') && [...w].every(ch => ls.has(ch)));
   }
 
-  const target = Math.max(1, Math.ceil(bestValid.length * targetPct));
   const outer = bestSet.filter(l => l !== bestCenter);
   return { center: bestCenter, outer: rngShuffle(outer), validWords: bestValid, target, minLen };
 }
