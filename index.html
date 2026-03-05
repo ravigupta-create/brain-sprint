@@ -6672,9 +6672,13 @@ function wordrobotSolve(answer, difficulty) {
   const answerUp = answer.toUpperCase();
   const answerCodes = [answerUp.charCodeAt(0),answerUp.charCodeAt(1),answerUp.charCodeAt(2),answerUp.charCodeAt(3),answerUp.charCodeAt(4)];
   const ALL_GREEN = 242;
+  const hardMode = (difficulty === 'hard' || difficulty === 'extreme');
   const buckets = new Int32Array(243);
   let remaining = solverCodes.map((_,i) => i);
   const botGuesses = [];
+  // Hard mode tracking: known correct positions and required present letters
+  const knownCorrect = {}; // pos -> charCode
+  const knownPresent = new Set(); // charCodes that must appear
 
   while (remaining.length > 0 && botGuesses.length < 10) {
     let bestIdx = remaining[0], bestEntropy = -1;
@@ -6685,6 +6689,20 @@ function wordrobotSolve(answer, difficulty) {
     } else {
       const remainSet = new Set(remaining);
       for (let gi = 0; gi < solverCodes.length; gi++) {
+        // Hard mode: skip guesses that don't satisfy constraints
+        if (hardMode && botGuesses.length > 0) {
+          const gc = solverCodes[gi];
+          let valid = true;
+          for (const pos in knownCorrect) {
+            if (gc[pos] !== knownCorrect[pos]) { valid = false; break; }
+          }
+          if (valid && knownPresent.size > 0) {
+            for (const cc of knownPresent) {
+              if (!gc.includes(cc)) { valid = false; break; }
+            }
+          }
+          if (!valid) continue;
+        }
         const gc = solverCodes[gi];
         buckets.fill(0);
         for (const ci of remaining) buckets[_fbNum(gc, solverCodes[ci])]++;
@@ -6705,7 +6723,20 @@ function wordrobotSolve(answer, difficulty) {
 
     const guessWord = solverUpper[bestIdx];
     const fbN = _fbNum(solverCodes[bestIdx], answerCodes);
-    botGuesses.push({ word: guessWord, result: _fbNumToResult(fbN) });
+    const result = _fbNumToResult(fbN);
+    botGuesses.push({ word: guessWord, result });
+
+    // Update hard mode constraints
+    if (hardMode) {
+      for (let i = 0; i < 5; i++) {
+        if (result[i] === 'correct') {
+          knownCorrect[i] = solverCodes[bestIdx][i];
+          knownPresent.delete(solverCodes[bestIdx][i]);
+        } else if (result[i] === 'present') {
+          knownPresent.add(solverCodes[bestIdx][i]);
+        }
+      }
+    }
 
     if (fbN === ALL_GREEN) break;
     remaining = remaining.filter(ci => _fbNum(solverCodes[bestIdx], solverCodes[ci]) === fbN);
@@ -7161,6 +7192,7 @@ function numbotSolve(answer, difficulty) {
   const cfg = configs[difficulty] || configs.easy;
   _ensureNcCodes(cfg.length, cfg.ops);
   const len = cfg.length;
+  const hardMode = (difficulty === 'hard' || difficulty === 'extreme');
   const bankCodes = _ncBankCodes;
   const bankStrings = _ncBankStrings;
   const answerCodes = [];
@@ -7171,6 +7203,8 @@ function numbotSolve(answer, difficulty) {
   const buckets = new Int32Array(totalBuckets);
   let remaining = bankCodes.map((_, i) => i);
   const botGuesses = [];
+  const knownCorrect = {}; // pos -> charCode
+  const knownPresent = new Set(); // charCodes that must appear
 
   while (remaining.length > 0 && botGuesses.length < 10) {
     let bestIdx = remaining[0], bestEntropy = -1;
@@ -7183,6 +7217,20 @@ function numbotSolve(answer, difficulty) {
       // For large banks, only search remaining candidates as guesses to keep fast
       const searchSet = bankCodes.length > 3000 ? remaining : bankCodes.map((_, i) => i);
       for (const gi of searchSet) {
+        // Hard mode: skip guesses that don't satisfy constraints
+        if (hardMode && botGuesses.length > 0) {
+          const gc = bankCodes[gi];
+          let valid = true;
+          for (const pos in knownCorrect) {
+            if (gc[pos] !== knownCorrect[pos]) { valid = false; break; }
+          }
+          if (valid && knownPresent.size > 0) {
+            for (const cc of knownPresent) {
+              if (!gc.includes(cc)) { valid = false; break; }
+            }
+          }
+          if (!valid) continue;
+        }
         const gc = bankCodes[gi];
         buckets.fill(0, 0, totalBuckets);
         for (const ci of remaining) buckets[_ncFbNum(gc, bankCodes[ci], len)]++;
@@ -7203,7 +7251,20 @@ function numbotSolve(answer, difficulty) {
 
     const guessWord = bankStrings[bestIdx];
     const fbN = _ncFbNum(bankCodes[bestIdx], answerCodes, len);
-    botGuesses.push({ word: guessWord, result: _ncFbNumToResult(fbN, len) });
+    const result = _ncFbNumToResult(fbN, len);
+    botGuesses.push({ word: guessWord, result });
+
+    // Update hard mode constraints
+    if (hardMode) {
+      for (let i = 0; i < len; i++) {
+        if (result[i] === 'correct') {
+          knownCorrect[i] = bankCodes[bestIdx][i];
+          knownPresent.delete(bankCodes[bestIdx][i]);
+        } else if (result[i] === 'present') {
+          knownPresent.add(bankCodes[bestIdx][i]);
+        }
+      }
+    }
 
     if (fbN === ALL_GREEN) break;
     remaining = remaining.filter(ci => _ncFbNum(bankCodes[bestIdx], bankCodes[ci], len) === fbN);
