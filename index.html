@@ -1010,6 +1010,58 @@ input[type=range]::-webkit-slider-thumb{
   .wordhive-hex.wh-outer:hover{background:var(--hover);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
   .numgrid-board .ng-cell:hover{z-index:auto;position:static}
 }
+/* Challenge Summary Panel */
+.cs-panel{
+  animation:wordrobotSlideUp 0.5s ease-out;
+  padding:24px 16px;max-width:440px;margin:0 auto;text-align:center;
+}
+.cs-emoji{font-size:48px;margin-bottom:8px;display:block}
+.cs-score{
+  font-size:56px;font-weight:900;
+  animation:wordrobotCountUp 0.6s ease-out;
+  margin-bottom:4px;
+}
+.cs-score span{font-size:22px;font-weight:600;color:var(--fg2)}
+.cs-title{font-size:17px;font-weight:700;margin-bottom:12px;color:var(--fg)}
+.cs-diff-badge{
+  display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.5px;padding:3px 10px;border-radius:20px;margin-bottom:14px;
+  background:var(--bg3);color:var(--fg2);
+}
+.cs-diff-badge.easy{background:#dcfce7;color:#166534}
+.cs-diff-badge.medium{background:#fef9c3;color:#854d0e}
+.cs-diff-badge.hard{background:#fee2e2;color:#991b1b}
+.cs-diff-badge.extreme{background:#f3e8ff;color:#6b21a8}
+body.dark .cs-diff-badge.easy{background:#14532d;color:#86efac}
+body.dark .cs-diff-badge.medium{background:#713f12;color:#fde047}
+body.dark .cs-diff-badge.hard{background:#7f1d1d;color:#fca5a5}
+body.dark .cs-diff-badge.extreme{background:#581c87;color:#d8b4fe}
+.cs-stats{
+  display:flex;flex-direction:column;gap:6px;
+  margin:12px 0;padding:12px 16px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  text-align:left;
+}
+.cs-stat-row{display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.cs-stat-label{color:var(--fg2);font-weight:500}
+.cs-stat-value{font-weight:700;color:var(--fg)}
+.cs-mini-review{
+  margin:12px 0;padding:12px 16px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  font-size:13px;color:var(--fg2);text-align:left;line-height:1.5;
+}
+.cs-mini-review .cs-tag{
+  display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;margin:2px;
+}
+.cs-mini-review .cs-tag.found{background:rgba(106,170,100,0.15);color:var(--green)}
+.cs-mini-review .cs-tag.missed{background:rgba(231,76,60,0.1);color:var(--red);opacity:0.7}
+.cs-mini-review .cs-choice{
+  display:flex;align-items:center;gap:8px;padding:4px 0;
+  border-bottom:1px solid var(--border);
+}
+.cs-mini-review .cs-choice:last-child{border-bottom:none}
+.cs-answer{font-size:14px;color:var(--fg2);margin:8px 0}
+.cs-answer strong{color:var(--fg);font-weight:800}
 </style>
 </head>
 <body>
@@ -1274,6 +1326,36 @@ function setDailyCompletion(ch, score) {
   d[ch] = score;
   lsSet('daily-'+getDailyDateStr(), d);
 }
+// --- Challenge Summary Helper ---
+function showChallengeSummary(config) {
+  // config: { emoji, score, title, stats: [{label, value}], miniReview?, answerReveal?, difficulty? }
+  const c = document.getElementById('game-container');
+  const diff = config.difficulty || GS.difficulty;
+  const diffLabel = diff ? diff.charAt(0).toUpperCase() + diff.slice(1) : '';
+  let html = '<div class="cs-panel">';
+  html += `<span class="cs-emoji">${config.emoji}</span>`;
+  html += `<div class="cs-score">${config.score}<span>/100</span></div>`;
+  if (config.title) html += `<div class="cs-title">${config.title}</div>`;
+  if (diffLabel) html += `<div class="cs-diff-badge ${diff}">${diffLabel}</div>`;
+  if (config.stats && config.stats.length > 0) {
+    html += '<div class="cs-stats">';
+    config.stats.forEach(s => {
+      html += `<div class="cs-stat-row"><span class="cs-stat-label">${s.label}</span><span class="cs-stat-value">${s.value}</span></div>`;
+    });
+    html += '</div>';
+  }
+  if (config.miniReview) {
+    html += `<div class="cs-mini-review">${config.miniReview}</div>`;
+  }
+  if (config.answerReveal) {
+    html += `<div class="cs-answer">${config.answerReveal}</div>`;
+  }
+  html += `<button class="btn btn-primary btn-lg btn-full" style="margin-top:16px" onclick="showNextOrFinish()">Continue →</button>`;
+  html += '</div>';
+  c.innerHTML = html;
+  document.getElementById('btn-submit-challenge').style.display = 'none';
+}
+
 function getStats() { return lsGet('stats', { played:0, totalScore:0, bestScore:0, streak:0, maxStreak:0, lastDate:null }); }
 function saveStats(s) { lsSet('stats', s); }
 function getHistory() { return lsGet('history', []); }
@@ -1622,7 +1704,103 @@ function showCompletedPuzzleResults(ch, score) {
       return;
     }
   }
-  // Fallback for non-wordro or missing saved state
+  // Try rich review from saved daily state
+  const stateKey = 'daily-' + ch + '-state-' + getDailyDateStr();
+  const saved = lsGet(stateKey, null);
+  if (saved) {
+    let reviewHtml = '<div class="cs-panel">';
+    reviewHtml += `<span class="cs-emoji">${CHALLENGE_ICONS[ch]}</span>`;
+    reviewHtml += `<div class="cs-score">${score}<span>/100</span></div>`;
+    reviewHtml += `<div class="cs-title">${CHALLENGE_NAMES[ch]}</div>`;
+    reviewHtml += '<div class="cs-stats">';
+    if (ch === 'paradox') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Result</span><span class="cs-stat-value">${saved.correct ? '✅ Correct' : '❌ Incorrect'}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Answer</span><span class="cs-stat-value">${saved.options[saved.correctIdx]}</span></div>`;
+      reviewHtml += '</div>';
+      reviewHtml += `<div class="cs-mini-review"><div style="line-height:1.6">${saved.explanation}</div></div>`;
+    } else if (ch === 'blocks') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Puzzle</span><span class="cs-stat-value">${saved.puzzleName}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Attempts</span><span class="cs-stat-value">${saved.attempts}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Steps</span><span class="cs-stat-value">${saved.correctOrder.length}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'economy') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Scenario</span><span class="cs-stat-value">${saved.puzzleName}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Attempts</span><span class="cs-stat-value">${saved.attempts}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Efficiency</span><span class="cs-stat-value">${saved.efficiency}%</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'escape') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Optimal choices</span><span class="cs-stat-value">${saved.score / 20} / 5</span></div>`;
+      reviewHtml += '</div>';
+      if (saved.choices) {
+        reviewHtml += '<div class="cs-mini-review">';
+        saved.choices.forEach(c => {
+          reviewHtml += `<div class="cs-choice"><span>${c.optimal ? '✓' : '✗'}</span><span style="flex:1">${c.text}</span></div>`;
+        });
+        reviewHtml += '</div>';
+      }
+    } else if (ch === 'wordsearch') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Words found</span><span class="cs-stat-value">${saved.foundWords.length} / ${saved.totalWords}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Theme</span><span class="cs-stat-value">${saved.theme}</span></div>`;
+      reviewHtml += '</div>';
+      const foundSet = new Set(saved.foundWords);
+      reviewHtml += '<div class="cs-mini-review">' + saved.words.map(w =>
+        `<span class="cs-tag ${foundSet.has(w) ? 'found' : 'missed'}">${w}</span>`
+      ).join(' ') + '</div>';
+    } else if (ch === 'numgrid') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Attempts</span><span class="cs-stat-value">${saved.attempts}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Grid size</span><span class="cs-stat-value">${saved.size}×${saved.size}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'wordhive') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Words found</span><span class="cs-stat-value">${saved.found.length} / ${saved.validWords.length}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Target</span><span class="cs-stat-value">${saved.target}</span></div>`;
+      reviewHtml += '</div>';
+      const missed = saved.validWords.filter(w => !saved.found.includes(w)).slice(0, 10);
+      let tags = saved.found.map(w => `<span class="cs-tag found">${w}</span>`).join(' ');
+      if (missed.length > 0) tags += `<div style="margin-top:8px;font-size:12px;color:var(--fg2);margin-bottom:4px">Missed:</div>` + missed.map(w => `<span class="cs-tag missed">${w}</span>`).join(' ');
+      reviewHtml += '<div class="cs-mini-review">' + tags + '</div>';
+    } else if (ch === 'pulse') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Rounds survived</span><span class="cs-stat-value">${saved.hits} / ${saved.targetHits}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Final speed</span><span class="cs-stat-value">${saved.speed}%/s</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Zone size</span><span class="cs-stat-value">${typeof saved.zoneSize === 'number' ? saved.zoneSize.toFixed(1) : saved.zoneSize}%</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'deduction') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Result</span><span class="cs-stat-value">${saved.won ? '🕵️ Won' : '💀 Lost'}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Rounds</span><span class="cs-stat-value">${saved.rounds}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Saboteur</span><span class="cs-stat-value">${saved.saboteur.emoji} ${saved.saboteur.name}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Role / Trait</span><span class="cs-stat-value">${saved.saboteur.role} · ${saved.saboteur.trait}</span></div>`;
+      reviewHtml += '</div>';
+      if (saved.eliminations && saved.eliminations.length > 0) {
+        reviewHtml += '<div class="cs-mini-review"><div style="font-size:12px;color:var(--fg2);margin-bottom:4px">Eliminations:</div>';
+        saved.eliminations.forEach(e => {
+          reviewHtml += `<div class="cs-choice"><span>${e.isSaboteur ? '✗' : '✓'}</span><span style="flex:1">${e.emoji} ${e.name} (${e.role})</span></div>`;
+        });
+        reviewHtml += '</div>';
+      }
+    } else if (ch === 'memory') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Pairs found</span><span class="cs-stat-value">${saved.pairsFound} / ${saved.totalPairs}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Moves</span><span class="cs-stat-value">${saved.moves} (par: ${saved.parMoves})</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Combo bonus</span><span class="cs-stat-value">${saved.comboBonus} pts</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'maze') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Steps</span><span class="cs-stat-value">${saved.steps} (optimal: ${saved.optimalSteps})</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Time</span><span class="cs-stat-value">${saved.elapsed}s</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Path efficiency</span><span class="cs-stat-value">${saved.pathEff} pts</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Time bonus</span><span class="cs-stat-value">${saved.timeBonus} pts</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'mosaic') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Zones correct</span><span class="cs-stat-value">${saved.correctZones} / ${saved.totalZones}</span></div>`;
+      if (saved.attempts > 0) reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Retry penalty</span><span class="cs-stat-value">-${saved.attempts * 10} pts</span></div>`;
+      reviewHtml += '</div>';
+    } else {
+      reviewHtml += '</div>';
+    }
+    reviewHtml += `<button class="btn btn-secondary btn-lg btn-full" style="margin-top:16px" onclick="goToLanding()">← Back</button>`;
+    reviewHtml += '</div>';
+    c.innerHTML = reviewHtml;
+    return;
+  }
+
+  // Fallback for missing saved state
   const fallbackMsg = (ch === 'wordro')
     ? 'Puzzle data not available — completed before review feature was added.'
     : 'Completed today';
@@ -2145,12 +2323,22 @@ function selectParadoxOption(idx) {
   // Score
   const score = (idx === correct) ? 100 : 0;
   GS.results.paradox = score;
-  if (GS.mode === 'daily') setDailyCompletion('paradox', score);
-  // Show explanation
-  const expDiv = document.getElementById('paradox-explanation');
-  expDiv.style.display = 'block';
-  expDiv.innerHTML = `<div class="explanation-box"><strong>${idx===correct?'Correct!':'Incorrect.'}</strong> ${state.puzzle.explanation}</div>
-    <button class="btn btn-primary btn-lg btn-full" style="margin-top:12px" onclick="showNextOrFinish()">Continue →</button>`;
+  if (GS.mode === 'daily') {
+    setDailyCompletion('paradox', score);
+    lsSet('daily-paradox-state-'+getDailyDateStr(), { selectedIdx: idx, correct: idx === correct, question: state.puzzle.question, options: state.puzzle.options, correctIdx: correct, explanation: state.puzzle.explanation });
+  }
+  // Show summary after a beat
+  setTimeout(() => {
+    showChallengeSummary({
+      emoji: idx === correct ? '✅' : '❌',
+      score,
+      title: idx === correct ? 'Correct!' : 'Incorrect',
+      stats: [
+        { label: 'Answer', value: state.puzzle.options[correct] }
+      ],
+      miniReview: `<div style="line-height:1.6">${state.puzzle.explanation}</div>`
+    });
+  }, 600);
 }
 
 // ==================== CHALLENGE 1: LOGIC BLOCKS ====================
@@ -2525,16 +2713,31 @@ function submitBlocks() {
     state.submitted = true;
     const score = Math.max(0, 100 - (state.attempts - 1) * 15);
     GS.results.blocks = score;
-    if (GS.mode === 'daily') setDailyCompletion('blocks', score);
+    if (GS.mode === 'daily') {
+      setDailyCompletion('blocks', score);
+      lsSet('daily-blocks-state-'+getDailyDateStr(), { attempts: state.attempts, correctOrder: state.puzzle.correctOrder, puzzleName: state.puzzle.name });
+    }
     // Highlight correct
     const container = document.getElementById('blocks-container');
     container.querySelectorAll('.block-item').forEach(b => {
       b.style.borderColor = 'var(--green)';
       b.style.background = 'rgba(106,170,100,0.1)';
     });
-    document.getElementById('blocks-feedback').innerHTML = `<div style="color:var(--green);font-weight:700;animation:pop 0.4s">✓ Correct! Score: ${score}/100 (${state.attempts} attempt${state.attempts>1?'s':''})</div>
-      <button class="btn btn-primary btn-lg btn-full" style="margin-top:12px" onclick="showNextOrFinish()">Continue →</button>`;
-    document.getElementById('btn-submit-challenge').style.display = 'none';
+    setTimeout(() => {
+      const emoji = state.attempts === 1 ? '🏆' : state.attempts <= 3 ? '🎉' : '✅';
+      const distractorCount = state.puzzle.distractors ? state.puzzle.distractors.length : 0;
+      const stats = [
+        { label: 'Attempts', value: state.attempts },
+        { label: 'Steps', value: state.puzzle.correctOrder.length }
+      ];
+      if (distractorCount > 0) stats.push({ label: 'Distractors', value: distractorCount });
+      showChallengeSummary({
+        emoji,
+        score,
+        title: state.attempts === 1 ? 'Perfect Order!' : 'Correct!',
+        stats
+      });
+    }, 500);
   } else {
     // Shake
     const container = document.getElementById('blocks-container');
@@ -3011,16 +3214,22 @@ function submitEconomy() {
     const penalty = Math.max(0, (state.attempts - 1) * 10);
     const score = Math.max(0, rawScore - penalty);
     GS.results.economy = score;
-    if (GS.mode === 'daily') setDailyCompletion('economy', score);
-    document.getElementById('economy-feedback').innerHTML = `<div class="eco-feedback-success">
-      <div style="font-size:28px;margin-bottom:4px">\u{1F3AF}</div>
-      <div style="font-weight:700;font-size:17px;color:var(--green)">Target Reached!</div>
-      <div class="eco-score-display">${score}<span style="font-size:18px;color:var(--fg2)">/100</span></div>
-      <div class="eco-score-detail">${state.attempts} attempt${state.attempts>1?'s':''} \u00B7 ${Math.round(pct*100)}% efficiency</div>
-      <button class="btn btn-primary btn-lg btn-full" style="margin-top:16px" onclick="showNextOrFinish()">Continue \u2192</button>
-    </div>`;
-    document.getElementById('btn-submit-challenge').style.display = 'none';
+    if (GS.mode === 'daily') {
+      setDailyCompletion('economy', score);
+      lsSet('daily-economy-state-'+getDailyDateStr(), { attempts: state.attempts, efficiency: Math.round(pct * 100), puzzleName: puzzle.name });
+    }
     document.querySelectorAll('#game-container input[type=range]').forEach(s => s.disabled = true);
+    setTimeout(() => {
+      showChallengeSummary({
+        emoji: '🎯',
+        score,
+        title: 'Target Reached!',
+        stats: [
+          { label: 'Attempts', value: state.attempts },
+          { label: 'Efficiency', value: Math.round(pct * 100) + '%' }
+        ]
+      });
+    }, 400);
   } else {
     document.getElementById('economy-feedback').innerHTML = `<div class="eco-feedback-fail">\u{1F4C9} Output at ${Math.round(pct*100)}% efficiency \u2014 target is ${Math.round(puzzle.threshold*100)}%. Keep optimizing!</div>`;
   }
@@ -3971,14 +4180,22 @@ function advanceEscape() {
   } else {
     // Done
     GS.results.escape = state.score;
-    if (GS.mode === 'daily') setDailyCompletion('escape', state.score);
-    const c = document.getElementById('game-container');
-    c.innerHTML = `<div style="text-align:center;padding:16px">
-      <div style="font-size:40px;margin-bottom:8px">${state.score >= 80 ? '🎉' : state.score >= 40 ? '👍' : '🚪'}</div>
-      <div style="font-size:24px;font-weight:700;margin-bottom:4px">${state.score}/100</div>
-      <div style="color:var(--muted);margin-bottom:12px">${state.score/20} of 5 optimal choices</div>
-      <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue →</button>
-    </div>`;
+    if (GS.mode === 'daily') {
+      setDailyCompletion('escape', state.score);
+      lsSet('daily-escape-state-'+getDailyDateStr(), { score: state.score, choices: state.choices.map(ch => ({ text: ch.text, optimal: ch.optimal })) });
+    }
+    const choiceReview = state.choices.map((ch, i) =>
+      `<div class="cs-choice"><span>${ch.optimal ? '✓' : '✗'}</span><span style="flex:1">${ch.text}</span></div>`
+    ).join('');
+    showChallengeSummary({
+      emoji: state.score >= 80 ? '🎉' : state.score >= 40 ? '👍' : '🚪',
+      score: state.score,
+      title: state.score >= 80 ? 'Great Escape!' : state.score >= 40 ? 'You Made It!' : 'Barely Escaped',
+      stats: [
+        { label: 'Optimal choices', value: `${state.score / 20} / 5` }
+      ],
+      miniReview: choiceReview
+    });
   }
 }
 
@@ -4194,7 +4411,10 @@ function submitWordsearch() {
   const state = GS.challengeState.wordsearch;
   const score = Math.round(100 * (state.foundWords.length / state.puzzle.words.length));
   GS.results.wordsearch = score;
-  if (GS.mode === 'daily') setDailyCompletion('wordsearch', score);
+  if (GS.mode === 'daily') {
+    setDailyCompletion('wordsearch', score);
+    lsSet('daily-wordsearch-state-'+getDailyDateStr(), { foundWords: state.foundWords, totalWords: state.puzzle.words.length, words: state.puzzle.words, theme: state.puzzle.theme });
+  }
   // Reveal unfound words
   state.puzzle.placements.forEach(p => {
     if (!state.foundWords.includes(p.word)) {
@@ -4210,9 +4430,23 @@ function submitWordsearch() {
   });
   // Disable further taps
   document.querySelectorAll('.ws-cell').forEach(cell => { cell.disabled = true; cell.style.pointerEvents = 'none'; cell.style.cursor = 'default'; });
-  document.getElementById('ws-feedback').innerHTML = `<div style="color:${score===100?'var(--green)':'var(--orange)'};font-weight:700;animation:pop 0.4s">${score===100?'✓ Perfect!':'Submitted!'} Score: ${score}/100 (${state.foundWords.length}/${state.puzzle.words.length} words)</div>
-    <button class="btn btn-primary btn-lg btn-full" style="margin-top:12px" onclick="showNextOrFinish()">Continue →</button>`;
-  document.getElementById('btn-submit-challenge').style.display = 'none';
+  setTimeout(() => {
+    const allWords = state.puzzle.words;
+    const foundSet = new Set(state.foundWords);
+    const wordTags = allWords.map(w =>
+      `<span class="cs-tag ${foundSet.has(w) ? 'found' : 'missed'}">${w}</span>`
+    ).join(' ');
+    showChallengeSummary({
+      emoji: score === 100 ? '🔠' : '👍',
+      score,
+      title: score === 100 ? 'Perfect!' : 'Nice Try!',
+      stats: [
+        { label: 'Words found', value: `${state.foundWords.length} / ${allWords.length}` },
+        { label: 'Theme', value: state.puzzle.theme }
+      ],
+      miniReview: wordTags
+    });
+  }, 500);
 }
 
 // ==================== CHALLENGE 6: WORDRO ====================
@@ -6922,14 +7156,21 @@ function submitNumgrid() {
     const score = Math.max(0, 100 - (st.attempts - 1) * 20);
     if (GS.challengeState._keyHandler) document.removeEventListener('keydown', GS.challengeState._keyHandler);
     GS.results.numgrid = score;
-    if (GS.mode === 'daily') setDailyCompletion('numgrid', score);
-    document.getElementById('btn-submit-challenge').style.display = 'none';
-    // Add result + continue button below grid
-    const pad = document.querySelector('.numgrid-pad');
-    if (pad) pad.innerHTML = `<div style="text-align:center;width:100%">
-      <div style="color:var(--green);font-weight:700;font-size:16px;animation:pop 0.4s;margin-bottom:8px">✓ Correct! Score: ${score}/100 (${st.attempts} attempt${st.attempts>1?'s':''})</div>
-      <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue →</button>
-    </div>`;
+    if (GS.mode === 'daily') {
+      setDailyCompletion('numgrid', score);
+      lsSet('daily-numgrid-state-'+getDailyDateStr(), { attempts: st.attempts, size: st.size });
+    }
+    setTimeout(() => {
+      showChallengeSummary({
+        emoji: st.attempts === 1 ? '🏆' : st.attempts <= 3 ? '🎉' : '✅',
+        score,
+        title: st.attempts === 1 ? 'First Try!' : 'Solved!',
+        stats: [
+          { label: 'Attempts', value: st.attempts },
+          { label: 'Grid size', value: `${st.size}×${st.size}` }
+        ]
+      });
+    }, 500);
   } else {
     showToast('Some cells are incorrect — try again!');
   }
@@ -7171,23 +7412,27 @@ function submitWordhive() {
 
   const score = Math.min(100, Math.round(100 * st.found.length / st.target));
   GS.results.wordhive = score;
-  if (GS.mode === 'daily') setDailyCompletion('wordhive', score);
+  if (GS.mode === 'daily') {
+    setDailyCompletion('wordhive', score);
+    lsSet('daily-wordhive-state-'+getDailyDateStr(), { found: st.found, target: st.target, validWords: st.validWords, centerLetter: st.centerLetter, letters: st.letters });
+  }
 
   // Show results
   const missed = st.validWords.filter(w => !st.found.includes(w)).slice(0, 10);
-  const c = document.getElementById('game-container');
-  let html = `<div style="text-align:center;padding:16px">`;
-  html += `<div style="font-size:40px;margin-bottom:8px">${score >= 80 ? '🎉' : score >= 50 ? '👍' : '🐝'}</div>`;
-  html += `<div style="font-size:24px;font-weight:700;margin-bottom:4px">${score}/100</div>`;
-  html += `<div style="color:var(--muted);margin-bottom:12px">Found ${st.found.length} of ${st.validWords.length} words (needed ${st.target})</div>`;
-  if (missed.length > 0) {
-    html += `<div style="font-size:13px;color:var(--muted);margin-bottom:8px">Some words you missed:</div>`;
-    html += `<div class="wordhive-found">${missed.map(w => `<span class="wh-tag" style="opacity:0.6">${w}</span>`).join('')}</div>`;
-  }
-  html += `<button class="btn btn-primary btn-lg btn-full" style="margin-top:16px" onclick="showNextOrFinish()">Continue →</button>`;
-  html += `</div>`;
-  c.innerHTML = html;
-  document.getElementById('btn-submit-challenge').style.display = 'none';
+  const foundTags = st.found.map(w => `<span class="cs-tag found">${w}</span>`).join(' ');
+  const missedTags = missed.map(w => `<span class="cs-tag missed">${w}</span>`).join(' ');
+  let review = foundTags;
+  if (missedTags) review += `<div style="margin-top:8px;font-size:12px;color:var(--fg2);margin-bottom:4px">Missed:</div>` + missedTags;
+  showChallengeSummary({
+    emoji: score >= 80 ? '🎉' : score >= 50 ? '👍' : '🐝',
+    score,
+    title: score >= 80 ? 'Brilliant!' : score >= 50 ? 'Good Job!' : 'Keep Buzzing!',
+    stats: [
+      { label: 'Words found', value: `${st.found.length} / ${st.validWords.length}` },
+      { label: 'Target', value: st.target }
+    ],
+    miniReview: review
+  });
 }
 
 // ==================== CHALLENGE 9: PERFECT PULSE ====================
@@ -7365,20 +7610,23 @@ function endPulseGame() {
   // Calculate score
   const score = Math.min(100, Math.round(100 * st.hits / st.puzzle.targetHits));
   GS.results.pulse = score;
-  if (GS.mode === 'daily') setDailyCompletion('pulse', score);
+  if (GS.mode === 'daily') {
+    setDailyCompletion('pulse', score);
+    lsSet('daily-pulse-state-'+getDailyDateStr(), { hits: st.hits, targetHits: st.puzzle.targetHits, speed: Math.round(st.speed), zoneSize: st.zoneSize });
+  }
 
   // Show results after a beat
   setTimeout(() => {
-    const c = document.getElementById('game-container');
-    c.innerHTML = `
-      <div style="text-align:center;padding:24px 16px">
-        <div style="font-size:48px;margin-bottom:8px">${score >= 80 ? '🎯' : score >= 50 ? '💗' : '💔'}</div>
-        <div style="font-size:32px;font-weight:800;margin-bottom:4px">${score}/100</div>
-        <div style="color:var(--fg2);margin-bottom:8px">Survived ${st.hits} round${st.hits !== 1 ? 's' : ''} (target: ${st.puzzle.targetHits})</div>
-        <div style="font-size:13px;color:var(--fg2);margin-bottom:20px">Final speed: ${Math.round(st.speed)}%/s · Zone: ${st.zoneSize.toFixed(1)}%</div>
-        <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue →</button>
-      </div>`;
-    document.getElementById('btn-submit-challenge').style.display = 'none';
+    showChallengeSummary({
+      emoji: score >= 80 ? '🎯' : score >= 50 ? '💗' : '💔',
+      score,
+      title: score >= 80 ? 'Sharp Reflexes!' : score >= 50 ? 'Good Timing!' : 'Too Slow!',
+      stats: [
+        { label: 'Rounds survived', value: `${st.hits} / ${st.puzzle.targetHits}` },
+        { label: 'Final speed', value: `${Math.round(st.speed)}%/s` },
+        { label: 'Zone size', value: `${st.zoneSize.toFixed(1)}%` }
+      ]
+    });
   }, 800);
 }
 
@@ -7612,17 +7860,25 @@ function endDeduction(won) {
 
   const st = GS.challengeState.deduction;
   const saboteur = st.puzzle.characters[st.puzzle.saboteurIdx];
-  const c = document.getElementById('game-container');
-  c.innerHTML = `
-    <div style="text-align:center;padding:24px 16px">
-      <div style="font-size:48px;margin-bottom:8px">${won ? '🕵️' : '💀'}</div>
-      <div style="font-size:32px;font-weight:800;margin-bottom:4px">${won ? 'Case Solved!' : 'You Lose!'}</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:4px">${score}/100</div>
-      <div style="color:var(--fg2);margin-bottom:8px">${won ? `The saboteur ${saboteur.name} (${saboteur.emoji}) was the last one standing!` : `You eliminated ${saboteur.name} (${saboteur.emoji}) — they were the saboteur!`}</div>
-      <div style="font-size:13px;color:var(--fg2);margin-bottom:20px">Role: ${saboteur.role} · Trait: ${saboteur.trait}</div>
-      <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue →</button>
-    </div>`;
-  document.getElementById('btn-submit-challenge').style.display = 'none';
+  if (GS.mode === 'daily') {
+    const elims = st.puzzle.characters.filter(ch => ch.eliminated).map(ch => ({ name: ch.name, emoji: ch.emoji, role: ch.role, isSaboteur: ch.isSaboteur }));
+    lsSet('daily-deduction-state-'+getDailyDateStr(), { won, saboteur: { name: saboteur.name, emoji: saboteur.emoji, role: saboteur.role, trait: saboteur.trait }, eliminations: elims, rounds: st.round });
+  }
+  const eliminated = st.puzzle.characters.filter(ch => ch.eliminated);
+  const elimList = eliminated.map(ch =>
+    `<div class="cs-choice"><span>${ch.isSaboteur ? '✗' : '✓'}</span><span style="flex:1">${ch.emoji} ${ch.name} (${ch.role})</span></div>`
+  ).join('');
+  showChallengeSummary({
+    emoji: won ? '🕵️' : '💀',
+    score,
+    title: won ? 'Case Solved!' : 'You Lose!',
+    stats: [
+      { label: 'Rounds played', value: st.round },
+      { label: 'Saboteur', value: `${saboteur.name} (${saboteur.emoji})` },
+      { label: 'Role / Trait', value: `${saboteur.role} · ${saboteur.trait}` }
+    ],
+    miniReview: elimList ? `<div style="font-size:12px;color:var(--fg2);margin-bottom:4px">Eliminations:</div>${elimList}` : ''
+  });
 }
 
 // ==================== CHALLENGE 11: MEMORY FLIP ====================
@@ -7774,18 +8030,21 @@ function endMemoryGame(completed) {
   }
 
   GS.results.memory = score;
-  if (GS.mode === 'daily') setDailyCompletion('memory', score);
+  if (GS.mode === 'daily') {
+    setDailyCompletion('memory', score);
+    lsSet('daily-memory-state-'+getDailyDateStr(), { completed, pairsFound: st.pairsFound, totalPairs: st.puzzle.pairs, moves: st.moves, parMoves: st.puzzle.parMoves, comboBonus: Math.min(20, st.comboBonus) });
+  }
 
-  const c = document.getElementById('game-container');
-  c.innerHTML = `
-    <div style="text-align:center;padding:24px 16px">
-      <div style="font-size:48px;margin-bottom:8px">${completed ? '🃏' : '⏱️'}</div>
-      <div style="font-size:32px;font-weight:800;margin-bottom:4px">${score}/100</div>
-      <div style="color:var(--fg2);margin-bottom:8px">${completed ? `All ${st.puzzle.pairs} pairs found in ${st.moves} moves!` : `Time's up! Found ${st.pairsFound}/${st.puzzle.pairs} pairs.`}</div>
-      <div style="font-size:13px;color:var(--fg2);margin-bottom:20px">Par: ${st.puzzle.parMoves} moves · Combo bonus: ${Math.min(20, st.comboBonus)} pts</div>
-      <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue →</button>
-    </div>`;
-  document.getElementById('btn-submit-challenge').style.display = 'none';
+  showChallengeSummary({
+    emoji: completed ? '🃏' : '⏱️',
+    score,
+    title: completed ? 'All Pairs Found!' : "Time's Up!",
+    stats: [
+      { label: 'Pairs found', value: `${st.pairsFound} / ${st.puzzle.pairs}` },
+      { label: 'Moves', value: `${st.moves} (par: ${st.puzzle.parMoves})` },
+      { label: 'Combo bonus', value: `${Math.min(20, st.comboBonus)} pts` }
+    ]
+  });
 }
 
 // ==================== CHALLENGE 12: MAZE RUNNER ====================
@@ -7994,19 +8253,23 @@ function endMazeGame() {
   const score = Math.min(100, Math.round(pathEff + timeBonus));
 
   GS.results.maze = score;
-  if (GS.mode === 'daily') setDailyCompletion('maze', score);
+  if (GS.mode === 'daily') {
+    setDailyCompletion('maze', score);
+    lsSet('daily-maze-state-'+getDailyDateStr(), { steps: st.steps, optimalSteps, elapsed: +elapsed.toFixed(1), score, pathEff: Math.round(pathEff), timeBonus });
+  }
 
   setTimeout(() => {
-    const c = document.getElementById('game-container');
-    c.innerHTML = `
-      <div style="text-align:center;padding:24px 16px">
-        <div style="font-size:48px;margin-bottom:8px">${score >= 80 ? '🌟' : score >= 50 ? '🌀' : '😵'}</div>
-        <div style="font-size:32px;font-weight:800;margin-bottom:4px">${score}/100</div>
-        <div style="color:var(--fg2);margin-bottom:8px">Escaped in ${st.steps} steps (optimal: ${optimalSteps})</div>
-        <div style="font-size:13px;color:var(--fg2);margin-bottom:20px">Time: ${elapsed.toFixed(1)}s · Path efficiency: ${Math.round(pathEff)}pts · Time bonus: ${timeBonus}pts</div>
-        <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue →</button>
-      </div>`;
-    document.getElementById('btn-submit-challenge').style.display = 'none';
+    showChallengeSummary({
+      emoji: score >= 80 ? '🌟' : score >= 50 ? '🌀' : '😵',
+      score,
+      title: score >= 80 ? 'Speed Runner!' : score >= 50 ? 'Escaped!' : 'Lost in the Maze',
+      stats: [
+        { label: 'Steps', value: `${st.steps} (optimal: ${optimalSteps})` },
+        { label: 'Time', value: `${elapsed.toFixed(1)}s` },
+        { label: 'Path efficiency', value: `${Math.round(pathEff)} pts` },
+        { label: 'Time bonus', value: `${timeBonus} pts` }
+      ]
+    });
   }, 400);
 }
 
@@ -8565,19 +8828,21 @@ function endMosaic(score, correctZones, totalZones) {
   const attempts = (mosaicState.mosaicAttempts || 0);
   // Deduct points for extra attempts: -10 per retry, min 10
   const finalScore = Math.max(10, score - (attempts * 10));
-  const c = document.getElementById('game-container');
-  const attemptsNote = attempts > 0 ? `<div style="font-size:13px;color:var(--fg2);margin-bottom:4px">${attempts} retr${attempts === 1 ? 'y' : 'ies'} (-${attempts * 10} pts)</div>` : '';
-  c.innerHTML = `
-    <div class="result-card animate-pop" style="text-align:center;padding:32px 20px">
-      <div style="font-size:48px;margin-bottom:12px">🎨</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${finalScore >= 80 ? 'Excellent!' : finalScore >= 50 ? 'Good effort!' : 'Keep practicing!'}</div>
-      <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:8px">${finalScore}%</div>
-      <div style="font-size:15px;color:var(--fg2);margin-bottom:4px">${correctZones} of ${totalZones} zones correct</div>
-      ${attemptsNote}
-      <button class="btn btn-primary btn-lg btn-full" style="margin-top:16px" onclick="showNextOrFinish()">Continue \u2192</button>
-    </div>`;
   GS.results['mosaic'] = finalScore;
-  document.getElementById('btn-submit-challenge').style.display = 'none';
+  if (GS.mode === 'daily') {
+    setDailyCompletion('mosaic', finalScore);
+    lsSet('daily-mosaic-state-'+getDailyDateStr(), { correctZones, totalZones, attempts, score: finalScore });
+  }
+  const stats = [
+    { label: 'Zones correct', value: `${correctZones} / ${totalZones}` }
+  ];
+  if (attempts > 0) stats.push({ label: 'Retry penalty', value: `-${attempts * 10} pts` });
+  showChallengeSummary({
+    emoji: '🎨',
+    score: finalScore,
+    title: finalScore >= 80 ? 'Excellent!' : finalScore >= 50 ? 'Good Effort!' : 'Keep Practicing!',
+    stats
+  });
 }
 
 // ==================== CHALLENGE 14: NUMBER CRUNCH ====================
