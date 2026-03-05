@@ -1062,6 +1062,34 @@ body.dark .cs-diff-badge.extreme{background:#581c87;color:#d8b4fe}
 .cs-mini-review .cs-choice:last-child{border-bottom:none}
 .cs-answer{font-size:14px;color:var(--fg2);margin:8px 0}
 .cs-answer strong{color:var(--fg);font-weight:800}
+
+/* Mobile responsive for summary panels */
+@media(max-width:480px){
+  .cs-score{font-size:36px}
+  .cs-score span{font-size:14px}
+  .cs-emoji{font-size:36px}
+  .cs-title{font-size:15px}
+  .cs-stats{padding:8px 12px;gap:4px}
+  .cs-stat-row{font-size:13px}
+  .cs-mini-review{font-size:12px}
+}
+
+/* Text overflow handling */
+.cs-stat-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%}
+.cs-mini-review{word-break:break-word;overflow-wrap:break-word}
+
+/* Touch target fix for wordhive action buttons */
+@media(hover:none){
+  .wordhive-actions button{min-height:44px}
+}
+
+/* Flexbox gap fallback for Safari <14 */
+@supports not (gap:1px){
+  .cs-stats > * + *{margin-top:6px}
+}
+
+/* Animation performance */
+.cs-panel,.cs-score{will-change:transform}
 </style>
 </head>
 <body>
@@ -1319,7 +1347,7 @@ const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wor
 
 // --- localStorage ---
 function lsGet(k, def) { try { const v = localStorage.getItem('bs-'+k); return v ? JSON.parse(v) : def; } catch { return def; } }
-function lsSet(k, v) { try { localStorage.setItem('bs-'+k, JSON.stringify(v)); } catch {} }
+function lsSet(k, v) { try { localStorage.setItem('bs-'+k, JSON.stringify(v)); } catch { if (!window._bsStorageWarned) { window._bsStorageWarned = true; showToast('Storage unavailable — progress won\'t be saved in private browsing'); } } }
 function getDailyCompletion() { return lsGet('daily-'+getDailyDateStr(), {}); }
 function setDailyCompletion(ch, score) {
   const d = getDailyCompletion();
@@ -1564,7 +1592,7 @@ function showCompletedPuzzleResults(ch, score) {
   const c = document.getElementById('game-container');
   if (ch === 'wordro') {
     const savedState = lsGet('daily-wordro-state-'+getDailyDateStr(), null);
-    if (savedState) {
+    if (savedState && savedState.puzzle) {
       // Reconstruct the completed Wordro board from saved state
       const puzzle = savedState.puzzle;
       const guesses = savedState.guesses;
@@ -1670,7 +1698,7 @@ function showCompletedPuzzleResults(ch, score) {
   }
   if (ch === 'numcrunch') {
     const savedState = lsGet('daily-numcrunch-state-'+getDailyDateStr(), null);
-    if (savedState) {
+    if (savedState && savedState.puzzle) {
       const puzzle = savedState.puzzle;
       const guesses = savedState.guesses;
       const diffLabel = puzzle.difficulty ? puzzle.difficulty.charAt(0).toUpperCase() + puzzle.difficulty.slice(1) : '';
@@ -2329,6 +2357,7 @@ function selectParadoxOption(idx) {
   }
   // Show summary after a beat
   setTimeout(() => {
+    if (!document.getElementById('game-container')) return;
     showChallengeSummary({
       emoji: idx === correct ? '✅' : '❌',
       score,
@@ -2724,6 +2753,7 @@ function submitBlocks() {
       b.style.background = 'rgba(106,170,100,0.1)';
     });
     setTimeout(() => {
+      if (!document.getElementById('game-container')) return;
       const emoji = state.attempts === 1 ? '🏆' : state.attempts <= 3 ? '🎉' : '✅';
       const distractorCount = state.puzzle.distractors ? state.puzzle.distractors.length : 0;
       const stats = [
@@ -3220,6 +3250,7 @@ function submitEconomy() {
     }
     document.querySelectorAll('#game-container input[type=range]').forEach(s => s.disabled = true);
     setTimeout(() => {
+      if (!document.getElementById('game-container')) return;
       showChallengeSummary({
         emoji: '🎯',
         score,
@@ -4431,6 +4462,7 @@ function submitWordsearch() {
   // Disable further taps
   document.querySelectorAll('.ws-cell').forEach(cell => { cell.disabled = true; cell.style.pointerEvents = 'none'; cell.style.cursor = 'default'; });
   setTimeout(() => {
+    if (!document.getElementById('game-container')) return;
     const allWords = state.puzzle.words;
     const foundSet = new Set(state.foundWords);
     const wordTags = allWords.map(w =>
@@ -6133,7 +6165,8 @@ function renderWordro(puzzle) {
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'none';
 
-  // Physical keyboard support
+  // Physical keyboard support — cleanup old handler first
+  if (state._keyHandler) document.removeEventListener('keydown', state._keyHandler);
   state._keyHandler = function(e) {
     if (document.getElementById('lockout-screen').style.display !== 'none') return;
     if (state.gameOver) return;
@@ -7011,7 +7044,8 @@ function renderNumgrid(data) {
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'inline-flex';
 
-  // Keyboard support
+  // Keyboard support — cleanup old handler first
+  if (GS.challengeState._keyHandler) document.removeEventListener('keydown', GS.challengeState._keyHandler);
   GS.challengeState._keyHandler = (e) => {
     const num = parseInt(e.key);
     if (num >= 1 && num <= size) numgridInput(num);
@@ -7161,6 +7195,7 @@ function submitNumgrid() {
       lsSet('daily-numgrid-state-'+getDailyDateStr(), { attempts: st.attempts, size: st.size });
     }
     setTimeout(() => {
+      if (!document.getElementById('game-container')) return;
       showChallengeSummary({
         emoji: st.attempts === 1 ? '🏆' : st.attempts <= 3 ? '🎉' : '✅',
         score,
@@ -7292,7 +7327,8 @@ function renderWordhive(data) {
   updateWordhiveHiveUI();
   document.getElementById('btn-submit-challenge').style.display = 'inline-flex';
 
-  // Keyboard support
+  // Keyboard support — cleanup old handler first
+  if (GS.challengeState._keyHandler) document.removeEventListener('keydown', GS.challengeState._keyHandler);
   GS.challengeState._keyHandler = (e) => {
     if (e.key === 'Enter') { wordhiveEnter(); return; }
     if (e.key === 'Backspace') { wordhiveDelete(); return; }
@@ -7486,7 +7522,8 @@ function renderPulse(puzzle) {
 
   updatePulseVisuals();
 
-  // Bind input
+  // Bind input — cleanup old handler first
+  if (GS.challengeState.pulse._keyHandler) document.removeEventListener('keydown', GS.challengeState.pulse._keyHandler);
   const tapArea = document.getElementById('pulse-tap-area');
   tapArea.addEventListener('click', hitPulse);
   const keyHandler = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); hitPulse(); } };
@@ -7617,6 +7654,7 @@ function endPulseGame() {
 
   // Show results after a beat
   setTimeout(() => {
+    if (!document.getElementById('game-container')) return;
     showChallengeSummary({
       emoji: score >= 80 ? '🎯' : score >= 50 ? '💗' : '💔',
       score,
@@ -8154,7 +8192,8 @@ function renderMaze(puzzle) {
   html += `</div></div>`;
   c.innerHTML = html;
 
-  // Keyboard handler
+  // Keyboard handler — cleanup old handler first
+  if (GS.challengeState.maze && GS.challengeState.maze._keyHandler) document.removeEventListener('keydown', GS.challengeState.maze._keyHandler);
   const keyHandler = (e) => {
     if (GS.challengeState.maze.finished) return;
     let dr = 0, dc = 0;
@@ -8259,6 +8298,7 @@ function endMazeGame() {
   }
 
   setTimeout(() => {
+    if (!document.getElementById('game-container')) return;
     showChallengeSummary({
       emoji: score >= 80 ? '🌟' : score >= 50 ? '🌀' : '😵',
       score,
@@ -8825,6 +8865,7 @@ function checkMosaicSolution() {
 }
 
 function endMosaic(score, correctZones, totalZones) {
+  if (!document.getElementById('game-container')) return;
   const attempts = (mosaicState.mosaicAttempts || 0);
   // Deduct points for extra attempts: -10 per retry, min 10
   const finalScore = Math.max(10, score - (attempts * 10));
@@ -8952,7 +8993,8 @@ function renderNumcrunch(puzzle) {
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'none';
 
-  // Physical keyboard support
+  // Physical keyboard support — cleanup old handler first
+  if (state._keyHandler) document.removeEventListener('keydown', state._keyHandler);
   state._keyHandler = function(e) {
     if (document.getElementById('lockout-screen').style.display !== 'none') return;
     if (state.gameOver) return;
