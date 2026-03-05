@@ -630,11 +630,72 @@ input[type=range]::-webkit-slider-thumb{
   text-align:center;font-weight:600;font-size:14px;
   min-height:24px;margin-top:4px;
 }
+.nc-row.nc-active-row .nc-tile{
+  border-color:var(--accent,#3b82f6);
+  box-shadow:0 0 6px rgba(59,130,246,0.25);
+}
+.nc-header-bar{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-bottom:6px;font-size:13px;font-weight:700;
+}
+.nc-diff-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.5px;
+}
+.nc-diff-badge.easy{background:#dcfce7;color:#15803d}
+.nc-diff-badge.medium{background:#fef9c3;color:#a16207}
+.nc-diff-badge.hard{background:#fee2e2;color:#dc2626}
+.nc-diff-badge.extreme{background:#fce7f3;color:#be185d}
+.nc-guesses-left{
+  font-size:13px;font-weight:700;color:var(--fg2);
+  transition:color 0.3s;
+}
+.nc-guesses-left.low{color:var(--red);animation:wordroPopTile 0.3s ease}
+@keyframes ncCascade{
+  0%{background:#3b82f6}
+  25%{background:#8b5cf6}
+  50%{background:#ec4899}
+  75%{background:#f59e0b}
+  100%{background:#3b82f6}
+}
+.nc-tile.nc-win-cascade{
+  animation:ncCascade 1.2s ease infinite;
+  color:#fff;border-color:transparent;
+}
+/* NC Summary Panel */
+.nc-summary-panel{
+  animation:wordrobotSlideUp 0.5s ease-out;
+  padding:24px 16px;max-width:440px;margin:0 auto;text-align:center;
+}
+.nc-summary-score{
+  font-size:56px;font-weight:900;
+  animation:wordrobotCountUp 0.6s ease-out;
+}
+.nc-summary-emoji{font-size:48px;margin-bottom:8px}
+.nc-mini-grid{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  margin:12px auto;
+}
+.nc-mini-row{display:flex;gap:2px}
+.nc-mini-tile{
+  width:22px;height:26px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:#fff;
+}
+.nc-mini-tile.correct{background:#3b82f6}
+.nc-mini-tile.present{background:#f97316}
+.nc-mini-tile.absent{background:var(--fg3);opacity:0.6}
+.nc-summary-answer{
+  font-size:14px;color:var(--fg2);margin:8px 0;
+}
+.nc-summary-answer strong{color:var(--fg);font-weight:800}
 @media(max-width:480px){
   .nc-tile{width:36px;height:44px;font-size:18px}
   .nc-key{height:44px;font-size:14px;min-width:34px;max-width:40px}
   .nc-key.wide{min-width:48px;max-width:60px}
   .nc-kb-row{gap:3px}
+  .nc-mini-tile{width:18px;height:22px;font-size:9px}
 }
 
 /* Wordrobot Analysis Panel */
@@ -1530,7 +1591,12 @@ function showCompletedPuzzleResults(ch, score) {
     if (savedState) {
       const puzzle = savedState.puzzle;
       const guesses = savedState.guesses;
+      const diffLabel = puzzle.difficulty ? puzzle.difficulty.charAt(0).toUpperCase() + puzzle.difficulty.slice(1) : '';
+      const hardTag = puzzle.hardMode ? ' (Hard Mode)' : '';
       let html = '<div style="text-align:center">';
+      if (diffLabel) {
+        html += '<div class="nc-header-bar" style="margin-bottom:10px"><span class="nc-diff-badge ' + (puzzle.difficulty||'') + '">' + diffLabel + hardTag + '</span></div>';
+      }
       html += '<div class="nc-board">';
       for (let r = 0; r < puzzle.maxGuesses; r++) {
         html += '<div class="nc-row">';
@@ -8528,35 +8594,37 @@ function getNumcrunchPuzzle() {
   const { length, maxGuesses, ops } = cfg;
 
   for (let attempt = 0; attempt < 5000; attempt++) {
-    const op = ops[Math.floor(Math.random() * ops.length)];
+    const op = ops[Math.floor(GS.rng() * ops.length)];
     let a, b, result;
     if (op === '+') {
-      a = Math.floor(Math.random() * 99) + 1;
-      b = Math.floor(Math.random() * 99) + 1;
+      a = Math.floor(GS.rng() * 99) + 1;
+      b = Math.floor(GS.rng() * 99) + 1;
       result = a + b;
     } else if (op === '-') {
-      a = Math.floor(Math.random() * 99) + 2;
-      b = Math.floor(Math.random() * (a - 1)) + 1;
+      a = Math.floor(GS.rng() * 99) + 2;
+      b = Math.floor(GS.rng() * (a - 1)) + 1;
       result = a - b;
     } else if (op === '*') {
-      a = Math.floor(Math.random() * 30) + 2;
-      b = Math.floor(Math.random() * 20) + 2;
+      a = Math.floor(GS.rng() * 30) + 2;
+      b = Math.floor(GS.rng() * 20) + 2;
       result = a * b;
     } else if (op === '/') {
-      b = Math.floor(Math.random() * 12) + 2;
-      result = Math.floor(Math.random() * 20) + 1;
+      b = Math.floor(GS.rng() * 12) + 2;
+      result = Math.floor(GS.rng() * 20) + 1;
       a = b * result;
     }
     if (result <= 0) continue;
     const eq = '' + a + op + b + '=' + result;
     if (eq.length === length) {
-      return { equation: eq, length, maxGuesses, difficulty: diff };
+      const hardMode = (diff === 'hard' || diff === 'extreme');
+      return { equation: eq, length, maxGuesses, difficulty: diff, hardMode };
     }
   }
   // Fallback
   const fallbacks = { 6: '9+3=12', 7: '15+7=22', 8: '23+45=68' };
   const eq = fallbacks[length] || '9+3=12';
-  return { equation: eq, length: eq.length, maxGuesses, difficulty: diff };
+  const hardMode = (diff === 'hard' || diff === 'extreme');
+  return { equation: eq, length: eq.length, maxGuesses, difficulty: diff, hardMode };
 }
 
 function renderNumcrunch(puzzle) {
@@ -8569,15 +8637,24 @@ function renderNumcrunch(puzzle) {
     gameOver: false,
     won: false,
     revealInProgress: false,
-    keyStates: {}
+    keyStates: {},
+    revealedHints: { correct: {}, present: new Set() }
   };
   GS.challengeState.numcrunch = state;
 
+  const diffLabel = puzzle.difficulty.charAt(0).toUpperCase() + puzzle.difficulty.slice(1);
+  const hardTag = puzzle.hardMode ? ' (Hard Mode)' : '';
   let html = '<div style="text-align:center">';
+  // Header bar with badge + guesses counter
+  html += '<div class="nc-header-bar">';
+  html += '<span class="nc-diff-badge ' + puzzle.difficulty + '">' + diffLabel + hardTag + '</span>';
+  html += '<span class="nc-guesses-left" id="nc-guesses-left">' + puzzle.maxGuesses + ' guesses left</span>';
+  html += '</div>';
   // Board
   html += '<div class="nc-board" id="nc-board">';
   for (let r = 0; r < puzzle.maxGuesses; r++) {
-    html += '<div class="nc-row" id="nc-row-' + r + '">';
+    const activeClass = (r === 0) ? ' nc-active-row' : '';
+    html += '<div class="nc-row' + activeClass + '" id="nc-row-' + r + '">';
     for (let col = 0; col < puzzle.length; col++) {
       html += '<div class="nc-tile" id="nc-tile-' + r + '-' + col + '"></div>';
     }
@@ -8669,54 +8746,106 @@ function numcrunchUpdateCurrentRow() {
   }
 }
 
+function ncShakeRow(state, msgEl, msg) {
+  msgEl.textContent = msg;
+  msgEl.style.color = 'var(--red)';
+  const row = document.getElementById('nc-row-' + state.currentRow);
+  if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+}
+
+function ncCheckHardMode(state, guess) {
+  if (!state.puzzle.hardMode) return null;
+  const hints = state.revealedHints;
+  // Check green constraints: confirmed chars must stay in same position
+  for (const posStr in hints.correct) {
+    const pos = parseInt(posStr);
+    const ch = hints.correct[pos];
+    if (guess[pos] !== ch) return `Must use ${ch} in position ${pos + 1}`;
+  }
+  // Check orange constraints: present chars must appear somewhere
+  for (const ch of hints.present) {
+    if (!guess.includes(ch)) return `Must use ${ch} somewhere`;
+  }
+  return null;
+}
+
 function numcrunchSubmitGuess() {
   const state = GS.challengeState.numcrunch;
   const msgEl = document.getElementById('nc-msg');
 
   if (state.currentGuess.length !== state.puzzle.length) {
-    msgEl.textContent = 'Not enough characters';
-    msgEl.style.color = 'var(--red)';
-    const row = document.getElementById('nc-row-' + state.currentRow);
-    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+    ncShakeRow(state, msgEl, 'Not enough characters');
     return;
   }
 
   // Validate: must contain exactly one '='
   const eqParts = state.currentGuess.split('=');
   if (eqParts.length !== 2 || !eqParts[0] || !eqParts[1]) {
-    msgEl.textContent = 'Must contain exactly one = sign';
-    msgEl.style.color = 'var(--red)';
-    const row = document.getElementById('nc-row-' + state.currentRow);
-    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+    ncShakeRow(state, msgEl, 'Must contain exactly one = sign');
     return;
   }
 
-  // Validate math: left side must equal right side
+  const leftExpr = eqParts[0];
+  const rightExpr = eqParts[1];
+
+  // Validate left side is a valid expression
+  if (!/^[0-9+\-*\/]+$/.test(leftExpr)) {
+    ncShakeRow(state, msgEl, 'Left side must be a valid expression');
+    return;
+  }
+  // Validate right side is a whole number
+  if (!/^[0-9]+$/.test(rightExpr)) {
+    ncShakeRow(state, msgEl, 'Right side must be a whole number');
+    return;
+  }
+  // Check for leading zeros
+  const numTokens = leftExpr.match(/[0-9]+/g) || [];
+  for (const tok of numTokens) {
+    if (tok.length > 1 && tok[0] === '0') {
+      ncShakeRow(state, msgEl, 'No leading zeros allowed');
+      return;
+    }
+  }
+  if (rightExpr.length > 1 && rightExpr[0] === '0') {
+    ncShakeRow(state, msgEl, 'No leading zeros allowed');
+    return;
+  }
+  // Check for division by zero
+  if (/\/0(?![0-9])/.test(leftExpr)) {
+    ncShakeRow(state, msgEl, 'Cannot divide by zero');
+    return;
+  }
+
   let leftVal, rightVal;
   try {
-    // Only allow digits and +-*/
-    if (!/^[0-9+\-*\/]+$/.test(eqParts[0]) || !/^[0-9]+$/.test(eqParts[1])) {
-      throw new Error('invalid');
-    }
-    leftVal = Function('"use strict"; return (' + eqParts[0] + ')')();
-    rightVal = parseInt(eqParts[1], 10);
+    leftVal = Function('"use strict"; return (' + leftExpr + ')')();
+    rightVal = parseInt(rightExpr, 10);
   } catch {
-    msgEl.textContent = 'Invalid equation';
-    msgEl.style.color = 'var(--red)';
-    const row = document.getElementById('nc-row-' + state.currentRow);
-    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+    ncShakeRow(state, msgEl, 'Left side must be a valid expression');
     return;
   }
 
-  if (leftVal !== rightVal || !Number.isFinite(leftVal)) {
-    msgEl.textContent = 'Equation is not correct';
-    msgEl.style.color = 'var(--red)';
-    const row = document.getElementById('nc-row-' + state.currentRow);
-    if (row) { row.classList.add('animate-shake'); setTimeout(() => row.classList.remove('animate-shake'), 400); }
+  if (!Number.isFinite(leftVal)) {
+    ncShakeRow(state, msgEl, 'Left side must be a valid expression');
+    return;
+  }
+
+  if (leftVal !== rightVal) {
+    // Show actual vs expected
+    const actualStr = Number.isInteger(leftVal) ? '' + leftVal : leftVal.toFixed(2);
+    ncShakeRow(state, msgEl, leftExpr + ' = ' + actualStr + ', not ' + rightExpr);
     return;
   }
 
   const guess = state.currentGuess;
+
+  // Hard mode check
+  const hardErr = ncCheckHardMode(state, guess);
+  if (hardErr) {
+    ncShakeRow(state, msgEl, hardErr);
+    return;
+  }
+
   const answer = state.puzzle.equation;
   const len = state.puzzle.length;
   const result = Array(len).fill('absent');
@@ -8741,11 +8870,26 @@ function numcrunchSubmitGuess() {
     }
   }
 
+  // Update hard mode hints after computing result
+  if (state.puzzle.hardMode) {
+    for (let i = 0; i < len; i++) {
+      if (result[i] === 'correct') {
+        state.revealedHints.correct[i] = guess[i];
+      } else if (result[i] === 'present') {
+        state.revealedHints.present.add(guess[i]);
+      }
+    }
+  }
+
   state.guesses.push({ word: guess, result });
   msgEl.textContent = '';
 
   // Lock input during reveal
   state.revealInProgress = true;
+
+  // Remove active row glow from current row
+  const curRowEl = document.getElementById('nc-row-' + state.currentRow);
+  if (curRowEl) curRowEl.classList.remove('nc-active-row');
 
   // Reveal tiles with flip animation
   const row = state.currentRow;
@@ -8783,24 +8927,41 @@ function numcrunchSubmitGuess() {
     state.currentRow++;
     state.currentGuess = '';
 
+    // Update guesses-left counter
+    const glEl = document.getElementById('nc-guesses-left');
+    if (glEl) {
+      const left = state.puzzle.maxGuesses - state.currentRow;
+      glEl.textContent = left + ' guess' + (left !== 1 ? 'es' : '') + ' left';
+      if (left <= 1 && !won) glEl.classList.add('low');
+      else glEl.classList.remove('low');
+    }
+
     if (won) {
       state.gameOver = true;
       state.won = true;
-      msgEl.textContent = 'Brilliant!';
-      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = '';
+      // Win celebration: color cascade on winning row
       for (let col = 0; col < len; col++) {
         const tile = document.getElementById('nc-tile-' + (state.currentRow - 1) + '-' + col);
-        if (tile) { setTimeout(() => tile.classList.add('animate-bounce'), col * 100); }
+        if (tile) {
+          setTimeout(() => {
+            tile.classList.add('nc-win-cascade');
+            tile.style.animationDelay = (col * 0.15) + 's';
+          }, col * 100);
+        }
       }
       if (state._keyHandler) document.removeEventListener('keydown', state._keyHandler);
-      setTimeout(() => submitNumcrunch(), 1800);
+      setTimeout(() => submitNumcrunch(), 2000);
     } else if (state.currentRow >= state.puzzle.maxGuesses) {
       state.gameOver = true;
       state.won = false;
-      msgEl.innerHTML = `The equation was <strong>${answer}</strong>`;
-      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = '';
       if (state._keyHandler) document.removeEventListener('keydown', state._keyHandler);
       setTimeout(() => submitNumcrunch(), 1500);
+    } else {
+      // Add active row glow to next row
+      const nextRow = document.getElementById('nc-row-' + state.currentRow);
+      if (nextRow) nextRow.classList.add('nc-active-row');
     }
     state.revealInProgress = false;
   }, len * 300 + 300);
@@ -8827,20 +8988,42 @@ function submitNumcrunch() {
     lsSet('daily-numcrunch-state-'+getDailyDateStr(), {
       guesses: state.guesses,
       won: state.won,
-      puzzle: { equation: state.puzzle.equation, length: state.puzzle.length, maxGuesses: state.puzzle.maxGuesses }
+      puzzle: { equation: state.puzzle.equation, length: state.puzzle.length, maxGuesses: state.puzzle.maxGuesses, difficulty: state.puzzle.difficulty, hardMode: state.puzzle.hardMode }
     });
   }
-  // Disable keyboard
-  document.querySelectorAll('.nc-key').forEach(k => { k.disabled = true; k.style.pointerEvents = 'none'; k.style.cursor = 'default'; });
-  const msgEl = document.getElementById('nc-msg');
-  if (msgEl) {
-    const label = state.won ? 'Solved' : 'Failed';
-    msgEl.innerHTML = `<div style="color:${state.won?'var(--green)':'var(--red)'};font-weight:700;animation:pop 0.4s">${label}! Score: ${score}/100 (${state.guesses.length}/${state.puzzle.maxGuesses} guesses)</div>`;
+
+  // Build mini tile grid
+  let miniGridHtml = '<div class="nc-mini-grid">';
+  for (const g of state.guesses) {
+    miniGridHtml += '<div class="nc-mini-row">';
+    for (let i = 0; i < g.word.length; i++) {
+      miniGridHtml += '<div class="nc-mini-tile ' + g.result[i] + '">' + g.word[i] + '</div>';
+    }
+    miniGridHtml += '</div>';
   }
+  miniGridHtml += '</div>';
+
+  const emoji = state.won ? (state.guesses.length <= 2 ? '🏆' : state.guesses.length <= 4 ? '🎉' : '✅') : '😔';
+  const scoreColor = score >= 60 ? 'var(--green)' : score > 0 ? 'var(--orange)' : 'var(--red)';
+  const diffLabel = state.puzzle.difficulty.charAt(0).toUpperCase() + state.puzzle.difficulty.slice(1);
+  const hardTag = state.puzzle.hardMode ? ' (Hard Mode)' : '';
+  const guessText = state.guesses.length + '/' + state.puzzle.maxGuesses + ' guesses';
+  const answerReveal = state.won ? '' : '<div class="nc-summary-answer">The equation was <strong>' + state.puzzle.equation + '</strong></div>';
+
   const c = document.getElementById('game-container');
-  c.innerHTML += `
-    <div style="text-align:center;margin-top:16px">
-      <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue \u2192</button>
+  c.innerHTML = `
+    <div class="nc-summary-panel">
+      <div class="nc-summary-emoji">${emoji}</div>
+      <div class="nc-summary-score" style="color:${scoreColor}">${score}/100</div>
+      <div style="margin:8px 0 4px">
+        <span class="nc-diff-badge ${state.puzzle.difficulty}">${diffLabel}${hardTag}</span>
+      </div>
+      <div style="font-size:14px;color:var(--fg2);margin-bottom:4px">${guessText}</div>
+      ${answerReveal}
+      ${miniGridHtml}
+      <div style="margin-top:16px">
+        <button class="btn btn-primary btn-lg btn-full" onclick="showNextOrFinish()">Continue \u2192</button>
+      </div>
     </div>`;
   document.getElementById('btn-submit-challenge').style.display = 'none';
 }
