@@ -1,0 +1,23 @@
+/* Challenge 4: Escape */
+.escape-progress{display:flex;justify-content:center;gap:8px;margin-bottom:20px}
+.escape-dot{
+  width:12px;height:12px;border-radius:50%;background:var(--border);transition:background 0.3s,transform 0.3s;
+}
+.escape-dot.active{background:var(--accent);transform:scale(1.3)}
+.escape-dot.done{background:var(--green)}
+.escape-narrative{
+  font-family:'Noto Serif',serif;font-size:17px;line-height:1.8;
+  margin-bottom:24px;min-height:80px;max-height:40vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+}
+.escape-choices{display:flex;flex-direction:column;gap:10px}
+.escape-choice{
+  display:block;width:100%;text-align:left;padding:14px 18px;
+  border-radius:var(--radius);border:2px solid var(--border);
+  background:var(--card-bg);font-size:15px;cursor:pointer;
+  transition:background 0.15s,border-color 0.15s,color 0.15s;font-family:'Libre Franklin',sans-serif;min-height:44px;
+}
+.escape-choice:hover{border-color:var(--accent);background:var(--accent-light)}
+.escape-choice.optimal{border-color:var(--green);background:rgba(106,170,100,0.1)}
+.escape-choice.suboptimal{border-color:var(--orange);background:rgba(245,158,11,0.1)}
+.escape-choice.bad{border-color:var(--red);background:rgba(231,76,60,0.1)}
+.escape-feedback{font-size:13px;margin-top:8px;padding:8px 12px;border-radius:var(--radius);animation:slideUp 0.3s}

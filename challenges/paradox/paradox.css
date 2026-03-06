@@ -1,0 +1,26 @@
+/* Challenge 3: Paradox */
+.paradox-scenario{
+  font-family:'Noto Serif',serif;font-size:17px;line-height:1.7;
+  padding:24px;background:var(--bg2);border-radius:var(--radius-lg);
+  margin-bottom:20px;border-left:4px solid var(--accent);
+}
+.paradox-hint{font-size:13px;color:var(--fg2);font-style:italic;margin:8px 0 16px;padding:0 4px}
+.options-list{display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.option-btn{
+  display:block;width:100%;text-align:left;padding:14px 18px;
+  border-radius:var(--radius);border:2px solid var(--border);
+  background:var(--card-bg);font-size:15px;cursor:pointer;
+  transition:background 0.15s,border-color 0.15s,color 0.15s;font-family:'Libre Franklin',sans-serif;
+  min-height:44px;line-height:1.4;
+}
+.option-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.option-btn.selected{border-color:var(--accent);background:var(--accent-light)}
+.option-btn.correct{border-color:var(--green);background:rgba(106,170,100,0.15);color:var(--green)}
+.option-btn.incorrect{border-color:var(--red);background:rgba(231,76,60,0.15);color:var(--red)}
+.option-btn:disabled{cursor:default;opacity:0.8}
+.explanation-box{
+  margin-top:16px;padding:16px;border-radius:var(--radius);
+  background:var(--bg2);border:1px solid var(--border);
+  font-size:14px;line-height:1.6;animation:slideUp 0.3s ease;
+}
+.explanation-box strong{color:var(--accent)}

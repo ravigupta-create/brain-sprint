@@ -1,0 +1,21 @@
+/* Challenge 9: Perfect Pulse */
+.pulse-track{position:relative;width:100%;height:48px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin:20px 0}
+.pulse-track-ticks{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 4px;align-items:flex-end;pointer-events:none}
+.pulse-track-tick{width:1px;height:8px;background:var(--border2);opacity:0.3}
+.pulse-zone{position:absolute;top:4px;bottom:4px;border-radius:6px;background:rgba(99,102,241,0.2);border:2px solid var(--accent);box-shadow:0 0 12px rgba(99,102,241,0.3);transition:left 0.3s ease,width 0.3s ease,opacity 0.2s}
+.pulse-zone.pulse-zone-glow{animation:pulseZoneGlow 1.2s ease-in-out infinite}
+@keyframes pulseZoneGlow{0%,100%{box-shadow:0 0 12px rgba(99,102,241,0.3)}50%{box-shadow:0 0 20px rgba(99,102,241,0.6)}}
+.pulse-cursor{position:absolute;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--accent);box-shadow:0 0 8px var(--accent),0 0 16px rgba(99,102,241,0.4);transform:translateX(-50%);pointer-events:none}
+.pulse-stats{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;color:var(--fg2);margin-bottom:12px}
+.pulse-stats .pulse-round{font-size:18px;font-weight:800;color:var(--fg)}
+.pulse-stats .pulse-speed{font-size:13px;padding:4px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
+.pulse-tap-area{width:100%;min-height:120px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg);border:2px dashed var(--border);color:var(--fg2);font-size:15px;font-weight:600;cursor:pointer;transition:background 0.15s,border-color 0.15s;user-select:none;-webkit-user-select:none;margin-top:16px}
+.pulse-tap-area:hover{background:var(--bg2);border-color:var(--accent)}
+.pulse-tap-area:active{background:var(--accent-light);border-color:var(--accent)}
+@keyframes pulseHitFlash{0%{background:rgba(106,170,100,0.3)}100%{background:transparent}}
+@keyframes pulseMissFlash{0%{background:rgba(231,76,60,0.3)}100%{background:transparent}}
+@keyframes pulseHitPop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.pulse-hit-flash{animation:pulseHitFlash 0.4s ease}
+.pulse-miss-flash{animation:pulseMissFlash 0.5s ease}
+.pulse-hit-pop{animation:pulseHitPop 0.3s ease}
+.pulse-counter-up{animation:countUp 0.3s ease}

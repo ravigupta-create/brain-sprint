@@ -1,0 +1,122 @@
+/* Number Crunch */
+.nc-board{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  margin:10px auto;
+}
+.nc-row{
+  display:flex;gap:4px;
+}
+.nc-tile{
+  width:42px;height:50px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;font-family:'Libre Franklin',sans-serif;
+  border:2px solid var(--border);border-radius:10px;
+  background:var(--card-bg);color:var(--fg);
+  transition:border-color 0.1s;
+}
+.nc-tile.filled{border-color:var(--border2)}
+.nc-tile.correct{
+  background:#3b82f6;color:#fff;border-color:#3b82f6;
+}
+.nc-tile.present{
+  background:#f97316;color:#fff;border-color:#f97316;
+}
+.nc-tile.absent{
+  background:var(--fg3);color:#fff;border-color:var(--fg3);opacity:0.7;
+}
+.nc-tile.reveal{animation:wordroFlip 0.5s ease}
+.nc-tile.pop{animation:wordroPopTile 0.1s ease}
+.nc-keyboard{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  margin-top:12px;width:100%;max-width:500px;margin-left:auto;margin-right:auto;
+}
+.nc-kb-row{
+  display:flex;gap:4px;justify-content:center;width:100%;
+}
+.nc-key{
+  min-width:36px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg3);color:var(--fg);
+  border:none;border-radius:8px;
+  font-size:16px;font-weight:700;font-family:'Libre Franklin',sans-serif;
+  cursor:pointer;flex:1;max-width:44px;
+  transition:background 0.15s,color 0.15s,opacity 0.15s,transform 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.nc-key:hover{opacity:0.8}
+.nc-key:active{transform:scale(0.95)}
+.nc-key.wide{min-width:55px;max-width:65px;font-size:12px}
+.nc-key.correct{background:#3b82f6;color:#fff}
+.nc-key.present{background:#f97316;color:#fff}
+.nc-key.absent{background:var(--fg3);color:#fff;opacity:0.5}
+.nc-msg{
+  text-align:center;font-weight:600;font-size:14px;
+  min-height:24px;margin-top:4px;
+}
+.nc-row.nc-active-row .nc-tile{
+  border-color:var(--accent,#3b82f6);
+  box-shadow:0 0 6px rgba(59,130,246,0.25);
+}
+.nc-header-bar{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-bottom:6px;font-size:13px;font-weight:700;
+}
+.nc-diff-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.5px;
+}
+.nc-diff-badge.easy{background:#dcfce7;color:#15803d}
+.nc-diff-badge.medium{background:#fef9c3;color:#a16207}
+.nc-diff-badge.hard{background:#fee2e2;color:#dc2626}
+.nc-diff-badge.extreme{background:#fce7f3;color:#be185d}
+.nc-guesses-left{
+  font-size:13px;font-weight:700;color:var(--fg2);
+  transition:color 0.3s;
+}
+.nc-guesses-left.low{color:var(--red);animation:wordroPopTile 0.3s ease}
+@keyframes ncCascade{
+  0%{background:#3b82f6}
+  25%{background:#8b5cf6}
+  50%{background:#ec4899}
+  75%{background:#f59e0b}
+  100%{background:#3b82f6}
+}
+.nc-tile.nc-win-cascade{
+  animation:ncCascade 1.2s ease infinite;
+  color:#fff;border-color:transparent;
+}
+/* NC Summary Panel */
+.nc-summary-panel{
+  animation:wordrobotSlideUp 0.5s ease-out;
+  padding:24px 16px;max-width:440px;margin:0 auto;text-align:center;
+}
+.nc-summary-score{
+  font-size:56px;font-weight:900;
+  animation:wordrobotCountUp 0.6s ease-out;
+}
+.nc-summary-emoji{font-size:48px;margin-bottom:8px}
+.nc-mini-grid{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  margin:12px auto;
+}
+.nc-mini-row{display:flex;gap:2px}
+.nc-mini-tile{
+  width:22px;height:26px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:#fff;
+}
+.nc-mini-tile.correct{background:#3b82f6}
+.nc-mini-tile.present{background:#f97316}
+.nc-mini-tile.absent{background:var(--fg3);opacity:0.6}
+.nc-summary-answer{
+  font-size:14px;color:var(--fg2);margin:8px 0;
+}
+.nc-summary-answer strong{color:var(--fg);font-weight:800}
+@media(max-width:480px){
+  .nc-tile{width:36px;height:44px;font-size:18px}
+  .nc-key{height:44px;font-size:14px;min-width:34px;max-width:40px}
+  .nc-key.wide{min-width:48px;max-width:60px}
+  .nc-kb-row{gap:3px}
+  .nc-mini-tile{width:18px;height:22px;font-size:9px}
+}

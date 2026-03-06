@@ -1,0 +1,132 @@
+/* Numbot Analysis Panel */
+@keyframes numbotSlideUp{
+  0%{opacity:0;transform:translateY(30px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+@keyframes numbotCountUp{
+  0%{opacity:0;transform:scale(0.5)}
+  60%{transform:scale(1.1)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes numbotBarFill{
+  0%{transform:scaleX(0)}100%{transform:scaleX(1)}
+}
+.numbot-panel{
+  animation:numbotSlideUp 0.5s ease-out;
+  padding:24px 16px;
+  max-width:480px;
+  margin:0 auto;
+  text-align:center;
+}
+.numbot-header{
+  font-size:20px;font-weight:800;margin-bottom:16px;
+  color:var(--fg);
+}
+.numbot-guesses{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  margin-bottom:16px;
+  text-align:left;
+}
+.numbot-guess-row{
+  display:flex;align-items:center;
+  padding:5px 0;gap:6px;
+  border-bottom:1px solid var(--border);
+}
+.numbot-guess-row:last-child{border-bottom:none}
+.numbot-guess-row.nb-header{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.5px;color:var(--fg2);padding-bottom:6px;
+}
+.nb-num{width:18px;text-align:center;font-weight:700;font-size:12px;color:var(--fg2)}
+.nb-word{flex:1;display:flex;gap:2px}
+.nb-stat{width:36px;text-align:center;font-weight:700;font-size:12px}
+.nb-remaining{font-size:10px;font-weight:600;text-align:right;min-width:40px;white-space:nowrap}
+.nb-mini-tile{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;
+  font-size:9px;font-weight:700;
+  border-radius:3px;color:#fff;
+}
+.nb-mini-tile.correct{background:#3b82f6}
+.nb-mini-tile.present{background:#f97316}
+.nb-mini-tile.absent{background:var(--fg3)}
+.numbot-scores{
+  display:flex;gap:16px;justify-content:center;margin-bottom:16px;
+}
+.numbot-score-box{
+  flex:1;max-width:160px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 10px;
+}
+.numbot-score-box .score-icon{font-size:20px;margin-bottom:2px}
+.numbot-score-box .score-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:var(--fg2);margin-bottom:4px;
+}
+.numbot-score-box .score-number{
+  font-size:32px;font-weight:800;line-height:1;
+  margin-bottom:8px;color:var(--fg);
+  animation:numbotCountUp 0.6s ease-out 0.3s both;
+}
+.numbot-bar{
+  height:8px;border-radius:4px;
+  background:var(--bg3);overflow:hidden;
+}
+.numbot-bar-fill{
+  height:100%;border-radius:4px;transform-origin:left;will-change:transform;
+  animation:numbotBarFill 0.8s ease-out 0.5s both;
+}
+.numbot-bar-fill.skill-bar{background:linear-gradient(90deg,#2563eb,#3b82f6)}
+.numbot-bar-fill.luck-bar{background:linear-gradient(90deg,#6366f1,#a78bfa)}
+.numbot-comparison{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;margin-bottom:16px;
+  text-align:left;
+}
+.numbot-comp-header{
+  font-size:14px;font-weight:700;margin-bottom:10px;color:var(--fg);text-align:center;
+}
+.numbot-vs{
+  display:flex;align-items:flex-start;justify-content:center;
+  gap:12px;margin-bottom:12px;
+}
+.numbot-vs-side{text-align:center;flex:1}
+.numbot-vs-divider{font-size:13px;font-weight:700;color:var(--fg2);padding-top:14px}
+.numbot-verdict{
+  font-size:13px;font-weight:700;
+  padding:8px;border-radius:8px;
+  margin-top:10px;text-align:center;
+}
+.numbot-insights{
+  text-align:left;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;margin-bottom:16px;
+}
+.numbot-insights h4{
+  font-size:13px;font-weight:700;margin:0 0 8px;color:var(--fg);
+}
+.numbot-insight{
+  font-size:12px;color:var(--fg2);
+  margin-bottom:6px;line-height:1.45;
+  padding-left:14px;position:relative;
+}
+.numbot-insight:last-child{margin-bottom:0}
+.numbot-insight::before{
+  content:'•';position:absolute;left:0;color:var(--accent);font-weight:700;
+}
+@media(max-width:480px){
+  .numbot-panel{padding:16px 10px}
+  .numbot-score-box .score-number{font-size:26px}
+  .numbot-scores{gap:10px}
+  .nb-mini-tile{width:17px;height:17px;font-size:8px}
+  .vs-count{font-size:24px}
+}

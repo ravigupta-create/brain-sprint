@@ -1,0 +1,148 @@
+/* Wordrobot Analysis Panel */
+@keyframes wordrobotSlideUp{
+  0%{opacity:0;transform:translateY(30px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+@keyframes wordrobotCountUp{
+  0%{opacity:0;transform:scale(0.5)}
+  60%{transform:scale(1.1)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes wordrobotBarFill{
+  0%{transform:scaleX(0)}100%{transform:scaleX(1)}
+}
+.wordrobot-panel{
+  animation:wordrobotSlideUp 0.5s ease-out;
+  padding:24px 16px;
+  max-width:440px;
+  margin:0 auto;
+  text-align:center;
+}
+.wordrobot-header{
+  font-size:20px;font-weight:800;margin-bottom:16px;
+  color:var(--fg);
+}
+/* Per-guess breakdown table */
+.wordrobot-guesses{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  margin-bottom:16px;
+  text-align:left;
+}
+.wordrobot-guess-row{
+  display:flex;align-items:center;
+  padding:5px 0;gap:6px;
+  border-bottom:1px solid var(--border);
+}
+.wordrobot-guess-row:last-child{border-bottom:none}
+.wordrobot-guess-row.wg-header{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.5px;color:var(--fg2);padding-bottom:6px;
+}
+.wg-num{width:18px;text-align:center;font-weight:700;font-size:12px;color:var(--fg2)}
+.wg-word{flex:1;display:flex;gap:2px}
+.wg-stat{width:36px;text-align:center;font-weight:700;font-size:12px}
+.wg-remaining{font-size:10px;font-weight:600;text-align:right;min-width:40px;white-space:nowrap}
+.wg-mini-tile{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;
+  font-size:10px;font-weight:700;
+  border-radius:3px;color:#fff;
+}
+.wg-mini-tile.correct{background:#3b82f6}
+.wg-mini-tile.present{background:#f97316}
+.wg-mini-tile.absent{background:var(--fg3)}
+/* Overall scores */
+.wordrobot-scores{
+  display:flex;gap:16px;justify-content:center;margin-bottom:16px;
+}
+.wordrobot-score-box{
+  flex:1;max-width:160px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 10px;
+}
+.wordrobot-score-box .score-icon{
+  font-size:20px;margin-bottom:2px;
+}
+.wordrobot-score-box .score-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:var(--fg2);margin-bottom:4px;
+}
+.wordrobot-score-box .score-number{
+  font-size:32px;font-weight:800;line-height:1;
+  margin-bottom:8px;color:var(--fg);
+  animation:wordrobotCountUp 0.6s ease-out 0.3s both;
+}
+.wordrobot-bar{
+  height:8px;border-radius:4px;
+  background:var(--bg3);overflow:hidden;
+}
+.wordrobot-bar-fill{
+  height:100%;border-radius:4px;transform-origin:left;will-change:transform;
+  animation:wordrobotBarFill 0.8s ease-out 0.5s both;
+}
+.wordrobot-bar-fill.skill-bar{
+  background:linear-gradient(90deg,#2563eb,#3b82f6);
+}
+.wordrobot-bar-fill.luck-bar{
+  background:linear-gradient(90deg,#6366f1,#a78bfa);
+}
+/* Bot comparison */
+.wordrobot-comparison{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;margin-bottom:16px;
+  text-align:left;
+}
+.wordrobot-comp-header{
+  font-size:14px;font-weight:700;margin-bottom:10px;color:var(--fg);text-align:center;
+}
+.wordrobot-vs{
+  display:flex;align-items:flex-start;justify-content:center;
+  gap:12px;margin-bottom:12px;
+}
+.wordrobot-vs-side{text-align:center;flex:1}
+.vs-label{font-size:10px;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:0.5px}
+.vs-count{font-size:28px;font-weight:800;color:var(--fg);line-height:1.2}
+.vs-unit{font-size:10px;color:var(--fg2);margin-bottom:8px}
+.vs-guesses{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:4px}
+.wordrobot-vs-divider{font-size:13px;font-weight:700;color:var(--fg2);padding-top:14px}
+.bot-guess-row{display:flex;gap:2px;align-items:center}
+.bot-guess-num{width:16px;font-size:10px;font-weight:700;color:var(--fg2);text-align:center}
+.wordrobot-verdict{
+  font-size:13px;font-weight:700;
+  padding:8px;border-radius:8px;
+  margin-top:10px;text-align:center;
+}
+/* Insights */
+.wordrobot-insights{
+  text-align:left;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;margin-bottom:16px;
+}
+.wordrobot-insights h4{
+  font-size:13px;font-weight:700;margin:0 0 8px;color:var(--fg);
+}
+.wordrobot-insight{
+  font-size:12px;color:var(--fg2);
+  margin-bottom:6px;line-height:1.45;
+  padding-left:14px;position:relative;
+}
+.wordrobot-insight:last-child{margin-bottom:0}
+.wordrobot-insight::before{
+  content:'•';position:absolute;left:0;color:var(--accent);font-weight:700;
+}
+@media(max-width:480px){
+  .wordrobot-panel{padding:16px 10px}
+  .wordrobot-score-box .score-number{font-size:26px}
+  .wordrobot-scores{gap:10px}
+  .wg-mini-tile{width:20px;height:20px;font-size:9px}
+  .vs-count{font-size:24px}
+}

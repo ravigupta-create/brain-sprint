@@ -1,0 +1,26 @@
+/* Challenge 10: Deduction */
+.deduction-chars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.deduction-char{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);padding:12px 8px;text-align:center;cursor:pointer;transition:background 0.2s,border-color 0.2s,opacity 0.2s}
+.deduction-char:hover{border-color:var(--accent)}
+.deduction-char.eliminated{opacity:0.3;pointer-events:none;text-decoration:line-through}
+.deduction-char.target{border-color:var(--red);background:rgba(231,76,60,0.08)}
+.deduction-char .dc-emoji{font-size:28px;margin-bottom:4px}
+.deduction-char .dc-name{font-size:13px;font-weight:700}
+.deduction-char .dc-role{font-size:11px;color:var(--fg2)}
+.deduction-questions{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.deduction-q-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:left;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s,border-color 0.15s;font-family:inherit;min-height:44px}
+.deduction-q-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.deduction-responses{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin:12px 0;max-height:220px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.deduction-resp{font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)}
+.deduction-resp:last-child{border-bottom:none}
+.deduction-resp .dr-name{font-weight:700;margin-right:4px}
+.deduction-phase-label{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.deduction-round-info{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;color:var(--fg2);margin-bottom:8px}
+.deduction-round-info .round-num{font-size:18px;font-weight:800;color:var(--fg)}
+.deduction-elim-label{font-size:13px;color:var(--fg2);margin-bottom:8px;text-align:center}
+@media(max-width:480px){
+  .deduction-chars{grid-template-columns:repeat(2,1fr)}
+}
+@media(hover:none)and (pointer:coarse){
+  .deduction-q-btn:hover{border-color:var(--border);background:var(--bg2)}
+}
