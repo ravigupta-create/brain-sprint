@@ -8884,9 +8884,10 @@ function renderMaze(puzzle) {
       const w = puzzle.walls[r][cc];
       let cls = 'maze-cell';
       if (w.top) cls += ' wall-top';
-      if (w.right) cls += ' wall-right';
-      if (w.bottom) cls += ' wall-bottom';
       if (w.left) cls += ' wall-left';
+      // Only render right/bottom on outer edges to avoid doubling with adjacent cell
+      if (cc === puzzle.cols - 1 && w.right) cls += ' wall-right';
+      if (r === puzzle.rows - 1 && w.bottom) cls += ' wall-bottom';
       if (r === 0 && cc === 0) cls += ' player visited';
       if (r === puzzle.rows - 1 && cc === puzzle.cols - 1) cls += ' goal';
       let content = '';
