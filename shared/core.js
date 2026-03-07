@@ -518,7 +518,12 @@ function showCompletedPuzzleResults(ch, score) {
 
 function selectFullSprint() {
   const daily = GS.mode === 'daily' ? getDailyCompletion() : {};
-  GS.selectedChallenges = CHALLENGE_ORDER.filter(ch => daily[ch] === undefined);
+  const available = CHALLENGE_ORDER.filter(ch => daily[ch] === undefined);
+  if (GS.selectedChallenges.length === available.length && available.every(ch => GS.selectedChallenges.includes(ch))) {
+    GS.selectedChallenges = [];
+  } else {
+    GS.selectedChallenges = available;
+  }
   updateChallengeSelectUI();
 }
 
