@@ -18,7 +18,21 @@
 .maze-cell.wall-left{border-left-width:2px}
 .maze-cell.visited{background:var(--accent-light)}
 .maze-cell.player{
-  background:var(--accent);color:#fff;font-weight:800;border-radius:50%;
+  color:transparent;
+}
+.maze-cell.player::after{
+  content:'●';
+  position:absolute;
+  inset:2px;
+  border-radius:50%;
+  background:var(--accent);
+  color:#fff;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:inherit;
+  z-index:1;
   animation:playerGlow 1.5s ease-in-out infinite;
 }
 @keyframes playerGlow{
