@@ -9,12 +9,12 @@ function getMazePuzzle() {
     extreme: { rows: 19, cols: 19, timeBonus: 90 }
   };
   const cfg = configs[d] || configs.medium;
-  const walls = generateMaze(cfg.rows, cfg.cols);
+  const walls = generateMaze(cfg.rows, cfg.cols, d === 'extreme');
   const optimal = solveMaze(walls, cfg.rows, cfg.cols);
   return { ...cfg, walls, optimalLen: optimal.length };
 }
 
-function generateMaze(rows, cols) {
+function generateMaze(rows, cols, deceptive) {
   // Recursive backtracker — produces a perfect maze
   // walls[r][c] = { top, right, bottom, left } — all start true
   const walls = [];
@@ -27,20 +27,30 @@ function generateMaze(rows, cols) {
   const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
   const dirs = [[-1,0,'top','bottom'],[0,1,'right','left'],[1,0,'bottom','top'],[0,-1,'left','right']];
 
-  function carve(r, c) {
+  function carve(r, c, lastDir) {
     visited[r][c] = true;
-    const shuffled = rngShuffle([0,1,2,3]);
+    let shuffled = rngShuffle([0,1,2,3]);
+    // In deceptive mode, bias toward continuing straight — creates long corridors & deceptive dead ends
+    if (deceptive && lastDir !== undefined && rngInt(0, 99) < 65) {
+      shuffled = shuffled.filter(d => d !== lastDir);
+      shuffled.unshift(lastDir);
+    }
     for (const di of shuffled) {
       const [dr, dc, wall, opp] = dirs[di];
       const nr = r + dr, nc = c + dc;
       if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc]) {
         walls[r][c][wall] = false;
         walls[nr][nc][opp] = false;
-        carve(nr, nc);
+        carve(nr, nc, di);
       }
     }
   }
-  carve(0, 0);
+  // Deceptive: start from center so longest corridors don't align with start/end corners
+  if (deceptive) {
+    carve(Math.floor(rows / 2), Math.floor(cols / 2), undefined);
+  } else {
+    carve(0, 0, undefined);
+  }
   return walls;
 }
 
