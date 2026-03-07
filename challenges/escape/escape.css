@@ -1,23 +1,47 @@
 /* Challenge 4: Escape */
 .escape-progress{display:flex;justify-content:center;gap:8px;margin-bottom:20px}
 .escape-dot{
-  width:12px;height:12px;border-radius:50%;background:var(--border);transition:background 0.3s,transform 0.3s;
+  width:12px;height:12px;border-radius:50%;background:var(--border);
+  transition:background 0.3s,transform 0.3s,box-shadow 0.3s;
 }
-.escape-dot.active{background:var(--accent);transform:scale(1.3)}
-.escape-dot.done{background:var(--green)}
+.escape-dot.active{background:var(--accent);transform:scale(1.3);box-shadow:0 0 8px rgba(99,102,241,0.4)}
+.escape-dot.done{background:var(--green);box-shadow:0 0 6px rgba(106,170,100,0.3)}
 .escape-narrative{
   font-family:'Noto Serif',serif;font-size:17px;line-height:1.8;
   margin-bottom:24px;min-height:80px;max-height:40vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding:20px;border-radius:var(--radius-lg);
+  background:linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  position:relative;
+  border:1px solid var(--border);
+}
+.escape-narrative::before{
+  content:'';position:absolute;inset:-1px;border-radius:var(--radius-lg);
+  background:linear-gradient(135deg, var(--accent), var(--accent2), transparent, transparent);
+  z-index:-1;opacity:0.3;
 }
 .escape-choices{display:flex;flex-direction:column;gap:10px}
 .escape-choice{
   display:block;width:100%;text-align:left;padding:14px 18px;
   border-radius:var(--radius);border:2px solid var(--border);
   background:var(--card-bg);font-size:15px;cursor:pointer;
-  transition:background 0.15s,border-color 0.15s,color 0.15s;font-family:'Libre Franklin',sans-serif;min-height:44px;
+  transition:background 0.15s,border-color 0.15s,color 0.15s,transform 0.2s;
+  font-family:'Libre Franklin',sans-serif;min-height:44px;
+  opacity:0;animation:escapeChoiceIn 0.35s ease forwards;
+  position:relative;
 }
-.escape-choice:hover{border-color:var(--accent);background:var(--accent-light)}
-.escape-choice.optimal{border-color:var(--green);background:rgba(106,170,100,0.1)}
+.escape-choice:nth-child(1){animation-delay:0.05s}
+.escape-choice:nth-child(2){animation-delay:0.12s}
+.escape-choice:nth-child(3){animation-delay:0.19s}
+@keyframes escapeChoiceIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+.escape-choice:hover{
+  border-color:var(--accent);background:var(--accent-light);
+  transform:translateX(4px);padding-left:22px;
+  border-left:4px solid var(--accent);
+}
+.escape-choice.optimal{border-color:var(--green);background:rgba(106,170,100,0.1);box-shadow:0 0 12px rgba(106,170,100,0.15)}
 .escape-choice.suboptimal{border-color:var(--orange);background:rgba(245,158,11,0.1)}
-.escape-choice.bad{border-color:var(--red);background:rgba(231,76,60,0.1)}
+.escape-choice.bad{border-color:var(--red);background:rgba(231,76,60,0.1);animation:shake 0.4s ease}
 .escape-feedback{font-size:13px;margin-top:8px;padding:8px 12px;border-radius:var(--radius);animation:slideUp 0.3s}
+@media(hover:none)and (pointer:coarse){
+  .escape-choice:hover{transform:none;padding-left:18px;border-left:2px solid var(--border);background:var(--card-bg);border-color:var(--border)}
+}

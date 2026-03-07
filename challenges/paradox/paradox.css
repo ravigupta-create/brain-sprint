@@ -1,8 +1,16 @@
 /* Challenge 3: Paradox */
 .paradox-scenario{
   font-family:'Noto Serif',serif;font-size:17px;line-height:1.7;
-  padding:24px;background:var(--bg2);border-radius:var(--radius-lg);
-  margin-bottom:20px;border-left:4px solid var(--accent);
+  padding:24px;padding-left:28px;background:var(--bg2);border-radius:var(--radius-lg);
+  margin-bottom:20px;
+  border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+  animation:fadeIn 0.4s ease;
+  position:relative;overflow:hidden;
+}
+.paradox-scenario::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:linear-gradient(to bottom, var(--accent), var(--accent2));
 }
 .paradox-hint{font-size:13px;color:var(--fg2);font-style:italic;margin:8px 0 16px;padding:0 4px}
 .options-list{display:flex;flex-direction:column;gap:10px;margin:16px 0}
@@ -10,13 +18,45 @@
   display:block;width:100%;text-align:left;padding:14px 18px;
   border-radius:var(--radius);border:2px solid var(--border);
   background:var(--card-bg);font-size:15px;cursor:pointer;
-  transition:background 0.15s,border-color 0.15s,color 0.15s;font-family:'Libre Franklin',sans-serif;
+  transition:background 0.15s,border-color 0.15s,color 0.15s,transform 0.2s;
+  font-family:'Libre Franklin',sans-serif;
   min-height:44px;line-height:1.4;
+  opacity:0;animation:optionSlideIn 0.35s ease forwards;
+  position:relative;
 }
-.option-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.option-btn:nth-child(1){animation-delay:0.05s}
+.option-btn:nth-child(2){animation-delay:0.1s}
+.option-btn:nth-child(3){animation-delay:0.15s}
+.option-btn:nth-child(4){animation-delay:0.2s}
+@keyframes optionSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.option-btn:hover{
+  border-color:var(--accent);background:var(--accent-light);
+  transform:translateX(4px);padding-left:22px;
+  border-left:4px solid var(--accent);
+}
 .option-btn.selected{border-color:var(--accent);background:var(--accent-light)}
-.option-btn.correct{border-color:var(--green);background:rgba(106,170,100,0.15);color:var(--green)}
-.option-btn.incorrect{border-color:var(--red);background:rgba(231,76,60,0.15);color:var(--red)}
+.option-btn.correct{
+  border-color:var(--green);background:rgba(106,170,100,0.15);color:var(--green);
+  animation:correctPop 0.4s ease;
+}
+@keyframes correctPop{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.04)}
+  100%{transform:scale(1)}
+}
+.option-btn.correct::after{
+  content:'';position:absolute;inset:-4px;border-radius:var(--radius);
+  border:2px solid var(--green);opacity:0;
+  animation:correctRing 0.6s ease forwards;
+}
+@keyframes correctRing{
+  0%{opacity:0.6;transform:scale(0.98)}
+  100%{opacity:0;transform:scale(1.05)}
+}
+.option-btn.incorrect{
+  border-color:var(--red);background:rgba(231,76,60,0.15);color:var(--red);
+  animation:shake 0.4s ease;
+}
 .option-btn:disabled{cursor:default;opacity:0.8}
 .explanation-box{
   margin-top:16px;padding:16px;border-radius:var(--radius);
@@ -24,3 +64,6 @@
   font-size:14px;line-height:1.6;animation:slideUp 0.3s ease;
 }
 .explanation-box strong{color:var(--accent)}
+@media(hover:none)and (pointer:coarse){
+  .option-btn:hover{transform:none;padding-left:18px;border-left:2px solid var(--border);background:var(--card-bg);border-color:var(--border)}
+}

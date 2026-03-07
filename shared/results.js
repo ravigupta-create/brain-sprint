@@ -27,7 +27,7 @@ function showResults() {
   breakdown.innerHTML = html;
 
   const finalScore = Math.round(totalRaw * multiplier);
-  // Animated count-up
+  // Animated count-up with micro-pulses
   animateCountUp('results-score', 0, finalScore, 1500);
 
   // Share box
@@ -36,19 +36,41 @@ function showResults() {
 
   // Save stats
   updateStats(finalScore);
+
+  // Confetti based on average score
+  const avg = totalRaw / GS.selectedChallenges.length;
+  if (avg >= 80) { setTimeout(() => launchConfetti(120), 600); }
+  else if (avg >= 50) { setTimeout(() => launchConfetti(50), 600); }
 }
 
 function animateCountUp(elemId, start, end, duration) {
   const el = document.getElementById(elemId);
   const range = end - start;
   const startTime = performance.now();
+  let lastPulse = 0;
   function update(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
     // Ease out quad
     const eased = 1 - (1 - progress) * (1 - progress);
-    el.textContent = Math.round(start + range * eased);
-    if (progress < 1) requestAnimationFrame(update);
+    const current = Math.round(start + range * eased);
+    el.textContent = current;
+    // Micro-pulse every ~15% progress
+    const pulseThreshold = Math.floor(progress * 7);
+    if (pulseThreshold > lastPulse && progress < 1) {
+      lastPulse = pulseThreshold;
+      el.classList.remove('score-pulse');
+      void el.offsetWidth;
+      el.classList.add('score-pulse');
+    }
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      // Final landing pop
+      el.classList.remove('score-pulse');
+      el.classList.add('score-land');
+      setTimeout(() => el.classList.remove('score-land'), 350);
+    }
   }
   requestAnimationFrame(update);
 }

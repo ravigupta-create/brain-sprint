@@ -90,6 +90,11 @@ function renderMaze(puzzle) {
       // Only render right/bottom on outer edges to avoid doubling with adjacent cell
       if (cc === puzzle.cols - 1 && w.right) cls += ' wall-right';
       if (r === puzzle.rows - 1 && w.bottom) cls += ' wall-bottom';
+      // Fill 2x2 corner gap at top-left where adjacent walls meet but this cell has no border
+      if (r > 0 && cc > 0 && !w.top && !w.left &&
+          puzzle.walls[r-1][cc].left && puzzle.walls[r][cc-1].top) {
+        cls += ' corner-tl';
+      }
       if (r === 0 && cc === 0) cls += ' player visited';
       if (r === puzzle.rows - 1 && cc === puzzle.cols - 1) cls += ' goal';
       let content = '';
@@ -149,11 +154,19 @@ function moveMazePlayer(dr, dc) {
   const nr = st.playerR + dr, nc = st.playerC + dc;
 
   // Check bounds
-  if (nr < 0 || nr >= p.rows || nc < 0 || nc >= p.cols) return;
+  if (nr < 0 || nr >= p.rows || nc < 0 || nc >= p.cols) {
+    const grid = document.getElementById('maze-grid');
+    if (grid) { grid.classList.remove('shake'); void grid.offsetWidth; grid.classList.add('shake'); }
+    return;
+  }
 
   // Check wall
   const wallDir = dr === -1 ? 'top' : dr === 1 ? 'bottom' : dc === -1 ? 'left' : 'right';
-  if (p.walls[st.playerR][st.playerC][wallDir]) return;
+  if (p.walls[st.playerR][st.playerC][wallDir]) {
+    const grid = document.getElementById('maze-grid');
+    if (grid) { grid.classList.remove('shake'); void grid.offsetWidth; grid.classList.add('shake'); }
+    return;
+  }
 
   // Move
   const oldCell = document.getElementById(`mz-${st.playerR}-${st.playerC}`);

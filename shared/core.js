@@ -78,6 +78,10 @@ function showChallengeSummary(config) {
   html += '</div>';
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'none';
+  // Screen flash + confetti based on score
+  if (config.score === 100) { screenFlash('gold'); launchConfetti(60); }
+  else if (config.score >= 60) screenFlash('green');
+  else if (config.score === 0) screenFlash('red');
 }
 
 function getStats() { return lsGet('stats', { played:0, totalScore:0, bestScore:0, streak:0, maxStreak:0, lastDate:null }); }
@@ -154,6 +158,9 @@ function showScreen(id) {
   const timer = document.getElementById('timer-display');
   if (id === 'screen-game') timer.style.display = 'block';
   else if (id !== 'screen-results') timer.style.display = 'none';
+  // Landing particles
+  if (id === 'screen-landing') startLandingParticles();
+  else stopLandingParticles();
 }
 function goBack() {
   if (GS.screenStack.length > 1) {
@@ -166,6 +173,116 @@ function navigateTo(id) {
   GS.screenStack.push(id);
   showScreen(id);
 }
+
+// --- Confetti Engine ---
+function launchConfetti(count = 80) {
+  const colors = ['#6366f1','#818cf8','#ec4899','#f59e0b','#6aaa64','#c9b458','#a855f7'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = Math.random() * 8 + 4;
+    const isCircle = Math.random() > 0.5;
+    el.style.cssText = `
+      left:${Math.random()*100}vw;
+      width:${size}px;height:${isCircle ? size : size*1.5}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${isCircle ? '50%' : '2px'};
+      --fall-duration:${1.8 + Math.random()*1.5}s;
+      --spin:${360 + Math.random()*720}deg;
+      animation-delay:${Math.random()*0.4}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+}
+
+// --- Screen Flash ---
+function screenFlash(type) {
+  // type: 'gold', 'green', 'red'
+  const el = document.createElement('div');
+  el.className = 'screen-flash ' + type;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 700);
+}
+
+// --- Landing Particle System ---
+let _particleRAF = null;
+function startLandingParticles() {
+  let canvas = document.getElementById('landing-particles');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'landing-particles';
+    document.body.appendChild(canvas);
+  }
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  const count = 30;
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#6366f1';
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 1
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw connecting lines
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.strokeStyle = accent;
+          ctx.globalAlpha = (1 - dist / 120) * 0.15;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    // Draw particles
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = accent;
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    _particleRAF = requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopLandingParticles() {
+  if (_particleRAF) { cancelAnimationFrame(_particleRAF); _particleRAF = null; }
+  const canvas = document.getElementById('landing-particles');
+  if (canvas) canvas.style.display = 'none';
+}
+
+// --- Button Ripple ---
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn');
+  if (!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  const size = Math.max(rect.width, rect.height) * 2;
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+  ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 550);
+});
 
 // --- Toast ---
 function showToast(msg, duration=2000) {

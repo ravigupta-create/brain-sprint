@@ -1,9 +1,37 @@
 /* Challenge 10: Deduction */
 .deduction-chars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
-.deduction-char{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);padding:12px 8px;text-align:center;cursor:pointer;transition:background 0.2s,border-color 0.2s,opacity 0.2s}
+.deduction-char{
+  background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);
+  padding:12px 8px;text-align:center;cursor:pointer;
+  transition:background 0.2s,border-color 0.2s,opacity 0.4s,transform 0.4s,filter 0.4s;
+  opacity:0;animation:deductionCardIn 0.4s ease forwards;
+}
+.deduction-char:nth-child(1){animation-delay:0.00s}
+.deduction-char:nth-child(2){animation-delay:0.05s}
+.deduction-char:nth-child(3){animation-delay:0.10s}
+.deduction-char:nth-child(4){animation-delay:0.15s}
+.deduction-char:nth-child(5){animation-delay:0.20s}
+.deduction-char:nth-child(6){animation-delay:0.25s}
+.deduction-char:nth-child(7){animation-delay:0.30s}
+.deduction-char:nth-child(8){animation-delay:0.35s}
+.deduction-char:nth-child(9){animation-delay:0.40s}
+@keyframes deductionCardIn{
+  from{opacity:0;transform:translateY(15px) scale(0.9)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
 .deduction-char:hover{border-color:var(--accent)}
-.deduction-char.eliminated{opacity:0.3;pointer-events:none;text-decoration:line-through}
-.deduction-char.target{border-color:var(--red);background:rgba(231,76,60,0.08)}
+.deduction-char.eliminated{
+  opacity:0.2;pointer-events:none;
+  transform:scale(0.85);filter:grayscale(1);
+}
+.deduction-char.target{
+  border-color:var(--red);background:rgba(231,76,60,0.08);
+  animation:targetPulse 2s ease-in-out infinite;
+}
+@keyframes targetPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0.3)}
+  50%{box-shadow:0 0 0 8px rgba(231,76,60,0)}
+}
 .deduction-char .dc-emoji{font-size:28px;margin-bottom:4px}
 .deduction-char .dc-name{font-size:13px;font-weight:700}
 .deduction-char .dc-role{font-size:11px;color:var(--fg2)}
@@ -11,10 +39,20 @@
 .deduction-q-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:left;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s,border-color 0.15s;font-family:inherit;min-height:44px}
 .deduction-q-btn:hover{border-color:var(--accent);background:var(--accent-light)}
 .deduction-responses{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin:12px 0;max-height:220px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.deduction-resp{font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)}
+.deduction-resp{
+  font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);
+  opacity:0;animation:slideUp 0.3s ease forwards;
+}
 .deduction-resp:last-child{border-bottom:none}
 .deduction-resp .dr-name{font-weight:700;margin-right:4px}
-.deduction-phase-label{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.deduction-phase-label{
+  font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px;
+  position:relative;display:inline-block;padding-bottom:4px;
+}
+.deduction-phase-label::after{
+  content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:1px;
+}
 .deduction-round-info{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;color:var(--fg2);margin-bottom:8px}
 .deduction-round-info .round-num{font-size:18px;font-weight:800;color:var(--fg)}
 .deduction-elim-label{font-size:13px;color:var(--fg2);margin-bottom:8px;text-align:center}
