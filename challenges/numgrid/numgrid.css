@@ -1,17 +1,59 @@
 /* Challenge 7: Number Grid */
-.numgrid-board{display:inline-grid;gap:1px;margin:0 auto 16px;border:2px solid var(--text)}
-.numgrid-board .ng-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;border:1px solid var(--border);cursor:pointer;background:var(--bg);transition:background .15s}
-.numgrid-board .ng-cell.ng-given{background:var(--hover);cursor:default;color:var(--text)}
-.numgrid-board .ng-cell.ng-selected{background:var(--accent-light);outline:2px solid var(--accent);z-index:2;position:relative}
+.numgrid-board{display:inline-grid;gap:1px;margin:0 auto 16px;border:2px solid var(--fg)}
+.numgrid-board .ng-cell{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:600;border:1px solid var(--border);cursor:pointer;
+  background:var(--bg);transition:background .15s,box-shadow .15s,transform .15s;
+  opacity:0;animation:fadeIn 0.3s ease forwards;
+}
+.numgrid-board .ng-cell:nth-child(1){animation-delay:0.02s}
+.numgrid-board .ng-cell:nth-child(2){animation-delay:0.04s}
+.numgrid-board .ng-cell:nth-child(3){animation-delay:0.06s}
+.numgrid-board .ng-cell:nth-child(4){animation-delay:0.08s}
+.numgrid-board .ng-cell:nth-child(5){animation-delay:0.1s}
+.numgrid-board .ng-cell:nth-child(6){animation-delay:0.12s}
+.numgrid-board .ng-cell:nth-child(7){animation-delay:0.14s}
+.numgrid-board .ng-cell:nth-child(8){animation-delay:0.16s}
+.numgrid-board .ng-cell:nth-child(9){animation-delay:0.18s}
+.numgrid-board .ng-cell:nth-child(n+10){animation-delay:0.2s}
+.numgrid-board .ng-cell:nth-child(n+17){animation-delay:0.24s}
+.numgrid-board .ng-cell:nth-child(n+25){animation-delay:0.28s}
+.numgrid-board .ng-cell.ng-given{background:var(--bg3);cursor:default;color:var(--fg)}
+.numgrid-board .ng-cell.ng-selected{
+  background:var(--accent-light);outline:2px solid var(--accent);z-index:2;position:relative;
+  box-shadow:0 0 12px rgba(99,102,241,0.4);
+}
 .numgrid-board .ng-cell:hover{z-index:1;position:relative}
-.numgrid-board .ng-cell.ng-error{background:#ffe0e0;color:#c00}
-.numgrid-board .ng-cell.ng-correct{background:#d4edda;color:#155724}
+.numgrid-board .ng-cell.ng-error{
+  background:rgba(231,76,60,0.15);color:var(--red);
+  animation:shake 0.3s ease;
+}
+.numgrid-board .ng-cell.ng-correct{
+  background:rgba(106,170,100,0.15);color:var(--green);
+  animation:correctPop 0.3s ease;
+}
 .numgrid-pad{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-.numgrid-pad button{width:44px;height:44px;font-size:18px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer}
-.numgrid-pad button:hover{background:var(--hover)}
+.numgrid-pad button{
+  width:44px;height:44px;font-size:18px;font-weight:600;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg);cursor:pointer;
+  transition:background 0.15s,color 0.15s,transform 0.15s;
+  opacity:0;animation:fadeIn 0.25s ease forwards;
+}
+.numgrid-pad button:nth-child(1){animation-delay:0.22s}
+.numgrid-pad button:nth-child(2){animation-delay:0.24s}
+.numgrid-pad button:nth-child(3){animation-delay:0.26s}
+.numgrid-pad button:nth-child(4){animation-delay:0.28s}
+.numgrid-pad button:nth-child(5){animation-delay:0.3s}
+.numgrid-pad button:nth-child(6){animation-delay:0.32s}
+.numgrid-pad button:nth-child(7){animation-delay:0.34s}
+.numgrid-pad button:nth-child(8){animation-delay:0.36s}
+.numgrid-pad button:nth-child(9){animation-delay:0.38s}
+.numgrid-pad button:nth-child(10){animation-delay:0.4s}
+.numgrid-pad button:hover{background:var(--bg3)}
+.numgrid-pad button:active{background:var(--accent);color:#fff;transform:scale(0.92)}
 .numgrid-pad button.ng-pad-clear{width:auto;padding:0 12px;font-size:14px}
-.ng-box-right{border-right:2px solid var(--text) !important}
-.ng-box-bottom{border-bottom:2px solid var(--text) !important}
+.ng-box-right{border-right:2px solid var(--fg) !important}
+.ng-box-bottom{border-bottom:2px solid var(--fg) !important}
 .ng-drag-ghost{position:fixed;pointer-events:none;z-index:1000;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border-radius:8px;background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.25);opacity:0.9}
 .numgrid-board .ng-cell.ng-drop-target{outline:3px solid var(--accent);outline-offset:-3px;background:var(--accent-light)}
 @media(max-width:480px){

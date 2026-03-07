@@ -291,7 +291,7 @@ function showToast(msg, duration=2000) {
   t.className = 'toast';
   t.textContent = msg;
   c.appendChild(t);
-  setTimeout(() => t.remove(), duration);
+  setTimeout(() => { t.classList.add('toast-exit'); setTimeout(() => t.remove(), 300); }, duration - 300);
 }
 
 // --- Seed setup ---

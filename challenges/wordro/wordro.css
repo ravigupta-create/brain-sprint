@@ -2,6 +2,7 @@
 .wordro-board{
   display:flex;flex-direction:column;align-items:center;gap:6px;
   margin:10px auto;
+  animation:fadeIn 0.3s ease;
 }
 .wordro-row{
   display:flex;gap:6px;
@@ -19,6 +20,7 @@
 .wordro-tile.current-row{border-color:var(--border2)}
 .wordro-tile.correct{
   background:#3b82f6;color:#fff;border-color:#3b82f6;
+  box-shadow:0 0 8px rgba(59,130,246,0.3);
 }
 .wordro-tile.present{
   background:#f97316;color:#fff;border-color:#f97316;
@@ -39,6 +41,7 @@
 .wordro-keyboard{
   display:flex;flex-direction:column;align-items:center;gap:6px;
   margin-top:12px;width:100%;max-width:500px;margin-left:auto;margin-right:auto;
+  animation:slideUp 0.3s ease 0.1s both;
 }
 .wordro-kb-row{
   display:flex;gap:4px;justify-content:center;width:100%;

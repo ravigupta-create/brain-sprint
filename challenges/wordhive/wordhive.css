@@ -1,21 +1,39 @@
 /* Challenge 8: Word Bloom */
 .wordhive-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
-.wordhive-input-display{font-size:24px;font-weight:700;letter-spacing:4px;min-height:36px;text-transform:uppercase;color:var(--text)}
+.wordhive-input-display{font-size:24px;font-weight:700;letter-spacing:4px;min-height:36px;text-transform:uppercase;color:var(--fg)}
 .wordhive-hive{position:relative;width:210px;height:210px;margin:0 auto}
 .wordhive-hex{position:absolute;width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;cursor:pointer;border-radius:50%;transition:transform .1s,background .15s,box-shadow .15s;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
 .wordhive-hex:active{transform:scale(0.9)}
-.wordhive-hex.wh-center{background:#e879f9;color:#fff;box-shadow:0 0 12px rgba(232,121,249,0.4)}
-.wordhive-hex.wh-outer{background:var(--hover);color:var(--text)}
+.wordhive-hex.wh-center{
+  background:#e879f9;color:#fff;
+  animation:hexCenterPulse 2s ease-in-out infinite;
+}
+@keyframes hexCenterPulse{
+  0%,100%{box-shadow:0 0 8px rgba(232,121,249,0.4)}
+  50%{box-shadow:0 0 18px rgba(232,121,249,0.7)}
+}
+.wordhive-hex.wh-outer{
+  background:var(--bg3);color:var(--fg);
+  opacity:0;animation:pop 0.4s ease forwards;
+}
+.wordhive-hex.wh-outer:nth-child(2){animation-delay:0.05s}
+.wordhive-hex.wh-outer:nth-child(3){animation-delay:0.1s}
+.wordhive-hex.wh-outer:nth-child(4){animation-delay:0.15s}
+.wordhive-hex.wh-outer:nth-child(5){animation-delay:0.2s}
+.wordhive-hex.wh-outer:nth-child(6){animation-delay:0.25s}
+.wordhive-hex.wh-outer:nth-child(7){animation-delay:0.3s}
 .wordhive-hex.wh-outer:hover{background:var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.15)}
 .wordhive-actions{display:flex;gap:10px;margin-top:4px}
-.wordhive-actions button{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg);font-size:14px;font-weight:600;cursor:pointer}
-.wordhive-actions button:hover{background:var(--hover)}
+.wordhive-actions button{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg);font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s,transform 0.15s}
+.wordhive-actions button:hover{background:var(--bg3)}
 .wordhive-found{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:360px;margin:0 auto}
-.wordhive-found .wh-tag{padding:3px 8px;border-radius:12px;background:var(--accent-light);font-size:13px;font-weight:600;text-transform:uppercase}
-.wordhive-progress{font-size:14px;color:var(--muted);font-weight:600}
-.wordhive-msg{font-size:14px;min-height:20px;color:var(--muted);font-weight:500}
+.wordhive-found .wh-tag{padding:3px 8px;border-radius:12px;background:var(--accent-light);font-size:13px;font-weight:600;text-transform:uppercase;animation:pop 0.3s ease}
+.wordhive-progress{font-size:14px;color:var(--fg2);font-weight:600;transition:color 0.3s,font-weight 0.3s}
+.wordhive-msg{font-size:14px;min-height:20px;color:var(--fg2);font-weight:500}
+.wh-shuffling .wordhive-hex.wh-outer{animation:hexSpin 0.4s ease}
+@keyframes hexSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 @media(hover:none)and (pointer:coarse){
-  .wordhive-hex.wh-outer:hover{background:var(--hover);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+  .wordhive-hex.wh-outer:hover{background:var(--bg3);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
 }
 @media(hover:none){
   .wordhive-actions button{min-height:44px}

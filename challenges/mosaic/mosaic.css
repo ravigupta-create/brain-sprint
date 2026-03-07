@@ -2,20 +2,51 @@
 .mosaic-stats{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;color:var(--fg2);margin-bottom:12px}
 .mosaic-stats span{padding:4px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
 .mosaic-grid{display:grid;margin:0 auto 16px;gap:0;user-select:none;-webkit-user-select:none}
-.mosaic-cell{display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;cursor:pointer;position:relative;min-height:44px;transition:background 0.15s,transform 0.1s}
+.mosaic-cell{
+  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;
+  cursor:pointer;position:relative;min-height:44px;transition:background 0.15s,transform 0.1s;
+  opacity:0;animation:fadeIn 0.25s ease forwards;
+}
+.mosaic-cell:nth-child(1){animation-delay:0.02s}
+.mosaic-cell:nth-child(2){animation-delay:0.04s}
+.mosaic-cell:nth-child(3){animation-delay:0.06s}
+.mosaic-cell:nth-child(4){animation-delay:0.08s}
+.mosaic-cell:nth-child(5){animation-delay:0.1s}
+.mosaic-cell:nth-child(6){animation-delay:0.12s}
+.mosaic-cell:nth-child(7){animation-delay:0.14s}
+.mosaic-cell:nth-child(8){animation-delay:0.16s}
+.mosaic-cell:nth-child(9){animation-delay:0.18s}
+.mosaic-cell:nth-child(n+10){animation-delay:0.2s}
+.mosaic-cell:nth-child(n+17){animation-delay:0.24s}
+.mosaic-cell:nth-child(n+25){animation-delay:0.28s}
 .mosaic-cell:hover{filter:brightness(0.95)}
 .mosaic-cell.filled{color:var(--fg)}
 .mosaic-cell.selected-cell{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
 .mosaic-zone-label{position:absolute;top:2px;left:4px;font-size:9px;font-weight:600;color:var(--fg2);pointer-events:none;line-height:1;white-space:nowrap}
 .mosaic-pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px;background:var(--bg2);border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:12px}
-.mosaic-token{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:var(--radius);background:var(--card-bg);border:2px solid var(--border);font-size:18px;font-weight:700;cursor:pointer;transition:background 0.15s,border-color 0.15s,transform 0.15s,opacity 0.15s,box-shadow 0.15s}
+.mosaic-token{
+  display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:var(--radius);
+  background:var(--card-bg);border:2px solid var(--border);font-size:18px;font-weight:700;
+  cursor:pointer;transition:background 0.15s,border-color 0.15s,transform 0.15s,opacity 0.15s,box-shadow 0.15s;
+  opacity:0;animation:pop 0.3s ease forwards;
+}
+.mosaic-token:nth-child(1){animation-delay:0.02s}
+.mosaic-token:nth-child(2){animation-delay:0.05s}
+.mosaic-token:nth-child(3){animation-delay:0.08s}
+.mosaic-token:nth-child(4){animation-delay:0.11s}
+.mosaic-token:nth-child(5){animation-delay:0.14s}
+.mosaic-token:nth-child(6){animation-delay:0.17s}
+.mosaic-token:nth-child(7){animation-delay:0.2s}
+.mosaic-token:nth-child(8){animation-delay:0.23s}
+.mosaic-token:nth-child(9){animation-delay:0.26s}
+.mosaic-token:nth-child(n+10){animation-delay:0.28s}
 .mosaic-token:hover{border-color:var(--accent);transform:scale(1.05)}
 .mosaic-token.selected-token{border-color:var(--accent);background:var(--accent-light);transform:scale(1.1);box-shadow:0 0 0 3px rgba(99,102,241,0.3)}
 .mosaic-token.used{opacity:0.25;pointer-events:none;transform:scale(0.9)}
 .mosaic-check-btn{margin-top:12px}
 @keyframes mosaicCorrect{0%{background:inherit}50%{background:rgba(106,170,100,0.4)}100%{background:inherit}}
 @keyframes mosaicWrong{0%{background:inherit}50%{background:rgba(231,76,60,0.4)}100%{background:inherit}}
-.mosaic-cell.zone-correct{animation:mosaicCorrect 0.6s ease}
+.mosaic-cell.zone-correct{animation:mosaicCorrect 0.6s ease;box-shadow:inset 0 0 8px rgba(106,170,100,0.3)}
 .mosaic-cell.zone-wrong{animation:mosaicWrong 0.6s ease}
 .mosaic-token.linked{display:inline-flex;align-items:center;gap:2px;width:auto;min-width:70px;height:40px;border-radius:20px;padding:0 6px;position:relative}
 .mosaic-token.linked .linked-val{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}

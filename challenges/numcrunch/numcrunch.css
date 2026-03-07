@@ -2,6 +2,7 @@
 .nc-board{
   display:flex;flex-direction:column;align-items:center;gap:6px;
   margin:10px auto;
+  animation:fadeIn 0.3s ease;
 }
 .nc-row{
   display:flex;gap:4px;
@@ -29,6 +30,7 @@
 .nc-keyboard{
   display:flex;flex-direction:column;align-items:center;gap:6px;
   margin-top:12px;width:100%;max-width:500px;margin-left:auto;margin-right:auto;
+  animation:slideUp 0.3s ease 0.1s both;
 }
 .nc-kb-row{
   display:flex;gap:4px;justify-content:center;width:100%;
@@ -86,6 +88,14 @@
   animation:ncCascade 1.2s ease infinite;
   color:#fff;border-color:transparent;
 }
+.nc-tile.nc-win-cascade:nth-child(1){animation-delay:0s}
+.nc-tile.nc-win-cascade:nth-child(2){animation-delay:0.05s}
+.nc-tile.nc-win-cascade:nth-child(3){animation-delay:0.1s}
+.nc-tile.nc-win-cascade:nth-child(4){animation-delay:0.15s}
+.nc-tile.nc-win-cascade:nth-child(5){animation-delay:0.2s}
+.nc-tile.nc-win-cascade:nth-child(6){animation-delay:0.25s}
+.nc-tile.nc-win-cascade:nth-child(7){animation-delay:0.3s}
+.nc-tile.nc-win-cascade:nth-child(8){animation-delay:0.35s}
 /* NC Summary Panel */
 .nc-summary-panel{
   animation:wordrobotSlideUp 0.5s ease-out;

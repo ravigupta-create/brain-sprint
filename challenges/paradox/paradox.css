@@ -12,7 +12,10 @@
   content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
   background:linear-gradient(to bottom, var(--accent), var(--accent2));
 }
-.paradox-hint{font-size:13px;color:var(--fg2);font-style:italic;margin:8px 0 16px;padding:0 4px}
+.paradox-hint{
+  font-size:13px;color:var(--fg2);font-style:italic;margin:8px 0 16px;padding:0 4px;
+  animation:fadeIn 0.5s ease 0.3s both;
+}
 .options-list{display:flex;flex-direction:column;gap:10px;margin:16px 0}
 .option-btn{
   display:block;width:100%;text-align:left;padding:14px 18px;

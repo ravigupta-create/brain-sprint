@@ -42,11 +42,25 @@ function renderStatsScreen() {
   const stats = getStats();
   const avg = stats.played > 0 ? Math.round(stats.totalScore / stats.played) : 0;
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-box"><div class="stat-val">${stats.played}</div><div class="stat-label">Played</div></div>
-    <div class="stat-box"><div class="stat-val">${stats.bestScore}</div><div class="stat-label">Best</div></div>
-    <div class="stat-box"><div class="stat-val">${avg}</div><div class="stat-label">Average</div></div>
-    <div class="stat-box"><div class="stat-val">${stats.streak}</div><div class="stat-label">Streak</div></div>
+    <div class="stat-box"><div class="stat-val" data-target="${stats.played}">0</div><div class="stat-label">Played</div></div>
+    <div class="stat-box"><div class="stat-val" data-target="${stats.bestScore}">0</div><div class="stat-label">Best</div></div>
+    <div class="stat-box"><div class="stat-val" data-target="${avg}">0</div><div class="stat-label">Average</div></div>
+    <div class="stat-box"><div class="stat-val" data-target="${stats.streak}">0</div><div class="stat-label">Streak</div></div>
   `;
+  // Count-up animation for stat values
+  document.querySelectorAll('#stats-grid .stat-val[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target) || 0;
+    if (target === 0) return;
+    const duration = 800;
+    const start = performance.now();
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(target * eased);
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
   // Last 7 days streak bar
   const bar = document.getElementById('streak-bar');
   let barHtml = '';
@@ -67,9 +81,9 @@ function renderStatsScreen() {
     return;
   }
   let histHtml = '<div class="section-sub">Recent Games</div>';
-  history.slice(0, 10).forEach(h => {
+  history.slice(0, 10).forEach((h, i) => {
     const emojis = h.challenges.map(ch => CHALLENGE_ICONS[ch]).join('');
-    histHtml += `<div class="score-row">
+    histHtml += `<div class="score-row" style="animation-delay:${0.1 + i * 0.06}s">
       <div class="ch-info">
         <span class="ch-icon-sm">${emojis}</span>
         <span class="ch-label">${h.date} (${h.mode}/${h.difficulty})</span>

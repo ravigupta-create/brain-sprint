@@ -3,7 +3,13 @@
 .escape-dot{
   width:12px;height:12px;border-radius:50%;background:var(--border);
   transition:background 0.3s,transform 0.3s,box-shadow 0.3s;
+  opacity:0;animation:pop 0.3s ease forwards;
 }
+.escape-dot:nth-child(1){animation-delay:0.03s}
+.escape-dot:nth-child(2){animation-delay:0.06s}
+.escape-dot:nth-child(3){animation-delay:0.09s}
+.escape-dot:nth-child(4){animation-delay:0.12s}
+.escape-dot:nth-child(5){animation-delay:0.15s}
 .escape-dot.active{background:var(--accent);transform:scale(1.3);box-shadow:0 0 8px rgba(99,102,241,0.4)}
 .escape-dot.done{background:var(--green);box-shadow:0 0 6px rgba(106,170,100,0.3)}
 .escape-narrative{
@@ -13,6 +19,7 @@
   background:linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
   position:relative;
   border:1px solid var(--border);
+  animation:fadeIn 0.4s ease;
 }
 .escape-narrative::before{
   content:'';position:absolute;inset:-1px;border-radius:var(--radius-lg);
