@@ -1,5 +1,3 @@
-const WORDRO_BANK_SET = new Set(WORDRO_BANK);
-
 function getWordroPuzzle() {
   const diff = GS.difficulty;
   let maxGuesses;
