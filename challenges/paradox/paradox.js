@@ -277,6 +277,494 @@ const PARADOX_BANK = [
     hint:'If everyone reasoned this way, what would happen?',
     difficulty:2
   },
+  // --- Additional Probability & Bayesian ---
+  {
+    id:'gambler1', cat:'probability',
+    scenario:'A fair coin has landed heads 9 times in a row. What is the probability the next flip is heads?',
+    options:['50% — each flip is independent','Less than 50% — tails is "due"','More than 50% — the coin is "hot"','It depends on the type of coin'],
+    correct:0,
+    explanation:'The Gambler\'s Fallacy: a fair coin has no memory. Each flip is independent with P(heads) = 0.5, regardless of previous outcomes. The belief that tails is "due" is a well-documented cognitive bias.',
+    hint:'Does the coin remember what it did before?',
+    difficulty:1
+  },
+  {
+    id:'monty_variant1', cat:'probability',
+    scenario:'Monty Hall variant: 100 doors, 1 car, 99 goats. You pick door 1. Monty opens 98 doors showing goats, leaving door 1 and door 57. Should you switch?',
+    options:['Yes — switching gives 99/100 chance','No — it\'s now 50/50','It doesn\'t matter','Switching gives 98/100 chance'],
+    correct:0,
+    explanation:'This extreme version makes the Monty Hall logic clearer. Your initial pick had 1/100 chance. The other 99 doors collectively had 99/100. Monty revealing 98 goats concentrates that 99/100 onto the single remaining door.',
+    hint:'Where does the 99/100 probability concentrate after 98 doors are opened?',
+    difficulty:1
+  },
+  {
+    id:'regression1', cat:'probability',
+    scenario:'A sports team has a record-breaking season. Next season, they\'ll most likely:',
+    options:['Perform closer to their historical average','Break the record again','Perform even better — momentum carries','Perform much worse due to pressure'],
+    correct:0,
+    explanation:'Regression to the mean: extreme performances are partly due to luck/random variation. Since that luck is unlikely to repeat, subsequent performance tends to move toward the average. This isn\'t about "choking" — it\'s pure statistics.',
+    hint:'How much of an exceptional performance is skill vs. luck?',
+    difficulty:1
+  },
+  {
+    id:'prosecutor1', cat:'probability',
+    scenario:'DNA evidence matches the defendant with a 1 in 1 million chance of a random match. The prosecutor argues there\'s therefore a 1 in 1 million chance the defendant is innocent. Is this correct?',
+    options:['No — this confuses P(evidence|innocent) with P(innocent|evidence)','Yes — the math is straightforward','It depends on the jury\'s judgment','No — DNA evidence is unreliable'],
+    correct:0,
+    explanation:'The Prosecutor\'s Fallacy: P(match|innocent) \u2260 P(innocent|match). In a city of 5 million, about 5 people would match. Without other evidence, the defendant has roughly a 1 in 5 chance of being the source, not 999,999 in 1,000,000.',
+    hint:'How many people in a large city would also match by chance?',
+    difficulty:2
+  },
+  {
+    id:'hot_hand1', cat:'probability',
+    scenario:'A basketball player makes 5 shots in a row. Their teammates believe they have a "hot hand" and should keep shooting. Statistically, is the hot hand real?',
+    options:['Recent research suggests it IS real but very small','No — each shot is completely independent','Yes — momentum is a proven force','It depends on the player\'s skill level'],
+    correct:0,
+    explanation:'The Hot Hand debate has evolved. Originally (Gilovich, 1985), it was called a fallacy. But Miller & Sanjurjo (2018) found a subtle statistical bias in the original study. Correcting for it reveals a small but real hot hand effect, though far smaller than people perceive.',
+    hint:'The original "hot hand fallacy" paper had a subtle statistical error discovered decades later.',
+    difficulty:2
+  },
+  {
+    id:'exchange1', cat:'probability',
+    scenario:'You and a friend each put money in your wallets. You compare: whoever has less money wins the other\'s wallet. You reason: "I might lose my $X but could gain more than $X." Your friend reasons identically. Can you BOTH have positive expected value?',
+    options:['No — this is the Wallet Paradox; the symmetry means neither has an edge','Yes — both can have positive expected value','The person with less money has the advantage','It depends on the amounts'],
+    correct:0,
+    explanation:'The Wallet (or Necktie) Paradox: both players use identical reasoning to conclude they have an advantage, which is impossible in a zero-sum game. The error is conditioning on your own amount as fixed while treating the other\'s as random.',
+    hint:'Can both players simultaneously have a positive expected value in a zero-sum game?',
+    difficulty:2
+  },
+  {
+    id:'inspection1', cat:'probability',
+    scenario:'Buses arrive every 10 minutes on average. You arrive at a random time. What\'s your expected wait?',
+    options:['More than 5 minutes — due to the inspection paradox','Exactly 5 minutes — half the average interval','Less than 5 minutes','Exactly 10 minutes'],
+    correct:0,
+    explanation:'The Inspection Paradox (or Bus Paradox): if bus intervals vary, you\'re more likely to arrive during a LONG interval. With exponential arrivals (Poisson process), the expected wait is the full 10 minutes! With any variance, the expected wait exceeds half the mean interval.',
+    hint:'Are you equally likely to arrive during a short gap or a long gap between buses?',
+    difficulty:2
+  },
+  {
+    id:'bayes_disease2', cat:'probability',
+    scenario:'A screening test with 99% sensitivity and 99% specificity is applied to a disease with prevalence 1 in 10,000. You test positive. What\'s the approximate probability you have the disease?',
+    options:['About 1%','About 99%','About 50%','About 10%'],
+    correct:0,
+    explanation:'Even with 99% accuracy, Bayes\' theorem yields: P(disease|+) = (0.0001 \u00D7 0.99) / (0.0001 \u00D7 0.99 + 0.9999 \u00D7 0.01) \u2248 0.0099/0.0199 \u2248 0.98%. The extremely low base rate means almost all positives are false positives.',
+    hint:'Out of 10,000 people tested, how many healthy people will falsely test positive?',
+    difficulty:2
+  },
+  {
+    id:'nontransitive1', cat:'probability',
+    scenario:'Die A beats Die B more than half the time. Die B beats Die C more than half the time. Must Die A beat Die C more than half the time?',
+    options:['No — non-transitive dice can create a "rock-paper-scissors" cycle','Yes — transitivity applies to all comparisons','Only if the dice are fair','Yes — the stronger die always wins'],
+    correct:0,
+    explanation:'Non-transitive dice violate our intuition that "better than" is transitive. Efron\'s dice demonstrate this: A>B, B>C, C>A, each winning about 2/3 of the time. Warren Buffett once tried to trick Bill Gates with these dice.',
+    hint:'Think about rock-paper-scissors. Can a similar cycle exist with dice?',
+    difficulty:2
+  },
+  {
+    id:'waittime1', cat:'probability',
+    scenario:'You flip a fair coin repeatedly. What is the expected number of flips to get two heads in a row?',
+    options:['6','4','3','8'],
+    correct:0,
+    explanation:'Let E be the expected flips. If you flip tails (prob 1/2), you wasted 1 flip: E = 1 + E. If heads then tails (prob 1/4): E = 2 + E. If heads then heads (prob 1/4): done in 2. So E = (1/2)(1+E) + (1/4)(2+E) + (1/4)(2). Solving: E = 6.',
+    hint:'Set up an equation for the expected value by considering what happens after your first flip.',
+    difficulty:2
+  },
+  // --- Economic Paradoxes ---
+  {
+    id:'diamond_water1', cat:'ethics',
+    scenario:'Water is essential for survival; diamonds are not. Yet diamonds cost far more than water. Why?',
+    options:['Marginal utility — water is abundant so the next unit is worth less','Because diamonds are more beautiful','Because the diamond industry controls prices','Water should actually cost more'],
+    correct:0,
+    explanation:'The Diamond-Water Paradox (Adam Smith) is resolved by marginal utility theory. Total utility of water is enormous, but its marginal utility (value of one more unit) is low due to abundance. Diamonds are scarce, so marginal utility (and price) is high.',
+    hint:'Price reflects the value of the NEXT unit, not the total value of the good.',
+    difficulty:1
+  },
+  {
+    id:'braess1', cat:'game_theory',
+    scenario:'A city adds a new road to reduce congestion. Surprisingly, traffic gets worse for everyone. Is this possible?',
+    options:['Yes — this is Braess\'s Paradox','No — more capacity always helps','Only if the road is poorly designed','Only during construction'],
+    correct:0,
+    explanation:'Braess\'s Paradox: adding capacity to a network can worsen performance when agents selfishly optimize. Drivers choosing the individually optimal route create a new Nash equilibrium where everyone is worse off. Real examples include Seoul and Stuttgart.',
+    hint:'What happens when everyone tries to use the "best" new route?',
+    difficulty:1
+  },
+  {
+    id:'giffen1', cat:'ethics',
+    scenario:'Usually, when a good\'s price rises, people buy less. Can a price increase ever cause people to buy MORE of that good?',
+    options:['Yes — Giffen goods exhibit this behavior','No — the law of demand is absolute','Only for luxury goods','Only during hyperinflation'],
+    correct:0,
+    explanation:'A Giffen good is an inferior staple (e.g., bread for very poor households). When its price rises, the income effect (they\'re poorer, so they eat more of the cheap staple and less of expensive alternatives) dominates the substitution effect. Documented with rice in China (Jensen & Miller, 2008).',
+    hint:'What happens to a very poor person\'s diet when the price of their staple food rises?',
+    difficulty:2
+  },
+  {
+    id:'jevons1', cat:'ethics',
+    scenario:'A new technology makes coal usage 50% more efficient. A naive prediction says coal consumption will fall. What actually happened historically?',
+    options:['Coal consumption increased — this is the Jevons Paradox','Coal consumption fell by roughly 50%','Coal consumption stayed the same','Coal was replaced by other fuels'],
+    correct:0,
+    explanation:'Jevons Paradox (1865): increased efficiency makes a resource effectively cheaper, which increases total demand. More efficient steam engines made coal-powered industry profitable in more applications, dramatically increasing total coal use. This applies today to energy and technology.',
+    hint:'What happens to demand when something becomes cheaper to use?',
+    difficulty:1
+  },
+  {
+    id:'allais1', cat:'game_theory',
+    scenario:'Choose: A) 100% chance of $1M, or B) 89% chance of $1M, 10% chance of $5M, 1% chance of $0. Then choose: C) 11% chance of $1M, or D) 10% chance of $5M. Most people pick A and D. Is this rational?',
+    options:['No — choosing A and D violates expected utility theory','Yes — both choices maximize expected value','Yes — risk preferences can vary','A and D are the utility-maximizing choices'],
+    correct:0,
+    explanation:'The Allais Paradox: if you prefer A over B (certainty effect), consistency requires preferring C over D. But most people pick A and D, violating the independence axiom of expected utility theory. This helped inspire prospect theory.',
+    hint:'Compare the difference between A and B with the difference between C and D.',
+    difficulty:3
+  },
+  {
+    id:'st_petersburg1', cat:'probability',
+    scenario:'A game: flip a coin until tails. If tails on flip n, you win $2^n. The expected value is: $2 + $2 + $2 + ... = infinity. How much would you pay to play?',
+    options:['Most people pay less than $20 despite infinite expected value','You should pay any amount — infinite EV','Most people pay around $1,000','The expected value is actually finite'],
+    correct:0,
+    explanation:'The St. Petersburg Paradox: the expected value is infinite (\u03A3 1/2^n \u00D7 2^n = \u03A3 1 = \u221E), yet people won\'t pay much. This motivated Daniel Bernoulli (1738) to propose utility theory — the utility of money is logarithmic, making the expected utility finite.',
+    hint:'Would you really risk $10,000 for a game that usually pays $2 or $4?',
+    difficulty:3
+  },
+  // --- Philosophical Paradoxes ---
+  {
+    id:'theseus_axe1', cat:'logic',
+    scenario:'George Washington\'s axe: the handle has been replaced 3 times and the head twice. Is it still Washington\'s axe?',
+    options:['This is the same paradox as the Ship of Theseus — identity is ambiguous','Yes — the history makes it authentic','No — none of the original material remains','Only if documented replacements were authorized'],
+    correct:0,
+    explanation:'This is a folksy version of the Ship of Theseus paradox. If every component is replaced, continuity of form and narrative persist, but material continuity is lost. There\'s no objectively correct answer — it depends on one\'s theory of identity.',
+    hint:'Is identity about material or about continuity of story?',
+    difficulty:1
+  },
+  {
+    id:'teleport1', cat:'logic',
+    scenario:'A teleporter scans your body, destroys the original, and creates a perfect copy at the destination. Is the copy "you"?',
+    options:['This is an open philosophical question with no consensus','Yes — same pattern means same person','No — the original was killed','Only if consciousness transfers'],
+    correct:0,
+    explanation:'The Teleporter Paradox challenges personal identity. Physicalists might say yes (same pattern = same person). Others argue the original\'s continuity of consciousness is broken. A variant: what if the original isn\'t destroyed? Are there now two "yous"?',
+    hint:'What if the machine malfunctioned and didn\'t destroy the original?',
+    difficulty:1
+  },
+  {
+    id:'mary_room1', cat:'logic',
+    scenario:'Mary is a scientist who knows everything physical about color but has lived in a black-and-white room her whole life. When she sees red for the first time, does she learn something new?',
+    options:['This is debated — it challenges whether physical facts capture all knowledge','No — she already knew everything about color','Yes — proving physicalism is false','She can\'t learn anything new'],
+    correct:0,
+    explanation:'Mary\'s Room (Frank Jackson, 1982) challenges physicalism. If Mary learns something new (what red "looks like"), then physical facts don\'t exhaust all knowledge, suggesting qualia exist beyond physics. Physicalists respond that she gains a new ability (recognition), not new knowledge.',
+    hint:'Is knowing the wavelength of red the same as experiencing red?',
+    difficulty:2
+  },
+  {
+    id:'chinese_room1', cat:'logic',
+    scenario:'A person in a room follows English rules to manipulate Chinese symbols, producing correct Chinese responses. They don\'t understand Chinese. Does the system "understand" Chinese?',
+    options:['This is Searle\'s argument — it\'s hotly debated whether syntax can produce understanding','Yes — the system as a whole understands','No — understanding requires consciousness','Yes — the rules constitute understanding'],
+    correct:0,
+    explanation:'The Chinese Room (John Searle, 1980) argues that symbol manipulation (syntax) cannot produce understanding (semantics). Critics respond with the "systems reply" (the room as a whole understands) or "robot reply" (embodiment might be needed). The debate remains central to AI philosophy.',
+    hint:'Can following rules you don\'t understand ever constitute understanding?',
+    difficulty:2
+  },
+  {
+    id:'experience_machine1', cat:'ethics',
+    scenario:'You can permanently plug into a machine that gives you any experiences you desire — indistinguishable from reality. Do you plug in?',
+    options:['Most people refuse — suggesting we value more than just experience','Yes — maximizing pleasure is rational','No — because the machine might malfunction','It depends on the quality of simulation'],
+    correct:0,
+    explanation:'Nozick\'s Experience Machine (1974) challenges hedonism (the view that pleasure is the only good). Most people refuse, suggesting they value authenticity, actual accomplishment, and contact with reality — not just the experience of these things.',
+    hint:'If experiences were ALL that mattered, why would anyone refuse?',
+    difficulty:1
+  },
+  // --- Set Theory & Infinity ---
+  {
+    id:'hilbert1', cat:'logic',
+    scenario:'Hilbert\'s Hotel has infinitely many rooms, all occupied. A new guest arrives. Can they be accommodated?',
+    options:['Yes — move each guest from room n to room n+1','No — all rooms are occupied','Only if someone leaves','Only if the hotel expands'],
+    correct:0,
+    explanation:'Hilbert\'s Hotel shows that infinity behaves counterintuitively. Moving each guest from room n to room n+1 frees room 1. You can even accommodate infinitely many new guests (move guest n to room 2n, freeing all odd rooms). This illustrates that \u221E + 1 = \u221E.',
+    hint:'In a hotel with rooms numbered 1, 2, 3, ..., can every guest shift one room over?',
+    difficulty:1
+  },
+  {
+    id:'cantor1', cat:'logic',
+    scenario:'Are there more integers or more real numbers between 0 and 1?',
+    options:['More real numbers — by Cantor\'s diagonal argument, it\'s a larger infinity','The same — both are infinite','More integers — they go on forever','They can\'t be compared — infinity is infinity'],
+    correct:0,
+    explanation:'Cantor\'s diagonal argument (1891) proves the reals are uncountably infinite, while integers are countably infinite. Any attempted list of reals between 0 and 1 can be defeated by constructing a number differing in the nth digit from the nth entry. So |\u211D| > |\u2124|.',
+    hint:'Try to list ALL decimals between 0 and 1. Can you always find one you missed?',
+    difficulty:2
+  },
+  {
+    id:'banach_tarski1', cat:'logic',
+    scenario:'Can a solid ball be decomposed into a finite number of pieces and reassembled into TWO identical copies of the original ball?',
+    options:['Yes — the Banach-Tarski paradox proves this using the axiom of choice','No — matter cannot be created','Only in theory, never in practice','Only if the pieces can stretch'],
+    correct:0,
+    explanation:'The Banach-Tarski Paradox (1924): using the axiom of choice, a ball can be split into 5 pieces that reassemble into 2 balls of the original size. The "pieces" are non-measurable sets that can\'t exist physically. This challenges our intuition about volume and the axiom of choice.',
+    hint:'The pieces are so bizarre they can\'t even be assigned a volume.',
+    difficulty:3
+  },
+  {
+    id:'russells_set1', cat:'logic',
+    scenario:'Consider the set of all sets that do not contain themselves. Does this set contain itself?',
+    options:['Neither answer is consistent — this is Russell\'s Paradox','Yes — it belongs in its own collection','No — sets don\'t contain themselves','The set doesn\'t exist'],
+    correct:0,
+    explanation:'Russell\'s Paradox (1901): if the set contains itself, it shouldn\'t (by definition). If it doesn\'t contain itself, it should. This paradox destroyed naive set theory and led to axiomatic set theories (ZFC) that restrict which collections qualify as sets.',
+    hint:'Try assuming it contains itself, then try assuming it doesn\'t.',
+    difficulty:1
+  },
+  {
+    id:'galileo1', cat:'logic',
+    scenario:'There seem to be fewer perfect squares (1, 4, 9, 16, ...) than natural numbers (1, 2, 3, 4, ...). But each natural number n maps to exactly one square n\u00B2. Are there the same number?',
+    options:['Yes — both sets are countably infinite and can be paired one-to-one','No — squares are a proper subset so there are fewer','It depends on how you count','Neither — infinity can\'t be compared'],
+    correct:0,
+    explanation:'Galileo\'s Paradox (1638): a proper subset of an infinite set can be the same "size" (cardinality). The bijection n \u2192 n\u00B2 shows |{naturals}| = |{perfect squares}|. This is actually the DEFINITION of infinite sets: a set is infinite if it\'s equinumerous with a proper subset.',
+    hint:'Can you pair each natural number with exactly one perfect square, and vice versa?',
+    difficulty:2
+  },
+  // --- Voting & Social Choice ---
+  {
+    id:'condorcet1', cat:'game_theory',
+    scenario:'In an election: 1/3 of voters prefer A>B>C, 1/3 prefer B>C>A, 1/3 prefer C>A>B. Is there a Condorcet winner (beats every other candidate head-to-head)?',
+    options:['No — this creates a cycle: A beats B, B beats C, C beats A','Yes — A wins overall','Yes — it\'s a three-way tie','Yes — use instant runoff to determine the winner'],
+    correct:0,
+    explanation:'The Condorcet Paradox: with these preferences, A beats B (2/3), B beats C (2/3), and C beats A (2/3) in pairwise comparisons. Group preferences are cyclic even though individual preferences are transitive. This shows majority rule can be inconsistent.',
+    hint:'Check each pair of candidates: who would win A vs B? B vs C? C vs A?',
+    difficulty:2
+  },
+  {
+    id:'arrow1', cat:'game_theory',
+    scenario:'Arrow\'s Impossibility Theorem says that no ranked voting system with 3+ candidates can simultaneously satisfy all of which set of "fair" properties?',
+    options:['Unanimity, independence of irrelevant alternatives, and non-dictatorship','Majority rule and proportionality','Anonymity and neutrality','Monotonicity and participation'],
+    correct:0,
+    explanation:'Arrow\'s Theorem (1951): no ranked-choice voting system for 3+ candidates can satisfy all three: (1) if everyone prefers A to B, society does too (unanimity), (2) the A-vs-B ranking depends only on individual A-vs-B preferences (IIA), and (3) no single voter is a dictator.',
+    hint:'The three properties involve unanimity, irrelevant alternatives, and non-dictatorship.',
+    difficulty:3
+  },
+  {
+    id:'approval1', cat:'game_theory',
+    scenario:'In a plurality election (most votes wins), there are 3 candidates. You prefer A > B > C. Polls show B and C are leading. Should you vote for A (your true preference)?',
+    options:['Voting for B might be strategically better — this is the spoiler effect','Always vote for your true preference','Vote for C to shake things up','Don\'t vote — your vote doesn\'t matter'],
+    correct:0,
+    explanation:'Strategic voting and the spoiler effect: in plurality systems, voting for a third-place candidate you love can help elect the candidate you hate most by splitting the vote. This is why Duverger\'s Law predicts two-party dominance under plurality voting.',
+    hint:'If A has no chance of winning, is voting for A actually helping or hurting your interests?',
+    difficulty:1
+  },
+  // --- Cognitive Biases & Statistical Fallacies ---
+  {
+    id:'survivorship1', cat:'probability',
+    scenario:'Someone studies only successful companies to find what made them succeed. What bias is this?',
+    options:['Survivorship bias — failed companies with the same traits are ignored','Confirmation bias','Selection bias','Availability bias'],
+    correct:0,
+    explanation:'Survivorship Bias: analyzing only winners systematically excludes evidence from failures. Many failed companies also had the "success traits" found in survivors. Famously illustrated by Abraham Wald\'s WWII analysis: armor the spots where returning planes WEREN\'T hit (the hit planes didn\'t return).',
+    hint:'What about companies that had the same traits but still failed?',
+    difficulty:1
+  },
+  {
+    id:'linda1', cat:'probability',
+    scenario:'Linda is 31, single, outspoken, and a philosophy major who cares about social justice. Which is more probable? A) Linda is a bank teller. B) Linda is a bank teller AND active in the feminist movement.',
+    options:['A — the conjunction of two events can\'t be more probable than either alone','B — the description fits a feminist bank teller better','They\'re equally likely','Neither — we need more information'],
+    correct:0,
+    explanation:'The Conjunction Fallacy (Tversky & Kahneman, 1983): P(A and B) \u2264 P(A), always. "Bank teller AND feminist" is a subset of "bank teller." Yet ~85% of respondents choose B because the description is representative of a feminist. Representativeness overrides logic.',
+    hint:'Can "bank teller AND X" ever be more likely than "bank teller" alone?',
+    difficulty:1
+  },
+  {
+    id:'anchoring1', cat:'probability',
+    scenario:'Group A is asked: "Is the Mississippi River longer or shorter than 500 miles?" then asked to estimate its length. Group B gets the same question but with 5,000 miles. Which group gives higher estimates?',
+    options:['Group B — the higher anchor pulls estimates upward','Group A — they overcompensate','Both groups give similar estimates','It depends on geography knowledge'],
+    correct:0,
+    explanation:'Anchoring Bias (Tversky & Kahneman, 1974): arbitrary numbers influence subsequent judgments. Even clearly irrelevant anchors (like spinning a roulette wheel) affect estimates of unrelated quantities. The actual length is ~2,340 miles, but Group B\'s estimates will be systematically higher.',
+    hint:'Does hearing a large number before estimating make you think bigger?',
+    difficulty:1
+  },
+  {
+    id:'base_rate_neglect1', cat:'probability',
+    scenario:'A cab company has 85% green cabs and 15% blue cabs. A cab was in an accident. No witness, no other info. What color was the cab most likely?',
+    options:['Green — with 85% prior probability','Blue — blue drivers are more reckless','Equally likely without a witness','Cannot be determined'],
+    correct:0,
+    explanation:'When no diagnostic evidence is available, the rational estimate is the base rate: 85% green. People often ignore base rates when given vivid but non-diagnostic information. Without ANY evidence, the prior probability IS the best estimate.',
+    hint:'With no other information, what\'s your best guess based on proportions alone?',
+    difficulty:1
+  },
+  // --- Decision Theory ---
+  {
+    id:'ellsberg1', cat:'probability',
+    scenario:'Urn 1: 50 red and 50 black balls. Urn 2: 100 balls, red and black in unknown proportions. You win $100 for drawing red. Which urn do you choose?',
+    options:['Most people choose Urn 1 — demonstrating ambiguity aversion','Urn 2 — unknown proportions could be favorable','Both are identical in expected value','Urn 2 — more potential upside'],
+    correct:0,
+    explanation:'The Ellsberg Paradox (1961): both urns have 50% expected probability of red if you have no information about Urn 2. Yet most people prefer Urn 1 (known risk over unknown risk). This "ambiguity aversion" violates expected utility theory and Savage\'s axioms.',
+    hint:'What\'s your best estimate for the proportion of red in Urn 2 with no information?',
+    difficulty:2
+  },
+  {
+    id:'sunk_cost1', cat:'ethics',
+    scenario:'You\'ve spent $100 on a non-refundable concert ticket. On the night of the concert, you feel sick and would prefer to stay home. What should you do?',
+    options:['Stay home — the $100 is a sunk cost and irrelevant to the decision','Go — you already paid $100','Go — otherwise the money is wasted','It depends on how much $100 means to you'],
+    correct:0,
+    explanation:'The Sunk Cost Fallacy: the $100 is spent regardless of whether you go. The rational decision compares only future outcomes: the concert experience while sick vs. resting at home. Past expenditures should not influence future decisions, yet they routinely do.',
+    hint:'Is the $100 coming back whether you go or stay?',
+    difficulty:1
+  },
+  {
+    id:'toxin1', cat:'game_theory',
+    scenario:'A billionaire offers you $1M if at midnight tonight you INTEND to drink a mildly toxic (but not dangerous) drink tomorrow. You get the $1M for the intention alone — you don\'t actually have to drink it. Can you genuinely intend to drink it?',
+    options:['This is paradoxical — knowing you don\'t have to drink it undermines the intention','Yes — just intend it, then don\'t drink','Yes — $1M motivates genuine intention','No — intentions must be about future actions you\'ll perform'],
+    correct:0,
+    explanation:'Kavka\'s Toxin Puzzle (1983): since you get the $1M for the intention (at midnight) and can then freely choose not to drink (tomorrow), you know you won\'t drink it. But knowing you won\'t drink it means you can\'t genuinely intend to. Rational intentions seem to require expected follow-through.',
+    hint:'If you know you\'ll change your mind later, can you truly intend something now?',
+    difficulty:3
+  },
+  {
+    id:'buridan1', cat:'logic',
+    scenario:'A perfectly rational donkey is placed exactly between two identical, equidistant bales of hay. It has no reason to prefer one over the other. What happens?',
+    options:['Buridan\'s Paradox: pure rationality provides no basis for choosing, yet choosing is rational','It picks the left bale','It picks randomly','It alternates looking at both'],
+    correct:0,
+    explanation:'Buridan\'s Ass: a perfectly rational agent with no reason to prefer one option over another appears to be unable to choose, leading to starvation. This paradox challenges deterministic rationality and suggests that sometimes arbitrary choice is more rational than analysis paralysis.',
+    hint:'Can a perfectly logical being choose between two identical options?',
+    difficulty:1
+  },
+  // --- Quantum / Physics Concepts ---
+  {
+    id:'schrodinger1', cat:'logic',
+    scenario:'Schr\u00F6dinger\'s cat is in a box with a quantum device that has a 50% chance of releasing poison. Before you open the box, is the cat alive or dead?',
+    options:['In quantum mechanics, the cat is in a superposition of both states until observed','The cat is either alive or dead — we just don\'t know','The cat is alive until the poison is released','The question is meaningless — cats aren\'t quantum objects'],
+    correct:0,
+    explanation:'Schr\u00F6dinger\'s Cat (1935) was designed to show the absurdity of applying quantum superposition to macroscopic objects. In quantum mechanics, the cat is both alive AND dead until measurement collapses the wave function. The paradox highlights the measurement problem.',
+    hint:'Quantum mechanics says particles are in superposition until observed. What about cats?',
+    difficulty:1
+  },
+  {
+    id:'epr1', cat:'logic',
+    scenario:'Two entangled particles are separated by light-years. Measuring one instantly affects the other\'s state. Does this allow faster-than-light communication?',
+    options:['No — no usable information can be transmitted (no-communication theorem)','Yes — the effect is instantaneous','Only with enough entangled particles','Only in theory, not in practice'],
+    correct:0,
+    explanation:'The EPR Paradox (Einstein, Podolsky, Rosen, 1935): while measurement of one entangled particle instantly determines the other\'s state, you can\'t control WHICH outcome you get. Without a classical channel to compare results, no information is transmitted.',
+    hint:'Can you control the outcome of your measurement to encode a message?',
+    difficulty:2
+  },
+  {
+    id:'quantum_zeno1', cat:'logic',
+    scenario:'In quantum mechanics, frequently observing an unstable particle can prevent it from decaying. This means:',
+    options:['Observation can freeze quantum evolution — the Quantum Zeno Effect','Observation has no effect on quantum systems','The particle decays faster when observed','This only works in thought experiments'],
+    correct:0,
+    explanation:'The Quantum Zeno Effect: repeated measurement can "freeze" a quantum system in its initial state. Each measurement collapses the wave function back to the initial state before it can evolve significantly. This has been experimentally confirmed with trapped ions.',
+    hint:'What happens if you keep collapsing the wave function back to the initial state?',
+    difficulty:3
+  },
+  {
+    id:'fermi1', cat:'logic',
+    scenario:'There are billions of stars in our galaxy, many with habitable planets, and the universe is billions of years old. Yet we see no evidence of alien civilizations. This is:',
+    options:['The Fermi Paradox — "Where is everybody?"','Not a paradox — aliens probably don\'t exist','Easily explained by the vastness of space','Evidence that we are the first civilization'],
+    correct:0,
+    explanation:'The Fermi Paradox: given the age and size of the universe, we should expect many advanced civilizations, yet we see no evidence. Proposed solutions include the Great Filter, the Zoo Hypothesis, or that interstellar travel is simply too hard.',
+    hint:'If even a fraction of stars have habitable planets, where are the aliens?',
+    difficulty:1
+  },
+  // --- Mathematical Puzzles ---
+  {
+    id:'missing_dollar1', cat:'logic',
+    scenario:'Three friends pay $30 for a hotel room ($10 each). The clerk realizes it should be $25 and gives $5 to the bellboy. The bellboy keeps $2 and returns $1 to each friend. Each friend paid $9 (total $27), plus $2 the bellboy kept = $29. Where\'s the missing dollar?',
+    options:['There is no missing dollar — the $27 already includes the bellboy\'s $2','The hotel has it','The bellboy has it','Math error in the problem'],
+    correct:0,
+    explanation:'The "missing dollar" is a misdirection. The friends paid $27 total: $25 went to the hotel, $2 to the bellboy. Adding the bellboy\'s $2 to the $27 is double-counting — the $2 is already INSIDE the $27. The correct accounting: $27 paid = $25 hotel + $2 bellboy. Plus $3 returned = $30 original.',
+    hint:'Is the bellboy\'s $2 in addition to the $27, or part of it?',
+    difficulty:1
+  },
+  {
+    id:'birthday_higher1', cat:'probability',
+    scenario:'How many people do you need in a room to have a greater than 99% chance that at least two share a birthday?',
+    options:['57','100','183','365'],
+    correct:0,
+    explanation:'Following the birthday problem formula: with 57 people, the probability of at least one shared birthday exceeds 99%. This is surprisingly low because of the number of possible pairs: C(57,2) = 1,596 pairs, each with a 1/365 chance of matching.',
+    hint:'It\'s far fewer than half of 365.',
+    difficulty:2
+  },
+  {
+    id:'monkeys1', cat:'probability',
+    scenario:'A monkey typing randomly on a keyboard will eventually type the complete works of Shakespeare, given infinite time. Is this true?',
+    options:['Yes — the infinite monkey theorem is mathematically proven','No — the probability is too low even with infinite time','Only for short works','It depends on the keyboard layout'],
+    correct:0,
+    explanation:'The Infinite Monkey Theorem: with infinite time, any finite sequence (including Shakespeare\'s works) will be typed with probability 1. Each attempt has a tiny but non-zero probability. Over infinite trials, the probability of NEVER succeeding approaches zero.',
+    hint:'If something has a non-zero probability, what happens over infinite trials?',
+    difficulty:2
+  },
+  // --- More Game Theory ---
+  {
+    id:'dollar_auction1', cat:'game_theory',
+    scenario:'An auctioneer auctions a $1 bill. Highest bidder gets the dollar, but the SECOND-highest bidder also pays their bid and gets nothing. Both start bidding at $0.05. What typically happens?',
+    options:['Bidding escalates well past $1 — both players try to avoid being second','Bidding stops at $1.00','Bidding stops at $0.50','Nobody bids — it\'s obviously a trap'],
+    correct:0,
+    explanation:'The Dollar Auction (Shubik, 1971): once two players are invested, each bid is justified by "I\'d rather pay $X and win $1 than pay $(X-0.05) and win nothing." This escalation of commitment has no rational stopping point. It models real-world phenomena like arms races.',
+    hint:'If you\'ve bid $0.90 and someone bids $0.95, should you bid $1.00? What about $1.05?',
+    difficulty:2
+  },
+  {
+    id:'tragedy_commons1', cat:'game_theory',
+    scenario:'10 farmers share a common pasture. Each can add one more cow (gaining $100) but overgrazing costs everyone $20. Individual rational choice?',
+    options:['Add the cow — $100 gain vs $20 personal cost, but this collectively destroys the commons','Don\'t add — preserve the common resource','Add only if fewer than 5 farmers add','Randomly decide'],
+    correct:0,
+    explanation:'The Tragedy of the Commons (Hardin, 1968): each farmer gains $100 but bears only 1/10 of the $200 total overgrazing cost ($20). Individually rational to add a cow, but if all do, everyone loses.',
+    hint:'Each farmer gains $100 but only suffers $20 in damage. What does everyone do?',
+    difficulty:2
+  },
+  {
+    id:'backward_induction1', cat:'game_theory',
+    scenario:'A centipede game: two players alternate. Each can "take" $X or "pass." The pot grows each round. By backward induction, the rational first move is to take immediately. But real players usually pass. Why?',
+    options:['Backward induction assumes common knowledge of rationality, which humans doubt','Players are irrational','Players don\'t understand the game','Taking is always best'],
+    correct:0,
+    explanation:'The Centipede Paradox: backward induction says player 1 should take immediately. But this assumes perfect rationality AND that each player trusts the other is rational. Real players pass because the assumption fails in practice.',
+    hint:'Backward induction requires that everyone knows everyone is perfectly rational.',
+    difficulty:3
+  },
+  // --- Information Theory ---
+  {
+    id:'ravens1', cat:'logic',
+    scenario:'"All ravens are black" is logically equivalent to "All non-black things are non-ravens." So observing a red apple (non-black, non-raven) confirms that all ravens are black. Is this valid?',
+    options:['Technically yes, but the confirmation is negligibly small — this is Hempel\'s Paradox','No — apples and ravens are unrelated','Yes — and the confirmation is significant','Only if you\'ve also observed ravens'],
+    correct:0,
+    explanation:'Hempel\'s Raven Paradox (1945): by logical equivalence, a red apple DOES confirm "all ravens are black" — but infinitesimally. The confirmation is proportional to 1/(number of non-black objects), which is essentially zero.',
+    hint:'The logical equivalence is valid, but how much evidence does a single apple provide?',
+    difficulty:3
+  },
+  {
+    id:'surprise_test1', cat:'logic',
+    scenario:'A teacher says "there will be a surprise quiz one day this week." Students use backward induction to prove it\'s impossible. On Wednesday, the quiz arrives — and they\'re surprised. What went wrong?',
+    options:['The students\' reasoning was self-defeating — by "proving" no surprise, they guaranteed surprise','The teacher cheated','The logic was correct but the teacher ignored it','Backward induction doesn\'t apply to quizzes'],
+    correct:0,
+    explanation:'This is a variant of the Unexpected Hanging Paradox. The students\' backward induction eliminates each day. But their conclusion ("no quiz possible") is itself what makes the quiz surprising. The reasoning is self-undermining.',
+    hint:'If you\'re 100% sure there won\'t be a quiz, can the quiz still surprise you?',
+    difficulty:2
+  },
+  {
+    id:'two_child_tuesday1', cat:'probability',
+    scenario:'A man says: "I have two children. One is a boy born on a Tuesday." What is the probability both children are boys?',
+    options:['13/27','1/3','1/2','1/4'],
+    correct:0,
+    explanation:'The Tuesday Boy Problem: adding "born on Tuesday" changes the answer from 1/3 to 13/27 \u2248 48%. There are 27 equally likely gender-day combinations with at least one Tuesday-boy. Of those, 13 have two boys.',
+    hint:'The day of the week matters because it changes how many cases you count.',
+    difficulty:3
+  },
+  {
+    id:'three_prisoner1', cat:'probability',
+    scenario:'Three prisoners: A, B, C. One will be pardoned (randomly). A asks the guard to name a prisoner (other than A) who will be executed. The guard says B will be executed. Should A feel better about being pardoned?',
+    options:['No — A still has a 1/3 chance; C now has 2/3','Yes — it\'s now 1/2 between A and C','Yes — knowing B is out helps A','It depends on the guard\'s strategy'],
+    correct:0,
+    explanation:'The Three Prisoners Problem (equivalent to Monty Hall): A had 1/3, B had 1/3, C had 1/3. After hearing "B," A still has 1/3, but C now has 2/3. The information doesn\'t help A — it helps C.',
+    hint:'This is structurally identical to the Monty Hall Problem.',
+    difficulty:2
+  },
+  {
+    id:'power_paradox1', cat:'game_theory',
+    scenario:'In a weighted voting system: Player A has 50 votes, B has 49, C has 1. Majority needed is 51. How much power does C really have?',
+    options:['Equal to B — both C and B are needed equally to form a majority with A','Very little — C has only 1 vote','None — C can never make a difference','Proportional to votes: 1/100'],
+    correct:0,
+    explanation:'The Paradox of Power in voting: despite having vastly different vote counts, B (49 votes) and C (1 vote) have IDENTICAL power. Neither can pass anything alone; both need A. By the Banzhaf power index, A has 3/5 power, B and C each have 1/5.',
+    hint:'In which winning coalitions is B critical? In which is C critical?',
+    difficulty:3
+  },
+  {
+    id:'simpson_vote1', cat:'probability',
+    scenario:'Candidate X wins the popular vote in every district, yet Candidate Y wins the overall popular vote. Is this possible?',
+    options:['Yes — this is a form of Simpson\'s Paradox applied to elections','No — winning every district guarantees the overall win','Only with two districts','Only with gerrymandering'],
+    correct:0,
+    explanation:'Simpson\'s Paradox in elections: if Y wins by huge margins in a few large districts while X wins by small margins in many small districts, Y can have more total votes while X wins more districts.',
+    hint:'What if Y wins some districts by massive margins while X barely wins others?',
+    difficulty:2
+  },
   // --- Knights & Knaves generators ---
   {
     id:'kk_gen', cat:'knights_knaves', generator: true, difficulty:2

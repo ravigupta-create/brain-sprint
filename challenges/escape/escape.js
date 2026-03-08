@@ -815,6 +815,771 @@ const ESCAPE_BANK = [
         ]
       }
     ]
+  },
+  {
+    id:'hospital1', name:'The Haunted Hospital',
+    params: () => ({wing: rngPick(['East Wing','West Wing','Pediatrics']), ghost: rngPick(['Nurse Hollow','Dr. Graves','Patient Zero']), room: rngInt(100,399)}),
+    screens: (p) => [
+      {
+        text: `You\'re locked inside an abandoned hospital. The ${p.wing} corridor stretches ahead, flickering lights casting long shadows. A clipboard on the floor mentions ${p.ghost}. Two paths: the main hallway or a side stairwell.`,
+        choices: [
+          {text:'Take the side stairwell — less exposed', optimal:true, next:'The stairwell is dark but quiet. You descend one floor safely.'},
+          {text:'Walk the main hallway', optimal:false, next:'A gurney rolls toward you on its own. You stumble back, losing time.'},
+          {text:'Check the clipboard for a map', optimal:true, next:'The clipboard has a floor plan. Room ${p.room} is marked "EXIT ROUTE."'},
+          {text:'Call out to see if anyone is here', optimal:false, next:'Your voice echoes. Something answers from the dark. Not helpful.'}
+        ]
+      },
+      {
+        text: `You reach a nurses\' station. Medicine cabinets line the walls. A phone rings at the desk — the caller ID shows Room ${p.room}. A door leads to the pharmacy, another to the morgue.`,
+        choices: [
+          {text:'Answer the phone', optimal:true, next:'Static, then a whisper: "The morgue key is in drawer 3." Useful intel.'},
+          {text:'Search the pharmacy for supplies', optimal:true, next:'You find a flashlight and a set of master keys. Excellent.'},
+          {text:'Head straight to the morgue', optimal:false, next:'The morgue door is locked. You waste time jiggling the handle.'},
+          {text:'Hide behind the desk and wait', optimal:false, next:'Minutes pass. Hiding accomplishes nothing.'}
+        ]
+      },
+      {
+        text: `A cold draft blows from the morgue corridor. You hear ${p.ghost}\'s name whispered through the vents. There\'s a locked elevator and a laundry chute.`,
+        choices: [
+          {text:'Slide down the laundry chute', optimal:true, next:'A wild ride deposits you in the basement. Closer to the exit.'},
+          {text:'Try the elevator — maybe the keys work', optimal:false, next:'The elevator is dead. No power to this section.'},
+          {text:'Follow the cold draft to find the source', optimal:true, next:'The draft leads to a broken window. Moonlight reveals a fire escape outside.'},
+          {text:'Go back to find another route', optimal:false, next:'Backtracking through the dark halls wastes precious time.'}
+        ]
+      },
+      {
+        text: `The basement is a maze of storage rooms. Emergency exit signs point left, but you hear banging from the right. A patient board shows Room ${p.room} is directly above you.`,
+        choices: [
+          {text:'Follow the emergency exit signs', optimal:true, next:'The signs lead to a loading dock. Fresh air ahead.'},
+          {text:'Investigate the banging noise', optimal:false, next:'A loose pipe. Just wind. You wasted time on nothing.'},
+          {text:'Look for a basement floor plan', optimal:true, next:'A plan on the wall shows the loading dock is 30 meters left. Almost there.'},
+          {text:'Try to go back upstairs', optimal:false, next:'The stairwell door locked behind you. No going back.'}
+        ]
+      },
+      {
+        text: `The loading dock is ahead. A shutter door is chained, but there\'s a control panel and a side door marked "AUTHORIZED ONLY." ${p.ghost}\'s shadow flickers behind you.`,
+        choices: [
+          {text:'Use the control panel to raise the shutter', optimal:true, next:'The shutter groans open. Dawn light floods in. You sprint to freedom!'},
+          {text:'Try the side door with your keys', optimal:true, next:'The master key fits. The door opens to the parking lot. Escape!'},
+          {text:'Try to break the chain', optimal:false, next:'The chain is industrial grade. Your hands ache. Not happening.'},
+          {text:'Turn and confront the shadow', optimal:false, next:'There\'s nothing to confront — and now you\'ve lost your nerve.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'temple1', name:'The Underwater Temple',
+    params: () => ({deity: rngPick(['Poseidon','Thalassa','Leviathan']), gem: rngPick(['sapphire','pearl','aquamarine']), depth: rngInt(50,200)}),
+    screens: (p) => [
+      {
+        text: `Your submarine has docked at an underwater temple ${p.depth} meters below the surface. The airlock opens to a flooded antechamber dedicated to ${p.deity}. A ${p.gem} glows on the altar. Two tunnels branch off: one carved with fish, the other with tentacles.`,
+        choices: [
+          {text:'Take the fish-carved tunnel — fish seek open water', optimal:true, next:'The tunnel slopes upward. Air pockets form along the ceiling.'},
+          {text:'Take the tentacle tunnel', optimal:false, next:'Narrow and winding. Something slimy brushes your leg.'},
+          {text:`Examine the ${p.gem} on the altar`, optimal:true, next:`The ${p.gem} detaches — it fits a socket you noticed on the far wall.`},
+          {text:'Return to the submarine', optimal:false, next:'The airlock has sealed. The sub\'s systems are cycling. No going back.'}
+        ]
+      },
+      {
+        text: `A grand hall stretches before you, columns wrapped in bioluminescent coral. The ceiling is cracked — seawater drips through. Three statues of ${p.deity} each hold a trident pointing in different directions.`,
+        choices: [
+          {text:'Follow the trident pointing upward', optimal:true, next:'An ascending corridor. The water level drops with each step.'},
+          {text:'Follow the trident pointing left', optimal:false, next:'A dead-end chamber with beautiful murals but no exit.'},
+          {text:'Search the base of the statues for clues', optimal:true, next:'Inscriptions reveal: "The surface-seeker ascends." The upward trident is correct.'},
+          {text:'Try to break through the cracked ceiling', optimal:false, next:'More water pours in. Bad idea. Very bad idea.'}
+        ]
+      },
+      {
+        text: `An air pocket chamber. Ancient machinery hums — a pump system still works after millennia. A ${p.gem}-shaped socket is embedded in the control panel. Water is rising from below.`,
+        choices: [
+          {text:`Insert the ${p.gem} into the socket`, optimal:true, next:'The machinery roars. Pumps activate, draining water from the upper chambers.'},
+          {text:'Try to operate the panel without the gem', optimal:false, next:'Buttons click but nothing happens. Something is missing.'},
+          {text:'Search for another air pocket higher up', optimal:true, next:'You find a dry alcove with breathable air and a ladder going up.'},
+          {text:'Dive back down to find another route', optimal:false, next:'The lower chambers are fully flooded now. Can\'t go deeper.'}
+        ]
+      },
+      {
+        text: `The drained upper chamber reveals a massive door with ${p.deity}\'s face carved into it. The eyes are hollow — two gem sockets. You have one ${p.gem}. A mosaic on the floor shows a constellation pattern.`,
+        choices: [
+          {text:'Place your gem in one eye and look for another', optimal:true, next:'Behind a loose tile matching the constellation, you find a second gem. Both eyes glow.'},
+          {text:'Follow the constellation mosaic pattern', optimal:true, next:'The pattern leads to a hidden compartment with the second gem.'},
+          {text:'Try to force the door open', optimal:false, next:'Stone grinds but doesn\'t budge. It needs both gems.'},
+          {text:'Go back and search the lower chambers', optimal:false, next:'They\'re reflooding. The second gem must be up here.'}
+        ]
+      },
+      {
+        text: `The great door opens to a vertical shaft. Sunlight filters down from ${p.depth} meters above. An ancient elevator platform sits on rusted chains. Coral-covered rungs line the wall as an alternative.`,
+        choices: [
+          {text:'Climb the rungs — more reliable than old chains', optimal:true, next:'Steady climbing. The light grows brighter. You emerge on a rocky island, gasping fresh air!'},
+          {text:'Test the elevator mechanism first, then ride it', optimal:true, next:'The chains hold. The platform rises slowly to the surface. Sunlight at last!'},
+          {text:'Jump into the shaft and try to swim up', optimal:false, next:`${p.depth} meters is too far to free-swim. You\'d never make it.`},
+          {text:'Wait for rescue in the chamber', optimal:false, next:'No one knows you\'re here. Waiting is not a plan.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'alien1', name:'The Alien Spaceship',
+    params: () => ({species: rngPick(['Zorath','Krell','Vantari']), fuel: rngPick(['plasma core','quantum cell','dark matter']), sector: rngInt(1,9)}),
+    screens: (p) => [
+      {
+        text: `You awaken on a ${p.species} vessel. An alarm blares in an alien language. Through the viewport, you see Sector ${p.sector} — deep space. The ${p.fuel} is failing. A console flickers nearby, and a corridor leads aft.`,
+        choices: [
+          {text:'Access the console — learn the ship', optimal:true, next:'Alien interface, but icons are intuitive. You find a ship map. Engine room is aft.'},
+          {text:'Head aft toward the engine room', optimal:false, next:'You wander through identical corridors. Without a map, you get turned around.'},
+          {text:'Search your surroundings for a translation device', optimal:true, next:'A wristband on the floor auto-translates the alarm: "Fuel critical. 10 minutes."'},
+          {text:'Try to send a distress signal', optimal:false, next:'The comm system requires biometric access. ${p.species} biology only.'}
+        ]
+      },
+      {
+        text: `The ship map shows three key areas: Engineering (${p.fuel} storage), the Bridge, and an Escape Pod bay. Red zones indicate hull breaches in two sections. Time is short.`,
+        choices: [
+          {text:'Head to the Escape Pod bay — get off this ship', optimal:true, next:'The pod bay has one functional pod. It needs a launch key.'},
+          {text:'Go to Engineering to stabilize the fuel', optimal:true, next:'The ${p.fuel} is cracked but holding. You reroute backup power. Buys a few minutes.'},
+          {text:'Go to the Bridge to take control', optimal:false, next:'Bridge controls require ${p.species} biometrics. You can\'t pilot this ship.'},
+          {text:'Explore the hull breach areas', optimal:false, next:'Vacuum beyond those doors. Opening them would be fatal.'}
+        ]
+      },
+      {
+        text: `The escape pod needs a launch key. A terminal shows the key was last logged in the Captain\'s quarters. You also notice a maintenance hatch and a cargo elevator.`,
+        choices: [
+          {text:'Find the Captain\'s quarters on the map', optimal:true, next:'Deck 2, port side. You navigate there quickly — a silver key sits on the desk.'},
+          {text:'Try to hotwire the pod without a key', optimal:false, next:'Alien wiring. One wrong connection and the pod\'s thrusters fire while docked.'},
+          {text:'Check the maintenance hatch for a shortcut', optimal:true, next:'The hatch connects to a crawlspace that passes right by the Captain\'s quarters.'},
+          {text:'Take the cargo elevator to search other decks', optimal:false, next:'The elevator stalls between floors. You pry the doors and climb out, wasting time.'}
+        ]
+      },
+      {
+        text: `You have the launch key. Back at the pod bay, the ship shudders — the ${p.fuel} is in final collapse. The pod\'s navigation shows three jump destinations in Sector ${p.sector}.`,
+        choices: [
+          {text:'Select the nearest inhabited system', optimal:true, next:'A space station 4 light-minutes away. Best chance of rescue.'},
+          {text:'Plot a course for Earth', optimal:false, next:'Earth is thousands of light-years away. The pod doesn\'t have that range.'},
+          {text:'Let the pod\'s auto-navigation choose', optimal:true, next:'The ${p.species} autopilot selects optimal trajectory. It knows this sector.'},
+          {text:'Just launch without setting coordinates', optimal:false, next:'Drifting in deep space with no heading is worse than the ship.'}
+        ]
+      },
+      {
+        text: `The pod launches as the ${p.species} vessel breaks apart behind you. But the pod\'s oxygen is limited. You see two options: a nearby asteroid with a signal beacon, or push straight for the station.`,
+        choices: [
+          {text:'Push for the station — you have enough oxygen', optimal:true, next:'Tight but manageable. The station\'s tractor beam locks on. You\'re safe!'},
+          {text:'Stop at the asteroid to extend oxygen supply', optimal:true, next:'The beacon has an emergency air cache. Topped off, you cruise to the station easily.'},
+          {text:'Turn back to salvage more from the wreckage', optimal:false, next:'The wreckage is a debris field. Nothing salvageable. Oxygen wasted.'},
+          {text:'Put yourself in cryo-sleep and hope for rescue', optimal:false, next:'The pod has no cryo system. That\'s a movie thing.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'dungeon1', name:'The Medieval Dungeon',
+    params: () => ({captor: rngPick(['Baron Darkmore','the Iron Duke','Lady Ravencroft']), weapon: rngPick(['a rusty dagger','a broken sword','a torch']), cell: rngInt(1,20)}),
+    screens: (p) => [
+      {
+        text: `You\'re chained in Cell ${p.cell} of ${p.captor}\'s dungeon. Rats scurry across the stone floor. You spot ${p.weapon} under the straw, and the guard is dozing by the door.`,
+        choices: [
+          {text:`Quietly grab ${p.weapon} and pick the lock`, optimal:true, next:'The chains click open. You slip free without waking the guard.'},
+          {text:'Shout to distract the guard, then act', optimal:false, next:'The guard startles awake and sounds an alarm. Bad start.'},
+          {text:'Study the cell for weaknesses in the stonework', optimal:true, next:'A loose stone reveals a tunnel. Previous prisoners dug an escape route.'},
+          {text:'Try to break the chains with brute force', optimal:false, next:'Iron chains don\'t yield to bare hands. You just bruise your wrists.'}
+        ]
+      },
+      {
+        text: `Free from your cell, the dungeon stretches in two directions. Left: more cells and the sound of dripping water. Right: a guard room with firelight and voices. A stairway spirals upward at the far end.`,
+        choices: [
+          {text:'Creep right past the guard room toward the stairs', optimal:true, next:'Pressed against the wall, you slip past. The guards argue over dice, oblivious.'},
+          {text:'Go left — fewer guards near the cells', optimal:true, next:'The cellblock has a drainage grate. It leads to the castle sewers.'},
+          {text:'Rush the guard room and fight', optimal:false, next:'Two armed guards vs. you with ${p.weapon}. You barely escape with a wound.'},
+          {text:'Go back and hide in your cell', optimal:false, next:'Retreating to a cell? That defeats the entire purpose.'}
+        ]
+      },
+      {
+        text: `You reach the lower castle. A kitchen bustles with servants, and a courtyard is visible through an archway. ${p.captor}\'s banner hangs everywhere. A servant\'s cloak hangs on a hook.`,
+        choices: [
+          {text:'Steal the cloak and disguise yourself', optimal:true, next:'Hooded and cloaked, you blend in with the servants perfectly.'},
+          {text:'Sneak through the courtyard in the shadows', optimal:false, next:'A patrolling guard spots movement. "Who goes there!" You barely duck away.'},
+          {text:'Slip through the kitchen while servants are busy', optimal:true, next:'Everyone\'s focused on the feast preparations. You pass through unseen.'},
+          {text:'Climb out a window', optimal:false, next:'The window overlooks a 30-foot drop to the moat. Too risky.'}
+        ]
+      },
+      {
+        text: `The outer bailey. The main gate is guarded by four soldiers. A stable sits to the left, a chapel to the right. The castle wall has a section under repair with scaffolding.`,
+        choices: [
+          {text:'Climb the scaffolding to the wall top', optimal:true, next:'The scaffolding holds. From the wall, you see the forest beyond the moat.'},
+          {text:'Steal a horse from the stable', optimal:false, next:'Horses whinny loudly. A stable hand shouts for the guards.'},
+          {text:'Hide in the chapel until nightfall', optimal:true, next:'The chapel is empty. At nightfall, the guard rotation thins. Smart timing.'},
+          {text:'Try to walk out the main gate in disguise', optimal:false, next:'The gate guards check everyone. Your disguise won\'t survive close inspection.'}
+        ]
+      },
+      {
+        text: `You\'re at the castle wall. The moat below is dark but crossable. A rope hangs from the scaffolding. Beyond the moat, the tree line offers cover. ${p.captor}\'s hunting horn sounds — they know you\'re gone.`,
+        choices: [
+          {text:'Rappel down the rope and swim the moat', optimal:true, next:'Cold water, but you cross quickly. Into the trees and gone. Freedom at last!'},
+          {text:'Use the rope to swing across the moat to the bank', optimal:true, next:'A daring swing carries you over the water. You land running into the forest.'},
+          {text:'Jump directly into the moat', optimal:false, next:'The drop is farther than it looked. You hit the water hard and surface gasping.'},
+          {text:'Stay on the wall and look for a bridge', optimal:false, next:'There\'s no hidden bridge. And the alarm means time is up.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'noir1', name:'The Noir Case',
+    params: () => ({victim: rngPick(['Vivian Marlowe','Johnny Santini','Eloise Crane']), bar: rngPick(['The Blue Parrot','Smoky Joe\'s','The Velvet Room']), suspect: rngPick(['the butler','the business partner','the ex-lover'])}),
+    screens: (p) => [
+      {
+        text: `Rain hammers the city. ${p.victim} was found dead in the alley behind ${p.bar}. You\'re the detective. The body is cold, the scene contaminated. Your leads: ${p.suspect} and a matchbook from the bar.`,
+        choices: [
+          {text:'Examine the matchbook for clues', optimal:true, next:'A phone number is scrawled inside. Could be the killer\'s contact.'},
+          {text:`Head into ${p.bar} to ask questions`, optimal:true, next:'The bartender remembers ${p.victim} arguing with someone that night.'},
+          {text:'Canvas the neighborhood at 2 AM', optimal:false, next:'Nobody talks at this hour. Doors stay shut. Wasted shoe leather.'},
+          {text:'Call it in and wait for forensics', optimal:false, next:'Forensics won\'t arrive until morning. The trail goes cold.'}
+        ]
+      },
+      {
+        text: `The bartender says ${p.victim} left ${p.bar} with a tall figure in a dark coat. The phone number traces to a warehouse on the docks. Meanwhile, ${p.suspect} has no alibi.`,
+        choices: [
+          {text:'Visit the warehouse — follow the physical evidence', optimal:true, next:'The warehouse is empty but recently used. Cigarette butts and rope on the floor.'},
+          {text:`Bring ${p.suspect} in for questioning`, optimal:true, next:'Under pressure, ${p.suspect} admits to an argument but denies the murder. Nervous though.'},
+          {text:'Stake out the bar for the tall figure', optimal:false, next:'Hours pass. The figure doesn\'t return. Dead end for tonight.'},
+          {text:'Check ${p.victim}\'s home', optimal:false, next:'Locked up tight. Getting a warrant will take days.'}
+        ]
+      },
+      {
+        text: `The warehouse rope matches marks on ${p.victim}. ${p.suspect}\'s story has a hole — they claim to have been home, but a neighbor saw them leave at 11 PM. A security camera outside ${p.bar} might have footage.`,
+        choices: [
+          {text:'Get the security footage', optimal:true, next:'Grainy but clear: ${p.victim} and a tall figure leaving at 11:47 PM.'},
+          {text:'Confront ${p.suspect} with the neighbor\'s testimony', optimal:true, next:'${p.suspect} cracks slightly: "Fine, I went out. But not to kill anyone."'},
+          {text:'Search the warehouse more thoroughly at night', optimal:false, next:'In the dark, you miss details. Should have come with better light.'},
+          {text:'Ask the local snitches', optimal:false, next:'Street informants know nothing about this. Too upscale a crime.'}
+        ]
+      },
+      {
+        text: `The footage shows the tall figure\'s face — it\'s ${p.suspect}\'s associate. But ${p.suspect} had the motive. You need to connect them. A receipt in the warehouse links to a downtown hotel.`,
+        choices: [
+          {text:'Check the hotel registration records', optimal:true, next:'The associate checked in under a fake name — but paid with a traceable credit card.'},
+          {text:'Set up a meeting between the suspects', optimal:false, next:'Tipping them off lets them coordinate their stories. Rookie mistake.'},
+          {text:'Get a warrant for ${p.suspect}\'s financial records', optimal:true, next:'Wire transfers to the associate. Payment for a hit. There\'s your case.'},
+          {text:'Tail the associate and hope they slip up', optimal:false, next:'They spot your tail and disappear. Evidence over surveillance next time.'}
+        ]
+      },
+      {
+        text: `You have the financial link and the footage. Time to close the case. ${p.suspect} is at ${p.bar} right now. The associate is at the hotel.`,
+        choices: [
+          {text:'Arrest both simultaneously with backup', optimal:true, next:'Coordinated arrest. Neither can warn the other. Both in custody. Case closed.'},
+          {text:'Arrest ${p.suspect} first — they\'re the mastermind', optimal:true, next:'${p.suspect} is cuffed at the bar. Officers grab the associate minutes later. Justice for ${p.victim}.'},
+          {text:'Confront ${p.suspect} alone at the bar', optimal:false, next:'Going alone? ${p.suspect} has dangerous friends. Bad call, detective.'},
+          {text:'Present the evidence to the DA first', optimal:false, next:'Bureaucracy takes days. Meanwhile, suspects could flee.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'saloon1', name:'Wild West Showdown',
+    params: () => ({town: rngPick(['Deadwood','Tombstone','Silver Creek']), outlaw: rngPick(['Black Bart','the Dalton Gang','Rattlesnake Pete']), horse: rngPick(['a painted mustang','a black stallion','a chestnut mare'])}),
+    screens: (p) => [
+      {
+        text: `${p.town} is under siege. ${p.outlaw} has taken the mayor hostage in the saloon. You\'re the sheriff, standing at the edge of Main Street with ${p.horse} behind you. Townsfolk peer from windows.`,
+        choices: [
+          {text:'Circle around to the saloon\'s back entrance', optimal:true, next:'The alley is clear. You reach the back door undetected.'},
+          {text:'Walk straight down Main Street to negotiate', optimal:false, next:'A warning shot kicks dust at your boots. "One more step, Sheriff!"'},
+          {text:'Rally the deputies and form a plan', optimal:true, next:'Three deputies join you. One covers the roof, two flank the sides. Good strategy.'},
+          {text:'Ride ${p.horse} straight at the saloon doors', optimal:false, next:'Dramatic but foolish. ${p.outlaw}\'s lookout spots you coming a mile away.'}
+        ]
+      },
+      {
+        text: `From cover, you see ${p.outlaw} through the saloon window. The mayor is tied to a chair. Three gang members guard the entrance, and one watches the back. A water tower overlooks the scene.`,
+        choices: [
+          {text:'Position a deputy on the water tower as a sharpshooter', optimal:true, next:'High ground secured. Your deputy has a clear line of sight inside.'},
+          {text:'Create a distraction — spook the horses at the hitching post', optimal:true, next:'Horses scatter and whinny. The back lookout steps outside to check. Opening created.'},
+          {text:'Toss dynamite through the window', optimal:false, next:'The mayor is IN there. Collateral damage is not the plan.'},
+          {text:'Wait them out — they\'ll surrender eventually', optimal:false, next:'${p.outlaw} threatens to harm the mayor if demands aren\'t met in 10 minutes.'}
+        ]
+      },
+      {
+        text: `The back lookout is distracted. You slip inside through the storeroom. Whiskey barrels and crates provide cover. Voices from the main room — ${p.outlaw} is growing impatient.`,
+        choices: [
+          {text:'Peek through the storeroom door to assess positions', optimal:true, next:'Two at the front, one at the bar, ${p.outlaw} by the mayor. You can plan your moves.'},
+          {text:'Kick down the door guns blazing', optimal:false, next:'Surprise lasts a second. Now you\'re in a crossfire with the mayor in between.'},
+          {text:'Roll a whiskey barrel into the room as cover', optimal:true, next:'The barrel crashes through the door. Gang members dive aside. Chaos is your friend.'},
+          {text:'Set fire to the storeroom as a distraction', optimal:false, next:'A burning saloon with a hostage inside. Think, Sheriff.'}
+        ]
+      },
+      {
+        text: `In the confusion, you\'ve neutralized two gang members. ${p.outlaw} holds a pistol to the mayor\'s head. "Drop your iron, Sheriff, or the mayor gets it." Your deputy has a shot from the water tower.`,
+        choices: [
+          {text:'Signal the deputy to take the shot', optimal:true, next:'A crack from the tower. ${p.outlaw}\'s hat flies off, pistol clatters to the floor. Perfect shot.'},
+          {text:'Keep ${p.outlaw} talking while edging closer', optimal:true, next:'You hold their attention. Three steps closer... two... you lunge and disarm them.'},
+          {text:'Drop your gun and try to negotiate', optimal:false, next:'Unarmed sheriff is a dead sheriff. ${p.outlaw} has no reason to negotiate.'},
+          {text:'Shoot the chandelier to create darkness', optimal:false, next:'It\'s daytime. Shooting a chandelier doesn\'t darken a room with windows.'}
+        ]
+      },
+      {
+        text: `${p.outlaw} is disarmed. But the last gang member makes a break for it, jumping on ${p.horse} outside. The mayor is safe but the outlaw is escaping down Main Street.`,
+        choices: [
+          {text:'Grab a horse from the hitching post and give chase', optimal:true, next:'You ride hard and cut them off at the canyon. Lasso brings them down. Justice served!'},
+          {text:'Let the deputy on the tower handle it', optimal:true, next:'A warning shot stops the horse cold. The gang member surrenders. ${p.town} is saved.'},
+          {text:'Let them go — you got the leader', optimal:false, next:'A loose gang member will just recruit more trouble. Finish the job.'},
+          {text:'Shoot at the fleeing rider from the saloon', optimal:false, next:'Too far, too many civilians on the street. Reckless.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'airplane1', name:'Airplane Emergency',
+    params: () => ({flight: rngPick(['Flight 714','Flight 209','Flight 881']), airline: rngPick(['Pacific Air','TransAtlantic','SkyBridge']), altitude: rngInt(25000,38000)}),
+    screens: (p) => [
+      {
+        text: `${p.airline} ${p.flight} at ${p.altitude} feet. Both pilots are incapacitated from food poisoning. You\'re a passenger with some flight training. The cabin crew asks for help. Oxygen masks have deployed.`,
+        choices: [
+          {text:'Enter the cockpit and assess instruments', optimal:true, next:'Autopilot is engaged. The plane is stable for now. You study the controls.'},
+          {text:'Radio for help immediately', optimal:true, next:'Mayday on 121.5. Air traffic control responds. They\'ll talk you through this.'},
+          {text:'Ask if any other passengers are pilots', optimal:false, next:'No one else. You\'re it. Should have gone to the cockpit first.'},
+          {text:'Try to wake the pilots', optimal:false, next:'They\'re out cold. Medical help can\'t arrive at ${p.altitude} feet.'}
+        ]
+      },
+      {
+        text: `ATC has you on radar. They\'re vectoring you toward the nearest airport. The fuel gauge shows 2 hours. But a warning light flashes — hydraulic pressure dropping in system 1. Backup system 2 is operational.`,
+        choices: [
+          {text:'Switch to hydraulic system 2 as ATC instructs', optimal:true, next:'System 2 engaged. Controls feel different but responsive. You\'re still flying.'},
+          {text:'Ask ATC to prioritize landing — don\'t wait', optimal:true, next:'ATC clears all traffic. Straight-in approach to the nearest runway. 40 minutes out.'},
+          {text:'Descend immediately to reduce stress on the plane', optimal:false, next:'Rapid descent without ATC guidance could put you in other traffic. Follow the pros.'},
+          {text:'Try to fix hydraulic system 1', optimal:false, next:'You\'re not a mechanic and you\'re flying the plane. Focus on what matters.'}
+        ]
+      },
+      {
+        text: `The airport is 30 minutes out. ATC walks you through the approach checklist. Flaps, gear, speed. A flight attendant reports turbulence is making passengers panic. Weather ahead looks rough.`,
+        choices: [
+          {text:'Stay focused on ATC instructions — crew handles passengers', optimal:true, next:'The flight attendant calms the cabin. You concentrate on the checklist. Disciplined.'},
+          {text:'Request a different runway to avoid the weather', optimal:true, next:'ATC vectors you to runway 27L — clear skies on approach. Smart thinking.'},
+          {text:'Make a PA announcement yourself', optimal:false, next:'Talking on PA means hands off controls and eyes off instruments. Let the crew do it.'},
+          {text:'Speed up to get there faster before weather hits', optimal:false, next:'Faster approach speed makes landing much harder. Stick to the numbers.'}
+        ]
+      },
+      {
+        text: `Visual on the runway. ATC says you\'re high and fast. The landing gear indicator shows three green — gear is down. Crosswind from the left. This is it.`,
+        choices: [
+          {text:'Follow ATC: reduce power, maintain glide slope', optimal:true, next:'Speed bleeds off. The runway grows. You\'re right on target.'},
+          {text:'Crab into the crosswind as trained', optimal:true, next:'Nose angled left, tracking straight. Textbook crosswind technique.'},
+          {text:'Go around and try again', optimal:false, next:'With hydraulic issues, every extra minute in the air is risk. Commit to this approach.'},
+          {text:'Point straight at the runway and power through', optimal:false, next:'Ignoring crosswind means drifting off the runway. Physics doesn\'t care about bravery.'}
+        ]
+      },
+      {
+        text: `Over the threshold. Runway lights blur past. ATC says "You\'re looking good, ${p.flight}." Altitude 50 feet... 30... 20... flare now.`,
+        choices: [
+          {text:'Gently pull back, reduce power, let it settle', optimal:true, next:'Tires screech. A firm landing but you\'re on the ground. Emergency crews swarm. You did it!'},
+          {text:'Trust ATC\'s callouts and follow their timing', optimal:true, next:'"Flare... flare... hold it..." Touchdown. The cabin erupts in cheers. Hero of ${p.flight}.'},
+          {text:'Slam it down hard to make sure you don\'t float', optimal:false, next:'Hard landing blows a tire, but you\'re on the ground. Scary but survivable.'},
+          {text:'Close your eyes and hope for the best', optimal:false, next:'Flying requires eyes open. Every second counts at this altitude.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'bunker1', name:'The Nuclear Bunker',
+    params: () => ({facility: rngPick(['Site Alpha','Raven Rock','Bunker 7']), code: rngInt(1000,9999), year: rngPick(['1962','1983','2003'])}),
+    screens: (p) => [
+      {
+        text: `${p.facility}, sealed since ${p.year}. You\'re part of an exploration team, but a cave-in has trapped you inside. Emergency lighting casts everything in amber. The blast door behind you is jammed. Two corridors ahead: Command Center and Residential Wing.`,
+        choices: [
+          {text:'Head to Command Center — comms equipment there', optimal:true, next:'Banks of vintage computers and a radio. If anything works, this is your lifeline.'},
+          {text:'Check Residential Wing for supplies first', optimal:true, next:'Canned food, water purification tablets, and flashlights. You can survive while planning.'},
+          {text:'Try to force the blast door open', optimal:false, next:'It weighs several tons and the hydraulics are dead. Not happening.'},
+          {text:'Yell through the cave-in to your surface team', optimal:false, next:'Meters of rubble muffle everything. They can\'t hear you.'}
+        ]
+      },
+      {
+        text: `The Command Center radio is vintage but intact. A logbook shows the last entry: "Code ${p.code} required for emergency ventilation." The radio needs power. A generator room is marked on the wall map.`,
+        choices: [
+          {text:'Find the generator room and restore power', optimal:true, next:'Diesel generator. It sputters, coughs, then rumbles to life. Lights flicker on across the bunker.'},
+          {text:'Note code ${p.code} and explore further', optimal:true, next:'You memorize the code. It might open other systems too.'},
+          {text:'Try to hand-crank the radio', optimal:false, next:'This isn\'t a hand-crank model. It needs real power.'},
+          {text:'Search the command center for batteries', optimal:false, next:'${p.year}-era batteries are long dead. Need the generator.'}
+        ]
+      },
+      {
+        text: `Power restored. The radio crackles with static. A ventilation panel requires code ${p.code} — fresh air would help. The bunker map also shows an emergency tunnel exit, but it\'s behind a sealed door on Level 3.`,
+        choices: [
+          {text:'Enter code ${p.code} on the ventilation panel', optimal:true, next:'Fans whir. Fresh air flows through ancient ducts. Breathing gets easier.'},
+          {text:'Try the radio to contact your surface team', optimal:true, next:'Through static: "We read you! Digging from our side. Estimate 6 hours."'},
+          {text:'Rush to Level 3 to find the emergency exit', optimal:false, next:'Level 3 is pitch black and flooded in sections. Too dangerous without recon.'},
+          {text:'Shut down non-essential systems to conserve fuel', optimal:false, next:'The generator has plenty of diesel. Keep everything running — you need it all.'}
+        ]
+      },
+      {
+        text: `Radio contact established. But 6 hours is a long time with limited air flow. The Level 3 emergency tunnel could be faster. A map shows it exits 200 meters from the main entrance. The sealed door needs... code ${p.code}.`,
+        choices: [
+          {text:'Enter code ${p.code} on the Level 3 door', optimal:true, next:'The door grinds open. A tunnel stretches into darkness, but air flows from the far end — it\'s open!'},
+          {text:'Wait for rescue — it\'s safer', optimal:true, next:'6 hours with ventilation is manageable. Your team breaks through on schedule.'},
+          {text:'Try to dig through the cave-in yourself', optimal:false, next:'Moving rubble risks further collapse. Let the professionals handle it.'},
+          {text:'Explore random corridors looking for exits', optimal:false, next:'${p.facility} is a maze. Without the map, you\'ll get lost in Cold War-era tunnels.'}
+        ]
+      },
+      {
+        text: `The emergency tunnel is passable. Old rail tracks line the floor. Daylight glimmers at the far end. Behind you, the bunker groans — the structure is settling after the cave-in.`,
+        choices: [
+          {text:'Move quickly but carefully along the tracks', optimal:true, next:'Steady pace on the rails. The light grows. You emerge blinking into daylight. Rescue team cheers!'},
+          {text:'Check the tunnel supports as you go', optimal:true, next:'Supports are old but solid. You verify as you walk. Safe passage to the exit.'},
+          {text:'Run full speed toward the light', optimal:false, next:'You trip on a rail tie in the dark. Twisted ankle. You limp out, but it hurts.'},
+          {text:'Go back for more supplies before leaving', optimal:false, next:'The bunker is groaning. Get out while the tunnel holds. Now.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'magic1', name:'The Magic Academy',
+    params: () => ({school: rngPick(['Thornwick Academy','The Obsidian Tower','Mistral Hall']), spell: rngPick(['Luminara','Tempestus','Verdantis']), professor: rngPick(['Professor Ashwood','Magister Thorne','Dean Hexley'])}),
+    screens: (p) => [
+      {
+        text: `Final exam at ${p.school}: escape the enchanted maze before midnight. ${p.professor} watches from the tower. You stand at the entrance — three paths glow: gold, silver, and green. Your best spell is ${p.spell}.`,
+        choices: [
+          {text:'Cast ${p.spell} to reveal the true path', optimal:true, next:'Your spell illuminates hidden runes on the gold path. They read: "Wisdom first."'},
+          {text:'Take the gold path — gold usually means correct', optimal:false, next:'A trapdoor! You fall into a puzzle chamber. Assumptions are dangerous here.'},
+          {text:'Study the runes carved at each entrance', optimal:true, next:'The silver path\'s runes match ${p.spell}\'s sigil. It\'s attuned to your magic.'},
+          {text:'Take the green path — nature feels safest', optimal:false, next:'Enchanted vines grab your ankles. You free yourself but lose precious minutes.'}
+        ]
+      },
+      {
+        text: `The silver path winds through shifting walls. A sphinx blocks the way and poses a riddle. Behind you, the path is already rearranging itself. Shelves of potion ingredients line one wall.`,
+        choices: [
+          {text:'Answer the sphinx\'s riddle', optimal:true, next:'Correct! The sphinx bows and the wall opens to the next chamber.'},
+          {text:'Brew a quick potion from the ingredients', optimal:true, next:'A revealing potion shows the sphinx is an illusion. You walk right through it.'},
+          {text:'Try to climb over the sphinx', optimal:false, next:'The sphinx isn\'t physical but magical. You can\'t climb over a spell.'},
+          {text:'Turn back and find another route', optimal:false, next:'The walls shifted. There IS no other route anymore.'}
+        ]
+      },
+      {
+        text: `A vast chamber with a floating staircase spiraling upward. Each step plays a musical note. A wrong note collapses the step. ${p.professor}\'s voice echoes: "Harmony is key." A sheet of music rests on a pedestal.`,
+        choices: [
+          {text:'Read the sheet music and step on matching notes', optimal:true, next:'Do, Mi, Sol, Do. Each step holds firm. You ascend the melodic staircase.'},
+          {text:'Cast ${p.spell} to stabilize all the steps', optimal:true, next:'Your magic reinforces the staircase. Every step glows solid. Well done.'},
+          {text:'Jump randomly and hope for the best', optimal:false, next:'Three steps in — wrong note. The step vanishes. You grab the railing just in time.'},
+          {text:'Try to fly up with a levitation spell', optimal:false, next:'The chamber has an anti-flight enchantment. Classic exam trick. Use the stairs.'}
+        ]
+      },
+      {
+        text: `The top of the staircase opens to a mirror room. Your reflection moves independently, mimicking your spells. To pass, you must outsmart your magical double. The exit shimmers behind the central mirror.`,
+        choices: [
+          {text:'Cast a spell your reflection can\'t copy — something creative', optimal:true, next:'You cast ${p.spell} in reverse. The reflection tries but fizzles. The mirror cracks.'},
+          {text:'Step through the central mirror', optimal:false, next:'You bounce off. The mirror is solid until the reflection is dealt with.'},
+          {text:'Don\'t cast — challenge it to a non-magical contest', optimal:true, next:'You sit down. The reflection, being magical, doesn\'t understand. It flickers and fades.'},
+          {text:'Blast every mirror with force', optimal:false, next:'Seven years bad luck times twelve mirrors. Also, they regenerate.'}
+        ]
+      },
+      {
+        text: `Beyond the mirrors: the final chamber. A pedestal holds the exam token — a crystal orb. But a time enchantment ticks toward midnight. ${p.professor}\'s final test: the orb is behind a magical lock with three keyholes.`,
+        choices: [
+          {text:'Use the runes, the music notes, and the riddle answer as keys', optimal:true, next:'Each lesson was a key! The lock clicks open. You grab the orb. ${p.professor} applauds from the tower. You pass!'},
+          {text:'Cast ${p.spell} with everything you have', optimal:true, next:'Your strongest casting shatters the lock. Raw power counts too. The orb is yours!'},
+          {text:'Try to pick the magical lock manually', optimal:false, next:'Magical locks don\'t have physical mechanisms. You need magic or knowledge.'},
+          {text:'Wait for another student to solve it and follow them', optimal:false, next:'This is a solo exam. No other students are in your maze instance.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'circus1', name:'The Abandoned Circus',
+    params: () => ({circus: rngPick(['Cirque Noir','The Forgotten Big Top','Midnight Carnival']), clown: rngPick(['Grimaldi','Mr. Chuckles','Patches']), prize: rngPick(['a golden ticket','the ringmaster\'s key','a diamond brooch'])}),
+    screens: (p) => [
+      {
+        text: `${p.circus} has been abandoned for decades, yet tonight the lights are on. You entered seeking ${p.prize}, rumored to be hidden here. The big top entrance looms ahead. A ticket booth and a side show tent flank it. A painted face of ${p.clown} watches from a poster.`,
+        choices: [
+          {text:'Check the ticket booth for clues', optimal:true, next:'An old map of the circus grounds is pinned behind the counter. Attractions marked.'},
+          {text:'Enter the big top directly', optimal:false, next:'The big top is dark and vast. Without a plan, you wander the empty ring.'},
+          {text:'Explore the side show tent first', optimal:true, next:'The tent holds mirrors, fortune-telling machines, and a lockbox with a note: "Hall of Mirrors holds the truth."'},
+          {text:'Call out to see if anyone is here', optimal:false, next:'Calliope music starts playing on its own. Unsettling, not helpful.'}
+        ]
+      },
+      {
+        text: `The map shows: Hall of Mirrors, the Funhouse, the Ferris Wheel, and the Ringmaster\'s Wagon. The note mentioned mirrors. But the funhouse has a direct path to backstage where valuables were stored.`,
+        choices: [
+          {text:'Go to the Hall of Mirrors — follow the clue', optimal:true, next:'Distorted reflections everywhere. But one mirror doesn\'t reflect at all — it\'s a door.'},
+          {text:'Check the Ringmaster\'s Wagon', optimal:true, next:'Locked, but through the window you see a safe. ${p.prize} might be inside.'},
+          {text:'Take the funhouse shortcut', optimal:false, next:'Spinning floors and tilted rooms. You stumble out dizzy and disoriented.'},
+          {text:'Climb the Ferris Wheel for a better view', optimal:false, next:'The structure groans. Decades of rust. It\'s not safe to climb.'}
+        ]
+      },
+      {
+        text: `Behind the mirror-door: a hidden passage to the backstage area. Props and costumes everywhere. A ${p.clown} costume hangs on a rack, and a trapdoor is cut into the floor. A safe code is written on a chalkboard: the number of rings in the big top times the number of Ferris wheel cars.`,
+        choices: [
+          {text:'Figure out the code: 3 rings, 12 cars = 36', optimal:true, next:'The chalkboard equation checks out. You note 36 for the safe.'},
+          {text:'Open the trapdoor to see what\'s below', optimal:true, next:'A tunnel under the big top. Performers used this to appear and disappear. It connects everywhere.'},
+          {text:'Put on the ${p.clown} costume as a disguise', optimal:false, next:'Disguise from whom? The circus is abandoned. Just a creepy outfit.'},
+          {text:'Search every prop for hidden items', optimal:false, next:'Hundreds of props. You waste time finding nothing but fake flowers and rubber chickens.'}
+        ]
+      },
+      {
+        text: `Through the tunnel, you reach the Ringmaster\'s Wagon from below. The safe is here. The combo lock needs a number. Outside, the calliope music grows louder. Something moves in the shadows.`,
+        choices: [
+          {text:'Enter 36 on the combination lock', optimal:true, next:'Click. The safe opens. ${p.prize} gleams inside. You grab it.'},
+          {text:'Listen carefully to identify the shadow movement', optimal:true, next:'Just a cat. An actual circus cat, still living here. Harmless.'},
+          {text:'Try random numbers on the safe', optimal:false, next:'After five wrong attempts, the lock seizes. Should have done the math.'},
+          {text:'Forget the safe and flee the circus', optimal:false, next:'You came for ${p.prize}. Don\'t leave empty-handed when you\'re this close.'}
+        ]
+      },
+      {
+        text: `${p.prize} in hand, you need to exit. The way you came is through the tunnels. The wagon door opens to the fairground. The big top entrance is closest to the parking lot. ${p.clown}\'s poster seems to grin wider.`,
+        choices: [
+          {text:'Exit through the wagon door and walk to the parking lot', optimal:true, next:'Fresh night air. Your car is right where you left it. ${p.prize} secured. Adventure complete!'},
+          {text:'Use the tunnel system to reach the main entrance unseen', optimal:true, next:'The tunnels lead right to the ticket booth. Out the front, into the night. Success.'},
+          {text:'Go through the big top for a final look', optimal:false, next:'A spotlight activates on its own in the ring. Time to leave, not sightsee.'},
+          {text:'Look for more hidden valuables before leaving', optimal:false, next:'Greed in an abandoned circus at night. Nothing good comes from pushing your luck.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'skyscraper1', name:'Skyscraper Fire Escape',
+    params: () => ({building: rngPick(['Apex Tower','The Meridian','Skyline One']), floor: rngInt(40,75), company: rngPick(['Vertex Corp','Helix Industries','Pinnacle Tech'])}),
+    screens: (p) => [
+      {
+        text: `Fire alarm at ${p.building}, floor ${p.floor}. You\'re working late at ${p.company}. Smoke curls under the office door. The elevator panel shows OUT OF SERVICE. Stairwell A is left, Stairwell B is right. The window shows emergency lights far below.`,
+        choices: [
+          {text:'Check both stairwell doors for heat before choosing', optimal:true, next:'Stairwell A\'s door is hot — fire below. Stairwell B is cool. Go right.'},
+          {text:'Take Stairwell B immediately', optimal:false, next:'You rush in without checking. Luckily B is clear, but you should have checked for heat.'},
+          {text:'Grab your go-bag and wet a cloth for smoke', optimal:true, next:'Wet cloth over your face cuts the smoke. Your bag has a flashlight. Prepared.'},
+          {text:'Try the elevator — maybe it still works', optimal:false, next:'Elevators in a fire are death traps. Never use them. The panel is right.'}
+        ]
+      },
+      {
+        text: `Stairwell B, heading down from floor ${p.floor}. At floor ${p.floor - 10}, the stairwell is blocked by debris. Smoke is rising. A door leads back to that floor\'s office space. A maintenance hatch is above you.`,
+        choices: [
+          {text:'Go through the office to reach Stairwell A on the other side', optimal:true, next:'The office is smoky but passable. Stairwell A is clear from this floor down.'},
+          {text:'Open the maintenance hatch and climb up one floor', optimal:true, next:'Above the debris, the stairwell is clear again. You bypass the blockage.'},
+          {text:'Try to clear the debris', optimal:false, next:'Concrete and steel. You can\'t move it by hand. Find another way.'},
+          {text:'Go back up to your floor and wait for rescue', optimal:false, next:'Going up in a fire means going toward heat and smoke. Keep descending.'}
+        ]
+      },
+      {
+        text: `Floor ${p.floor - 25}. The fire is below you on floors 10-15. Smoke is thickening. You meet other evacuees. A fire warden says the lobby is blocked. The parking garage on B1 or the skybridge on floor 20 to the adjacent building are alternatives.`,
+        choices: [
+          {text:'Head for the skybridge on floor 20', optimal:true, next:'Five more floors down. The skybridge connects to ${p.building} West. Clear air on the other side.'},
+          {text:'Follow the warden\'s lead — they know the building', optimal:true, next:'The warden leads the group to a refuge floor with fire-rated walls and fresh air supply.'},
+          {text:'Go to the parking garage in the basement', optimal:false, next:'That means going THROUGH the fire floors. The warden shakes their head. Too dangerous.'},
+          {text:'Break a window for fresh air', optimal:false, next:'At this height, wind feeds the fire. Broken windows make things worse.'}
+        ]
+      },
+      {
+        text: `The skybridge is ahead on floor 20. But floor 22\'s corridor is hazy with smoke. Your wet cloth is drying out. The group is 8 people strong. A fire hose cabinet and a ventilation shaft are nearby.`,
+        choices: [
+          {text:'Rewet the cloth at the fire hose', optimal:true, next:'The hose connection provides water. Everyone wets their face coverings. Two more floors.'},
+          {text:'Stay low and move fast through the smoke', optimal:true, next:'Crawling under the smoke layer, the group reaches floor 20. Breathable air returns.'},
+          {text:'Take the ventilation shaft as a shortcut', optimal:false, next:'Shafts channel smoke like chimneys. Getting in one is extremely dangerous.'},
+          {text:'Wait here for firefighters', optimal:false, next:'Smoke is thickening. Firefighters may be floors away. Keep moving.'}
+        ]
+      },
+      {
+        text: `Floor 20. The skybridge door is locked with a security badge reader. Smoke seeps from below. Through the glass, you see the adjacent building — safety is 30 meters away. A fire axe is behind glass nearby.`,
+        choices: [
+          {text:'Use the fire axe on the badge reader mechanism', optimal:true, next:'One swing. The lock disengages. The group rushes across the skybridge to safety!'},
+          {text:'Search for a security badge on this floor', optimal:true, next:'A guard station has a universal access badge. Door opens. Everyone crosses safely.'},
+          {text:'Try to break through the skybridge glass walls', optimal:false, next:'The glass is reinforced. The axe would be better used on the door.'},
+          {text:'Go back and try another route down', optimal:false, next:'There\'s no time. The smoke is rising. The skybridge is your best option.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'library1', name:'The Ancient Library',
+    params: () => ({library: rngPick(['The Library of Shadows','Athenaeum Obscura','The Forbidden Archive']), book: rngPick(['the Codex of Stars','the Grimoire of Ages','the Scroll of Eternity']), guardian: rngPick(['the Stone Golem','the Spectral Librarian','the Sphinx of Knowledge'])}),
+    screens: (p) => [
+      {
+        text: `${p.library} was sealed for centuries. You\'ve found the entrance — a reading room lit by magical torches. Shelves tower impossibly high. ${p.guardian} is said to protect ${p.book}. A catalog desk and a winding staircase are visible.`,
+        choices: [
+          {text:'Check the catalog desk for ${p.book}\'s location', optimal:true, next:'A magical index card floats up: "Section Omega, Third Landing, Behind the Constellation."'},
+          {text:'Climb the staircase to explore', optimal:false, next:'Without direction, you wander endless shelves. The library seems to go on forever.'},
+          {text:'Read the inscription above the entrance for rules', optimal:true, next:'"Speak softly, solve wisely, take only what is given." The library has rules for a reason.'},
+          {text:'Start pulling books off shelves randomly', optimal:false, next:'A book snaps at your fingers. These shelves are enchanted. Careful.'}
+        ]
+      },
+      {
+        text: `The winding staircase to the Third Landing. Each landing has a puzzle door. The first shows a riddle in Latin. The second has a lock shaped like a constellation. Books whisper as you pass.`,
+        choices: [
+          {text:'Solve the Latin riddle — "What has pages but no words?"', optimal:true, next:'"A blank book." The door swings open. Well read, indeed.'},
+          {text:'Look for a constellation chart to match the lock', optimal:true, next:'A star map on the ceiling matches the lock perfectly. You align the points.'},
+          {text:'Force the doors with brute strength', optimal:false, next:'The doors are magically reinforced. Force triggers a defensive ward that pushes you back.'},
+          {text:'Skip the doors and climb the outside of the staircase', optimal:false, next:'The staircase exists in folded space. There is no "outside" to climb.'}
+        ]
+      },
+      {
+        text: `The Third Landing. Section Omega stretches before you — books bound in metal, leather, and light. "Behind the Constellation" — a shelf shaped like Orion stands at the far wall. ${p.guardian} stirs nearby.`,
+        choices: [
+          {text:'Approach quietly and study the constellation shelf', optimal:true, next:'Behind the Orion shelf, a hidden alcove. ${p.book} rests on a velvet stand.'},
+          {text:'Address ${p.guardian} respectfully', optimal:true, next:'${p.guardian} rumbles: "State your purpose." "I seek ${p.book} for knowledge, not power." "Then proceed."'},
+          {text:'Try to sneak past ${p.guardian}', optimal:false, next:'${p.guardian} detects all movement in Section Omega. You\'re caught immediately.'},
+          {text:'Create a distraction to lure ${p.guardian} away', optimal:false, next:'${p.guardian} doesn\'t leave its post. Ever. Distractions are irrelevant.'}
+        ]
+      },
+      {
+        text: `${p.book} is before you, glowing faintly. But it\'s chained to the stand with an enchanted lock. Three symbols on the lock match elements from the puzzles you solved. ${p.guardian} watches impassively.`,
+        choices: [
+          {text:'Enter the symbols from the riddle, constellation, and inscription', optimal:true, next:'The chain dissolves. ${p.book} floats gently into your hands. ${p.guardian} nods.'},
+          {text:'Ask ${p.guardian} for permission to remove the chain', optimal:true, next:'"You solved the trials. The chain recognizes the worthy." It falls away.'},
+          {text:'Break the chain with a tool', optimal:false, next:'The chain absorbs force and redirects it. Your tool flies across the room.'},
+          {text:'Try to read ${p.book} while it\'s still chained', optimal:false, next:'The pages remain blank until the chain is properly removed.'}
+        ]
+      },
+      {
+        text: `${p.book} in hand. But ${p.library} is shifting — shelves rearrange, stairs fold. The exit is closing. ${p.guardian} points to a reading alcove that glows with exit light.`,
+        choices: [
+          {text:'Run to the glowing alcove', optimal:true, next:'The alcove is a portal. You step through and emerge outside, ${p.book} safely in your arms.'},
+          {text:'Follow the library\'s rules — walk, don\'t run', optimal:true, next:'You walk calmly. The library respects those who follow its rules. The exit stays open for you.'},
+          {text:'Try to find the original staircase', optimal:false, next:'The staircase has moved. The library is alive and rearranging. Trust the guardian.'},
+          {text:'Grab more books on the way out', optimal:false, next:'"Take only what is given." The rule. Extra books fly from your hands. Greed is punished here.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'mine1', name:'The Deep Mine Collapse',
+    params: () => ({mine: rngPick(['Copper Ridge Mine','Shaft 14','Ironheart Colliery']), mineral: rngPick(['gold','copper','silver']), depth: rngInt(200,500)}),
+    screens: (p) => [
+      {
+        text: `${p.mine}, ${p.depth} meters underground. A rumble, then darkness — the main shaft has collapsed behind you. Your headlamp flickers. You\'re in a ${p.mineral} vein chamber. Rail tracks lead deeper. A ventilation shaft runs overhead.`,
+        choices: [
+          {text:'Follow the ventilation shaft — it leads to the surface', optimal:true, next:'The vent shaft angles upward. Fresh air flows from ahead. Good sign.'},
+          {text:'Follow the rail tracks — they lead to another exit', optimal:true, next:'Rails mean miners went this way regularly. An emergency exit should be along this route.'},
+          {text:'Try to dig through the collapse', optimal:false, next:'Tons of rock. Your hands can\'t move what explosives created. Find another way.'},
+          {text:'Stay put and wait for rescue', optimal:false, next:'No one knows exactly where you are in the mine. Self-rescue is faster.'}
+        ]
+      },
+      {
+        text: `Along the tracks, you reach a junction. Left branch is flooded knee-deep. Right branch is dry but you hear settling rock. An emergency supply box is bolted to the wall. A cage elevator sits in a shaft, cables dangling.`,
+        choices: [
+          {text:'Open the emergency supply box', optimal:true, next:'A radio, flares, a first aid kit, and a map of the mine levels. Jackpot.'},
+          {text:'Take the dry right branch carefully', optimal:true, next:'You move slowly, listening for shifts. The tunnel is stable enough. It opens to a larger gallery.'},
+          {text:'Try the cage elevator', optimal:false, next:'The cable is frayed. The cage drops two meters before jamming. Nope.'},
+          {text:'Wade through the flooded left branch', optimal:false, next:'The water is freezing and gets deeper. Waist-high. Turn back before it\'s over your head.'}
+        ]
+      },
+      {
+        text: `The mine map shows you\'re on Level 4. The emergency exit is on Level 2 — a spiral ramp connects them through Level 3. Your radio picks up static on the rescue frequency. A natural cavern opens to the left.`,
+        choices: [
+          {text:'Transmit your location on the rescue frequency', optimal:true, next:'"Rescue team copies! Level 4, junction B. Stay on route to Level 2. We\'re clearing from above."'},
+          {text:'Take the spiral ramp up to Level 3', optimal:true, next:'The ramp is steep but solid. Level 3 is brighter — emergency lighting still works here.'},
+          {text:'Explore the natural cavern', optimal:false, next:'Beautiful limestone formations but it\'s a dead end. No connection to upper levels.'},
+          {text:'Try to climb up through the elevator shaft', optimal:false, next:'A vertical shaft with frayed cables and no ladder. Far too dangerous.'}
+        ]
+      },
+      {
+        text: `Level 3. The ramp to Level 2 is partially blocked by a recent rockfall — small rocks, passable with effort. You hear drilling from above — rescue team is close. Air quality is dropping; your headlamp dims.`,
+        choices: [
+          {text:'Carefully clear a path through the small rockfall', optimal:true, next:'Stone by stone, you create a gap. Squeeze through. Level 2 is just ahead.'},
+          {text:'Use a flare to signal rescuers through cracks in the rock', optimal:true, next:'Red light seeps through. Rescuers see it: "We see your flare! Hold position, breaking through."'},
+          {text:'Blast through with something from the supply box', optimal:false, next:'No explosives in the supply box. And blasting could cause another collapse.'},
+          {text:'Go back and try the flooded tunnel on Level 4', optimal:false, next:'Going deeper when rescue is above you makes no sense. Keep going up.'}
+        ]
+      },
+      {
+        text: `Level 2. The emergency exit is a reinforced tunnel leading to the surface. Daylight glimmers at the end. The rescue team\'s drill breaks through a wall section nearby. Two ways out.`,
+        choices: [
+          {text:'Walk toward the daylight through the emergency tunnel', optimal:true, next:'Fresh air hits your face. Sunlight blinds you. You emerge to cheers. Rescued!'},
+          {text:'Meet the rescue team at their drill point', optimal:true, next:'They break through. Helmets and headlamps. "Gotcha!" They guide you out safely.'},
+          {text:'Run as fast as you can', optimal:false, next:'Tripping in a mine is how injuries happen. Walk briskly, not recklessly.'},
+          {text:'Go back to collect ${p.mineral} samples first', optimal:false, next:'Your life vs. rock samples. The mine will be here later. Get out now.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'zombie1', name:'Zombie Mall Escape',
+    params: () => ({mall: rngPick(['Westfield Plaza','Sunrise Mall','The Galleria']), store: rngPick(['the sporting goods store','the hardware store','the pharmacy']), vehicle: rngPick(['a pickup truck','a delivery van','an SUV'])}),
+    screens: (p) => [
+      {
+        text: `${p.mall} during the outbreak. You\'re barricaded in ${p.store} on the second floor. The power is out. Through the shutters, you see zombies shuffling through the atrium. ${p.vehicle} is visible in the parking lot. You need to reach it.`,
+        choices: [
+          {text:'Search ${p.store} for useful supplies and weapons', optimal:true, next:'You find a sturdy bat, rope, duct tape, and energy bars. Well-equipped now.'},
+          {text:'Study the zombie patrol patterns from the shutters', optimal:true, next:'They move in loose circles. A gap opens every 3 minutes near the east corridor.'},
+          {text:'Lift the shutters and make a run for it', optimal:false, next:'The shutter rattles loudly. Every zombie in earshot turns your way.'},
+          {text:'Barricade further and wait for military rescue', optimal:false, next:'The radio went silent hours ago. No rescue is coming to ${p.mall}.'}
+        ]
+      },
+      {
+        text: `Timing the gap, you slip into the east corridor. The escalators are frozen mid-step. A maintenance hallway runs behind the stores. Below, the food court swarms with undead. The parking garage stairs are on the far side.`,
+        choices: [
+          {text:'Use the maintenance hallway — less exposed', optimal:true, next:'Behind the storefronts, you move unseen. Service corridors connect the whole mall.'},
+          {text:'Descend the frozen escalator quietly', optimal:false, next:'Each metal step creaks. A zombie at the bottom turns toward the sound.'},
+          {text:'Create a distraction — toss something into the food court', optimal:true, next:'An energy bar clatters across the tile. The horde shuffles toward the noise. Window open.'},
+          {text:'Sprint across the atrium bridge', optimal:false, next:'Completely exposed. Multiple zombies spot you from below and start climbing.'}
+        ]
+      },
+      {
+        text: `The maintenance corridor leads to a loading dock behind the mall. ${p.vehicle} is in the main lot — you need to cross the parking garage. Emergency lights create pools of red. You hear groaning from the garage shadows.`,
+        choices: [
+          {text:'Move through the lit areas between cars, staying quiet', optimal:true, next:'Car to car, light to light. The groaning stays distant. You cross undetected.'},
+          {text:'Check if any cars in the garage have keys', optimal:true, next:'A delivery van has keys in the visor. Closer than ${p.vehicle}, but any escape works.'},
+          {text:'Sound a car alarm to draw zombies away from your path', optimal:false, next:'The alarm draws them TO the garage, not away. Now they\'re between you and the exits.'},
+          {text:'Run through the dark section — speed over stealth', optimal:false, next:'You crash into a zombie in the dark. Wrestling free costs you your bat.'}
+        ]
+      },
+      {
+        text: `You reach ${p.vehicle}. Keys were hidden in the wheel well (preppers think of everything). But a small group of zombies blocks the parking lot exit. The gas gauge shows half full. Engine noise will attract more.`,
+        choices: [
+          {text:'Start the engine and drive straight through', optimal:true, next:'The engine roars. You floor it. Zombies bounce off the bumper. The exit gate shatters.'},
+          {text:'Release the parking brake and coast silently toward the exit first', optimal:true, next:'Silent and slow, you roll past the group. Start the engine once past them. Clever.'},
+          {text:'Honk to scatter them', optimal:false, next:'Honking attracts dozens more from the mall. Now the lot is filling up.'},
+          {text:'Wait for them to wander away', optimal:false, next:'More keep coming. The lot isn\'t getting emptier. Act now or never.'}
+        ]
+      },
+      {
+        text: `On the road out of ${p.mall}. The highway has abandoned cars but is navigable. In the rearview, the mall shrinks. A road sign shows two routes: Highway 9 through town, or the rural Route 17.`,
+        choices: [
+          {text:'Take Route 17 — fewer people means fewer zombies', optimal:true, next:'Open road, empty fields. You drive until ${p.mall} is a distant memory. Safe at last.'},
+          {text:'Take Highway 9 but stay alert for blockages', optimal:true, next:'Weaving through abandoned cars, you reach the evacuation checkpoint. Military rescue!'},
+          {text:'Go back for other survivors in the mall', optimal:false, next:'Noble but suicidal. You barely made it out. Send help back properly.'},
+          {text:'Stop at a gas station to top off', optimal:false, next:'Gas stations are chokepoints. Half a tank is enough. Keep moving.'}
+        ]
+      }
+    ]
+  },
+  {
+    id:'ghostship1', name:'The Ghost Ship',
+    params: () => ({ship: rngPick(['The Mary Celeste','The Flying Dutchman','HMS Specter']), captain: rngPick(['Captain Ashford','Captain Grimshaw','Captain Moreau']), cargo: rngPick(['silk and spices','gold bullion','ancient artifacts'])}),
+    screens: (p) => [
+      {
+        text: `You board ${p.ship}, adrift for decades. ${p.captain}\'s log lies open on the deck. The cargo hold supposedly contains ${p.cargo}. Fog rolls across the deck. The wheelhouse and the crew quarters are accessible. Something moves below deck.`,
+        choices: [
+          {text:`Read ${p.captain}'s log for clues`, optimal:true, next:`The final entry: "Something in the cargo hold. Crew won't go below. I must investigate alone." The entry stops mid-sentence.`},
+          {text:'Head to the wheelhouse to check navigation', optimal:true, next:'Charts show the last known position. The radio is dead but a signal flare gun sits in a cabinet.'},
+          {text:'Go below deck immediately to investigate', optimal:false, next:'Dark, creaking timbers. Without light or knowledge of the layout, you stumble into a locked bulkhead.'},
+          {text:'Jump back to your own boat', optimal:false, next:'Your boat has drifted away in the fog. You\'re stuck on ${p.ship} now.'}
+        ]
+      },
+      {
+        text: `${p.captain}\'s quarters hold a locked chest, a navigational sextant, and photos of the crew. A key hangs on a chain around a mounted portrait. The ship groans and lists slightly. Water sloshes somewhere below.`,
+        choices: [
+          {text:'Take the key from behind the portrait', optimal:true, next:'The key is ornate and old. It might open the chest or a door below deck.'},
+          {text:'Open the locked chest', optimal:false, next:'Without the key, you can\'t open it. Check around the room first.'},
+          {text:'Study the crew photos for clues', optimal:true, next:'Seven crew, but eight hammocks below. Someone — or something — extra was aboard.'},
+          {text:'Take the sextant to navigate off the ship later', optimal:false, next:'You don\'t know how to use a sextant. Focus on what helps you now.'}
+        ]
+      },
+      {
+        text: `Below deck. The key opens the crew quarters — empty hammocks sway with the ship\'s motion. ${p.cargo} crates are visible through a grated floor. A strange glow emanates from the deepest hold. The eighth hammock has claw marks.`,
+        choices: [
+          {text:'Investigate the glow in the deep hold carefully', optimal:true, next:'The glow comes from a crate marked with warning symbols. Inside: a bioluminescent artifact.'},
+          {text:'Check if the cargo hold is taking on water', optimal:true, next:'A small breach. Not critical yet, but the bilge pump needs to be activated or the ship will sink.'},
+          {text:'Search the claw-marked hammock', optimal:false, next:'Just torn fabric and the smell of something feral. Nothing useful, everything unsettling.'},
+          {text:'Open all the cargo crates', optimal:false, next:'Most are nailed shut and you have no tools. The one glowing crate is accessible though.'}
+        ]
+      },
+      {
+        text: `The artifact pulses with light — it seems to be the cause of the ship\'s haunting. The bilge pump control is in the engine room. The ship lists further. You hear the fog horn sound on its own. The deck hatch is your way up.`,
+        choices: [
+          {text:'Activate the bilge pump to stabilize the ship', optimal:true, next:'The engine room pump chugs to life. Water levels drop. The listing corrects.'},
+          {text:'Take the artifact and head topside', optimal:true, next:'With the artifact removed, the ship seems calmer. The fog thins slightly.'},
+          {text:'Throw the artifact overboard from here', optimal:false, next:'You\'re below the waterline. There\'s nowhere to throw it overboard from here.'},
+          {text:'Explore deeper into the ship', optimal:false, next:'Deeper means more water and less air. Go up, not down.'}
+        ]
+      },
+      {
+        text: `Back on deck with the artifact. The fog is thinning. Your boat reappears in the distance. The signal flare gun from the wheelhouse could summon a passing ship, or you could try to reach your own boat.`,
+        choices: [
+          {text:'Fire the signal flare to attract attention', optimal:true, next:'A red flare arcs over the sea. Within an hour, a coast guard vessel arrives. You\'re rescued with proof of ${p.ship}\'s mystery!'},
+          {text:'Lower the lifeboat and row to your vessel', optimal:true, next:'The davits creak but hold. You row through calm water back to your boat. ${p.ship} fades into the fog behind you. Escape complete.'},
+          {text:'Try to sail ${p.ship} to port yourself', optimal:false, next:'A ship this size needs a crew. You can\'t sail it solo.'},
+          {text:'Stay aboard and study the artifact', optimal:false, next:'The fog is lifting NOW. This is your window. Study the artifact on dry land.'}
+        ]
+      }
+    ]
   }
 ];
 

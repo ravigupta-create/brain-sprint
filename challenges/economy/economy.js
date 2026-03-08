@@ -271,6 +271,436 @@ const ECONOMY_BANK = [
       {desc:'Herbivores > Predators × 2 (food chain)', check: (v) => v.herb > v.pred * 2}
     ],
     maxOutput: 90
+  },
+  {
+    id:'airline1', name:'Airline Route Planning',
+    scenario:'Optimize your regional airline\'s operations by balancing ticket prices, fleet usage, crew, and fuel reserves.',
+    variables:[
+      {name:'Ticket Price', key:'ticket', min:50, max:500, unit:'$', default:200},
+      {name:'Daily Flights', key:'flights', min:1, max:20, unit:'', default:8},
+      {name:'Crew Size', key:'crew', min:2, max:30, unit:'', default:12},
+      {name:'Fuel Reserve', key:'fuel', min:10, max:100, unit:'%', default:40}
+    ],
+    output: (v) => {
+      const demand = 300 - v.ticket * 0.5 + v.crew * 2;
+      const passengers = Math.min(Math.max(0, demand), v.flights * 30);
+      const revenue = passengers * v.ticket;
+      const fuelCost = v.flights * v.fuel * 8;
+      const crewCost = v.crew * 120;
+      const safetyBonus = v.fuel >= 30 ? 500 : -1000;
+      return Math.round(Math.max(0, (revenue - fuelCost - crewCost + safetyBonus) / 50));
+    },
+    constraints:[
+      {desc:'Crew ≥ Flights × 1.5 (safety regs)', check: (v) => v.crew >= v.flights * 1.5}
+    ],
+    maxOutput: 150
+  },
+  {
+    id:'school1', name:'School Planning',
+    scenario:'Allocate your school\'s budget to maximize student performance and satisfaction.',
+    variables:[
+      {name:'Teacher Hiring', key:'teachers', min:5, max:50, unit:'', default:20},
+      {name:'Technology Budget', key:'tech', min:0, max:100, unit:'%', default:30},
+      {name:'Extracurriculars', key:'extra', min:0, max:100, unit:'%', default:25},
+      {name:'Class Size', key:'classsize', min:10, max:40, unit:'', default:25}
+    ],
+    output: (v) => {
+      const teacherQuality = Math.sqrt(v.teachers) * 5;
+      const techBoost = Math.sqrt(v.tech) * 3;
+      const engagement = v.extra > 60 ? 15 + (v.extra - 60) * 0.1 : v.extra * 0.25;
+      const classPenalty = v.classsize > 25 ? (v.classsize - 25) * 1.5 : 0;
+      const ratio = v.teachers > 0 ? Math.min(1.2, 20 / v.classsize) : 0;
+      return Math.round(Math.max(0, (teacherQuality + techBoost + engagement - classPenalty) * ratio));
+    },
+    constraints:[
+      {desc:'Tech + Extracurriculars ≤ 100%', check: (v) => v.tech + v.extra <= 100}
+    ],
+    maxOutput: 90
+  },
+  {
+    id:'zoo1', name:'Zoo Management',
+    scenario:'Balance animal habitats, staff, and visitor experience to maximize zoo revenue and animal welfare.',
+    variables:[
+      {name:'Animal Species', key:'species', min:5, max:80, unit:'', default:30},
+      {name:'Habitat Quality', key:'habitat', min:1, max:10, unit:'', default:5},
+      {name:'Staff Count', key:'staff', min:5, max:60, unit:'', default:25},
+      {name:'Ticket Price', key:'ticket', min:5, max:60, unit:'$', default:25}
+    ],
+    output: (v) => {
+      const attraction = v.species * v.habitat * 0.3;
+      const visitors = Math.max(0, attraction * 3 - v.ticket * 1.5 + 50);
+      const welfare = v.staff >= v.species * 0.5 ? 1 : v.staff / (v.species * 0.5);
+      const revenue = visitors * v.ticket;
+      const costs = v.staff * 100 + v.species * v.habitat * 20;
+      const profit = revenue - costs;
+      return Math.round(Math.max(0, profit / 30 + welfare * 20));
+    },
+    constraints:[
+      {desc:'Staff ≥ Species ÷ 3 (animal care)', check: (v) => v.staff >= v.species / 3}
+    ],
+    maxOutput: 120
+  },
+  {
+    id:'festival1', name:'Music Festival',
+    scenario:'Plan a music festival by balancing headliners, stages, security, and ticket pricing.',
+    variables:[
+      {name:'Headliner Budget', key:'headliners', min:0, max:100, unit:'%', default:40},
+      {name:'Number of Stages', key:'stages', min:1, max:8, unit:'', default:3},
+      {name:'Security Staff', key:'security', min:10, max:200, unit:'', default:60},
+      {name:'Ticket Price', key:'ticket', min:20, max:300, unit:'$', default:100}
+    ],
+    output: (v) => {
+      const lineup = Math.sqrt(v.headliners) * 6;
+      const variety = Math.sqrt(v.stages) * 8;
+      const attendance = Math.max(0, 500 + lineup * 30 + variety * 20 - v.ticket * 2);
+      const safety = v.security >= attendance * 0.05 ? 1 : v.security / (attendance * 0.05);
+      const revenue = attendance * v.ticket;
+      const costs = v.headliners * 200 + v.stages * 5000 + v.security * 150;
+      return Math.round(Math.max(0, (revenue - costs) / 200 * safety));
+    },
+    constraints:[
+      {desc:'Security ≥ 30 per stage', check: (v) => v.security >= v.stages * 30}
+    ],
+    maxOutput: 150
+  },
+  {
+    id:'hospital1', name:'Hospital ER Management',
+    scenario:'Manage ER resources to minimize patient wait times and maximize care quality.',
+    variables:[
+      {name:'Doctors on Shift', key:'doctors', min:1, max:20, unit:'', default:8},
+      {name:'Nurses on Shift', key:'nurses', min:2, max:40, unit:'', default:16},
+      {name:'Beds Available', key:'beds', min:5, max:50, unit:'', default:20},
+      {name:'Triage Strictness', key:'triage', min:1, max:10, unit:'', default:5}
+    ],
+    output: (v) => {
+      const capacity = Math.min(v.beds, v.doctors * 4, v.nurses * 2.5);
+      const patientFlow = 30;
+      const treated = Math.min(capacity, patientFlow);
+      const waitScore = treated >= patientFlow ? 30 : 30 * (treated / patientFlow);
+      const careQuality = Math.sqrt(v.doctors) * 5 + Math.sqrt(v.nurses) * 3;
+      const triageBonus = v.triage >= 4 && v.triage <= 7 ? 10 : 10 - Math.abs(v.triage - 5.5) * 2;
+      const staffFatigue = (v.doctors + v.nurses) < 15 ? 10 : 0;
+      return Math.round(Math.max(0, waitScore + careQuality + triageBonus - staffFatigue));
+    },
+    constraints:[
+      {desc:'Nurses ≥ Doctors × 1.5 (staffing ratio)', check: (v) => v.nurses >= v.doctors * 1.5}
+    ],
+    maxOutput: 95
+  },
+  {
+    id:'pizza1', name:'Pizza Delivery Empire',
+    scenario:'Optimize your pizza delivery business by balancing speed, quality, drivers, and menu size.',
+    variables:[
+      {name:'Delivery Drivers', key:'drivers', min:1, max:20, unit:'', default:8},
+      {name:'Menu Items', key:'menu', min:3, max:30, unit:'', default:12},
+      {name:'Oven Temperature', key:'temp', min:200, max:500, unit:'°F', default:400},
+      {name:'Dough Quality', key:'dough', min:1, max:10, unit:'', default:5}
+    ],
+    output: (v) => {
+      const speed = v.drivers * 5;
+      const variety = Math.sqrt(v.menu) * 4;
+      const cookQuality = -(v.temp - 425) * (v.temp - 425) / 500 + 25;
+      const tasteScore = v.dough * 3;
+      const complexity = v.menu > 15 ? (v.menu - 15) * 1.2 : 0;
+      const deliveryCapacity = Math.min(v.drivers * 8, 100);
+      const orders = Math.min(deliveryCapacity, variety * 5 + tasteScore + cookQuality);
+      return Math.round(Math.max(0, orders + cookQuality + tasteScore - complexity));
+    },
+    constraints:[
+      {desc:'Oven temp between 300-475°F', check: (v) => v.temp >= 300 && v.temp <= 475}
+    ],
+    maxOutput: 120
+  },
+  {
+    id:'colony1', name:'Space Colony',
+    scenario:'Manage a Mars colony\'s resources to maximize population growth and sustainability.',
+    variables:[
+      {name:'Oxygen Production', key:'oxygen', min:10, max:100, unit:'%', default:40},
+      {name:'Food Farms', key:'farms', min:1, max:20, unit:'', default:8},
+      {name:'Solar Panels', key:'solar', min:5, max:100, unit:'', default:30},
+      {name:'Research Labs', key:'labs', min:0, max:15, unit:'', default:5}
+    ],
+    output: (v) => {
+      const lifesupport = v.oxygen >= 50 ? 1 : v.oxygen / 50;
+      const food = Math.sqrt(v.farms) * 8;
+      const power = v.solar >= 40 ? 1 : v.solar / 40;
+      const innovation = Math.sqrt(v.labs) * 5;
+      const sustainability = Math.min(food, v.oxygen * 0.5) * 0.3;
+      return Math.round(Math.max(0, (food + innovation + sustainability) * lifesupport * power * 3));
+    },
+    constraints:[
+      {desc:'Oxygen ≥ 30% (breathable atmosphere)', check: (v) => v.oxygen >= 30},
+      {desc:'Solar panels ≥ 20 (minimum power)', check: (v) => v.solar >= 20}
+    ],
+    maxOutput: 100
+  },
+  {
+    id:'aquarium1', name:'Aquarium Design',
+    scenario:'Design a public aquarium that maximizes visitor enjoyment and fish health.',
+    variables:[
+      {name:'Tank Size', key:'tank', min:100, max:5000, unit:'gal', default:1500},
+      {name:'Fish Species', key:'species', min:1, max:50, unit:'', default:15},
+      {name:'Filtration Quality', key:'filter', min:1, max:10, unit:'', default:5},
+      {name:'Lighting Level', key:'light', min:1, max:10, unit:'', default:5}
+    ],
+    output: (v) => {
+      const bioload = v.species * 80;
+      const tankHealth = bioload <= v.tank ? 1 : Math.max(0, 1 - (bioload - v.tank) / v.tank);
+      const filtration = Math.min(1.2, v.filter / 6);
+      const fishHealth = tankHealth * filtration * 40;
+      const lightSweet = -(v.light - 6) * (v.light - 6) + 36;
+      const diversity = Math.sqrt(v.species) * 6;
+      const spectacle = v.tank > 2000 ? 10 : v.tank / 200;
+      return Math.round(Math.max(0, fishHealth + lightSweet * 0.5 + diversity + spectacle));
+    },
+    constraints:[
+      {desc:'Fish species × 100 ≤ Tank size (stocking limit)', check: (v) => v.species * 100 <= v.tank}
+    ],
+    maxOutput: 100
+  },
+  {
+    id:'themepark1', name:'Theme Park Operations',
+    scenario:'Run a theme park by balancing ride count, staff, pricing, and maintenance to maximize daily profit.',
+    variables:[
+      {name:'Rides Open', key:'rides', min:3, max:30, unit:'', default:12},
+      {name:'Park Staff', key:'staff', min:10, max:150, unit:'', default:60},
+      {name:'Entry Price', key:'price', min:10, max:120, unit:'$', default:50},
+      {name:'Maintenance Budget', key:'maint', min:0, max:100, unit:'%', default:40}
+    ],
+    output: (v) => {
+      const appeal = Math.sqrt(v.rides) * 15 + (v.maint > 50 ? 10 : v.maint * 0.2);
+      const visitors = Math.max(0, appeal * 10 - v.price * 1.5 + 100);
+      const staffCoverage = v.staff >= v.rides * 5 ? 1 : v.staff / (v.rides * 5);
+      const breakdowns = v.maint < 30 ? (30 - v.maint) * 0.02 : 0;
+      const satisfaction = staffCoverage * (1 - breakdowns);
+      const revenue = visitors * v.price * satisfaction;
+      const costs = v.staff * 80 + v.rides * 200 + v.maint * 50;
+      return Math.round(Math.max(0, (revenue - costs) / 100));
+    },
+    constraints:[
+      {desc:'Staff ≥ Rides × 3 (minimum operations)', check: (v) => v.staff >= v.rides * 3}
+    ],
+    maxOutput: 150
+  },
+  {
+    id:'movie1', name:'Movie Production',
+    scenario:'Produce a blockbuster film by allocating budget across cast, effects, marketing, and script development.',
+    variables:[
+      {name:'Cast Budget', key:'cast', min:0, max:100, unit:'%', default:30},
+      {name:'Visual Effects', key:'vfx', min:0, max:100, unit:'%', default:25},
+      {name:'Marketing', key:'marketing', min:0, max:100, unit:'%', default:25},
+      {name:'Script Development', key:'script', min:0, max:100, unit:'%', default:20}
+    ],
+    output: (v) => {
+      const total = v.cast + v.vfx + v.marketing + v.script;
+      if (total === 0) return 0;
+      const starPower = Math.sqrt(v.cast) * 4;
+      const spectacle = Math.sqrt(v.vfx) * 3;
+      const buzz = Math.sqrt(v.marketing) * 3.5;
+      const story = v.script < 10 ? 2 : Math.sqrt(v.script) * 4;
+      const quality = starPower + spectacle + story;
+      const reach = 0.4 + buzz / 40;
+      const boxOffice = quality * reach;
+      return Math.round(Math.max(0, boxOffice));
+    },
+    constraints:[
+      {desc:'Total budget ≤ 100%', check: (v) => v.cast + v.vfx + v.marketing + v.script <= 100},
+      {desc:'Script ≥ 5% (need a story!)', check: (v) => v.script >= 5}
+    ],
+    maxOutput: 100
+  },
+  {
+    id:'sports1', name:'Sports Team Management',
+    scenario:'Build a championship team by balancing player salaries, training, scouting, and facilities.',
+    variables:[
+      {name:'Star Player Budget', key:'stars', min:0, max:100, unit:'%', default:40},
+      {name:'Training Intensity', key:'training', min:1, max:10, unit:'', default:5},
+      {name:'Scouting Investment', key:'scouting', min:0, max:50, unit:'%', default:15},
+      {name:'Facility Quality', key:'facility', min:1, max:10, unit:'', default:5}
+    ],
+    output: (v) => {
+      const talent = Math.sqrt(v.stars) * 5 + Math.sqrt(v.scouting) * 3;
+      const prep = v.training * v.facility * 0.3;
+      const overtraining = v.training > 8 ? (v.training - 8) * 5 : 0;
+      const chemistry = Math.abs(v.stars - 60) < 20 ? 10 : 10 - Math.abs(v.stars - 60) * 0.2;
+      const injury = v.training > 7 && v.facility < 5 ? 15 : 0;
+      return Math.round(Math.max(0, talent + prep + chemistry - overtraining - injury));
+    },
+    constraints:[
+      {desc:'Stars + Scouting ≤ 80% (salary cap)', check: (v) => v.stars + v.scouting <= 80}
+    ],
+    maxOutput: 90
+  },
+  {
+    id:'bakery1', name:'Bakery Operations',
+    scenario:'Run your bakery by balancing production volume, ingredient quality, variety, and opening hours.',
+    variables:[
+      {name:'Daily Batches', key:'batches', min:1, max:20, unit:'', default:8},
+      {name:'Ingredient Grade', key:'grade', min:1, max:10, unit:'', default:5},
+      {name:'Product Variety', key:'variety', min:2, max:20, unit:'items', default:8},
+      {name:'Open Hours', key:'hours', min:4, max:16, unit:'hrs', default:10}
+    ],
+    output: (v) => {
+      const capacity = v.batches * v.hours * 0.5;
+      const qualityAppeal = Math.sqrt(v.grade) * 8;
+      const varietyAppeal = Math.sqrt(v.variety) * 5;
+      const demand = qualityAppeal + varietyAppeal + v.hours * 1.5;
+      const sold = Math.min(capacity, demand * 3);
+      const revenue = sold * (v.grade * 0.5 + 2);
+      const costs = v.batches * v.grade * 3 + v.hours * 8 + v.variety * 5;
+      const freshness = v.batches > 12 ? 0.85 : 1;
+      return Math.round(Math.max(0, (revenue - costs) * freshness));
+    },
+    constraints:[
+      {desc:'Batches × Variety ≤ 120 (oven capacity)', check: (v) => v.batches * v.variety <= 120}
+    ],
+    maxOutput: 150
+  },
+  {
+    id:'construction1', name:'Construction Project',
+    scenario:'Manage a building project by balancing crew size, equipment, material quality, and timeline.',
+    variables:[
+      {name:'Crew Size', key:'crew', min:5, max:80, unit:'', default:30},
+      {name:'Equipment Rental', key:'equip', min:1, max:10, unit:'', default:5},
+      {name:'Material Quality', key:'material', min:1, max:10, unit:'', default:5},
+      {name:'Target Weeks', key:'weeks', min:4, max:52, unit:'wks', default:20}
+    ],
+    output: (v) => {
+      const productivity = v.crew * Math.sqrt(v.equip) * 0.8;
+      const workDone = productivity * v.weeks;
+      const buildingSize = 1000;
+      const completion = Math.min(1, workDone / buildingSize);
+      const quality = v.material * 5 + (v.weeks > 15 ? 10 : v.weeks * 0.67);
+      const cost = v.crew * v.weeks * 10 + v.equip * v.weeks * 50 + v.material * 200;
+      const budget = 15000;
+      const underBudget = cost <= budget ? 20 : 20 - (cost - budget) / 500;
+      return Math.round(Math.max(0, completion * 50 + quality + underBudget));
+    },
+    constraints:[
+      {desc:'Crew × Weeks ≤ 2000 (labor hours budget)', check: (v) => v.crew * v.weeks <= 2000}
+    ],
+    maxOutput: 120
+  },
+  {
+    id:'shipping1', name:'Shipping Logistics',
+    scenario:'Optimize a shipping company by balancing fleet size, route planning, warehouse capacity, and speed.',
+    variables:[
+      {name:'Trucks', key:'trucks', min:1, max:30, unit:'', default:10},
+      {name:'Route Efficiency', key:'route', min:1, max:10, unit:'', default:5},
+      {name:'Warehouse Size', key:'warehouse', min:100, max:2000, unit:'sq ft', default:600},
+      {name:'Delivery Speed', key:'speed', min:1, max:10, unit:'', default:5}
+    ],
+    output: (v) => {
+      const capacity = v.trucks * 50;
+      const storage = v.warehouse * 0.8;
+      const throughput = Math.min(capacity, storage) * v.route * 0.1;
+      const speedBonus = Math.sqrt(v.speed) * 8;
+      const fuelCost = v.trucks * v.speed * 3;
+      const warehouseCost = v.warehouse * 0.1;
+      const revenue = throughput * (2 + v.speed * 0.3);
+      const profit = revenue - fuelCost - warehouseCost;
+      return Math.round(Math.max(0, profit * 0.5 + speedBonus));
+    },
+    constraints:[
+      {desc:'Warehouse ≥ Trucks × 40 (parking + loading)', check: (v) => v.warehouse >= v.trucks * 40}
+    ],
+    maxOutput: 130
+  },
+  {
+    id:'library1', name:'Library Management',
+    scenario:'Manage a public library to maximize community engagement and literacy scores.',
+    variables:[
+      {name:'Book Collection', key:'books', min:100, max:10000, unit:'', default:3000},
+      {name:'Librarians', key:'staff', min:1, max:20, unit:'', default:6},
+      {name:'Program Hours', key:'programs', min:0, max:40, unit:'hrs/wk', default:15},
+      {name:'Digital Resources', key:'digital', min:0, max:100, unit:'%', default:30}
+    ],
+    output: (v) => {
+      const collection = Math.sqrt(v.books) * 2;
+      const staffHelp = Math.sqrt(v.staff) * 8;
+      const events = v.programs > 30 ? 20 + (v.programs - 30) * 0.2 : v.programs * 0.67;
+      const techAccess = Math.sqrt(v.digital) * 4;
+      const staffCapacity = v.staff * 6;
+      const programPenalty = v.programs > staffCapacity ? (v.programs - staffCapacity) * 1.5 : 0;
+      return Math.round(Math.max(0, collection + staffHelp + events + techAccess - programPenalty));
+    },
+    constraints:[
+      {desc:'Programs ≤ Staff × 8 (bandwidth)', check: (v) => v.programs <= v.staff * 8}
+    ],
+    maxOutput: 100
+  },
+  {
+    id:'petstore1', name:'Pet Store',
+    scenario:'Run a pet store by balancing animal variety, care quality, pricing, and store space.',
+    variables:[
+      {name:'Animal Types', key:'types', min:2, max:20, unit:'', default:8},
+      {name:'Care Quality', key:'care', min:1, max:10, unit:'', default:5},
+      {name:'Price Markup', key:'markup', min:10, max:100, unit:'%', default:40},
+      {name:'Store Size', key:'space', min:200, max:2000, unit:'sq ft', default:800}
+    ],
+    output: (v) => {
+      const appeal = Math.sqrt(v.types) * 6 + v.care * 2;
+      const customers = Math.max(0, appeal * 3 - v.markup * 0.2 + 10);
+      const spacePerType = v.types > 0 ? v.space / v.types : 0;
+      const animalHealth = spacePerType >= 80 ? 1 : spacePerType / 80;
+      const salesPerCustomer = (1 + v.markup / 100) * 15;
+      const revenue = customers * salesPerCustomer;
+      const costs = v.types * v.care * 15 + v.space * 0.5;
+      const reputation = v.care >= 7 ? 15 : v.care * 2;
+      return Math.round(Math.max(0, (revenue - costs) * animalHealth * 0.3 + reputation));
+    },
+    constraints:[
+      {desc:'Space ≥ Types × 50 (minimum habitat)', check: (v) => v.space >= v.types * 50}
+    ],
+    maxOutput: 100
+  },
+  {
+    id:'waterpark1', name:'Water Park',
+    scenario:'Design a water park by balancing slides, pools, lifeguards, and water recycling to maximize fun and safety.',
+    variables:[
+      {name:'Water Slides', key:'slides', min:1, max:15, unit:'', default:6},
+      {name:'Pool Area', key:'pools', min:500, max:5000, unit:'sq ft', default:2000},
+      {name:'Lifeguards', key:'guards', min:2, max:30, unit:'', default:10},
+      {name:'Water Recycling', key:'recycle', min:0, max:100, unit:'%', default:50}
+    ],
+    output: (v) => {
+      const thrill = Math.sqrt(v.slides) * 10;
+      const relaxation = Math.sqrt(v.pools) * 1.5;
+      const totalAttractions = v.slides * 200 + v.pools;
+      const safetyRatio = v.guards * 300 / Math.max(1, totalAttractions);
+      const safety = Math.min(1, safetyRatio);
+      const ecoBonus = v.recycle > 70 ? 10 : v.recycle * 0.14;
+      const waterCost = (100 - v.recycle) * 0.3;
+      const funScore = (thrill + relaxation + ecoBonus - waterCost) * safety;
+      return Math.round(Math.max(0, funScore));
+    },
+    constraints:[
+      {desc:'Lifeguards ≥ Slides + Pools÷500', check: (v) => v.guards >= v.slides + Math.floor(v.pools / 500)}
+    ],
+    maxOutput: 100
+  },
+  {
+    id:'foodtruck1', name:'Food Truck Business',
+    scenario:'Optimize your food truck by choosing location time, menu focus, portion size, and social media effort.',
+    variables:[
+      {name:'Hours at Location', key:'hours', min:2, max:12, unit:'hrs', default:6},
+      {name:'Menu Focus', key:'focus', min:1, max:10, unit:'', default:5},
+      {name:'Portion Size', key:'portion', min:1, max:10, unit:'', default:5},
+      {name:'Social Media', key:'social', min:0, max:100, unit:'%', default:30}
+    ],
+    output: (v) => {
+      const lunchRush = v.hours >= 4 && v.hours <= 8 ? 15 : 15 - Math.abs(v.hours - 6) * 2;
+      const menuAppeal = v.focus >= 3 && v.focus <= 6 ? v.focus * 4 : v.focus * 2;
+      const valueScore = v.portion * 2 - v.portion * v.portion * 0.08;
+      const buzz = Math.sqrt(v.social) * 4;
+      const foodCost = v.portion * v.hours * 2;
+      const revenue = (lunchRush + menuAppeal + valueScore + buzz) * v.hours * 0.5;
+      return Math.round(Math.max(0, revenue - foodCost));
+    },
+    constraints:[
+      {desc:'Hours ≤ 10 (daily permit limit)', check: (v) => v.hours <= 10}
+    ],
+    maxOutput: 120
   }
 ];
 
@@ -311,7 +741,7 @@ function renderEconomy(puzzle) {
     if (!GS.challengeState.economy.values[v.key]) GS.challengeState.economy.values[v.key] = v.default;
   });
 
-  const icons = {farm1:'\u{1F33E}',factory1:'\u{1F3ED}',city1:'\u{1F3DB}\uFE0F',cafe1:'\u2615',energy1:'\u26A1',game_dev1:'\u{1F3AE}',diet1:'\u{1F957}',invest1:'\u{1F4B0}',spaceship1:'\u{1F680}',restaurant1:'\u{1F37D}\uFE0F',fitness1:'\u{1F4AA}',eco_island1:'\u{1F3DD}\uFE0F'};
+  const icons = {farm1:'\u{1F33E}',factory1:'\u{1F3ED}',city1:'\u{1F3DB}\uFE0F',cafe1:'\u2615',energy1:'\u26A1',game_dev1:'\u{1F3AE}',diet1:'\u{1F957}',invest1:'\u{1F4B0}',spaceship1:'\u{1F680}',restaurant1:'\u{1F37D}\uFE0F',fitness1:'\u{1F4AA}',eco_island1:'\u{1F3DD}\uFE0F',airline1:'\u2708\uFE0F',school1:'\u{1F3EB}',zoo1:'\u{1F981}',festival1:'\u{1F3B5}',hospital1:'\u{1F3E5}',pizza1:'\u{1F355}',colony1:'\u{1F30C}',aquarium1:'\u{1F41F}',themepark1:'\u{1F3A2}',movie1:'\u{1F3AC}',sports1:'\u26BD',bakery1:'\u{1F950}',construction1:'\u{1F3D7}\uFE0F',shipping1:'\u{1F69A}',library1:'\u{1F4DA}',petstore1:'\u{1F43E}',waterpark1:'\u{1F3CA}',foodtruck1:'\u{1F69B}'};
   const icon = icons[puzzle.id] || '\u{1F4CA}';
   const diffColors = {easy:'#6aaa64',medium:'#c9b458',hard:'#f59e0b',extreme:'#e74c3c',impossible:'#dc2626'};
   const dc = diffColors[GS.difficulty] || '#6366f1';
