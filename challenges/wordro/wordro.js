@@ -6,10 +6,11 @@ function getWordroPuzzle() {
     case 'medium':  maxGuesses = 6; break;
     case 'hard':    maxGuesses = 5; break;
     case 'extreme': maxGuesses = 4; break;
+    case 'impossible': maxGuesses = 3; break;
   }
   const pool = diff === 'easy' ? WORDRO_EASY : WORDRO_ANSWERS;
   const word = rngPick(pool).toUpperCase();
-  const hardMode = (diff === 'hard' || diff === 'extreme');
+  const hardMode = (diff === 'hard' || diff === 'extreme' || diff === 'impossible');
   return { word, maxGuesses, hardMode, difficulty: diff };
 }
 

@@ -92,10 +92,11 @@ function removeNumgridCells(solution, size, boxR, boxC, reveal) {
 function getNumgridPuzzle() {
   const diff = GS.difficulty;
   let size, boxR, boxC, reveal;
-  if (diff === 'easy')    { size = 4; boxR = 2; boxC = 2; reveal = 10; }
-  else if (diff === 'medium') { size = 6; boxR = 2; boxC = 3; reveal = 18; }
-  else if (diff === 'hard')   { size = 9; boxR = 3; boxC = 3; reveal = 28; }
-  else                        { size = 9; boxR = 3; boxC = 3; reveal = 23; }
+  if (diff === 'easy')         { size = 4; boxR = 2; boxC = 2; reveal = 10; }
+  else if (diff === 'medium')  { size = 6; boxR = 2; boxC = 3; reveal = 18; }
+  else if (diff === 'hard')    { size = 9; boxR = 3; boxC = 3; reveal = 28; }
+  else if (diff === 'impossible') { size = 9; boxR = 3; boxC = 3; reveal = 17; }
+  else                         { size = 9; boxR = 3; boxC = 3; reveal = 23; }
 
   const solution = generateNumgridSolution(size, boxR, boxC);
   const puzzle = removeNumgridCells(solution, size, boxR, boxC, reveal);

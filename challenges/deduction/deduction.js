@@ -17,7 +17,8 @@ function getDeductionPuzzle() {
     easy:    { questionChoices: 3, saboteurLies: 'never', clueQuality: 'direct' },
     medium:  { questionChoices: 3, saboteurLies: 'accusations', clueQuality: 'moderate' },
     hard:    { questionChoices: 2, saboteurLies: 'role+accusations', clueQuality: 'subtle' },
-    extreme: { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal' }
+    extreme: { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal' },
+    impossible: { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal' }
   };
   return { characters, saboteurIdx, config: configs[d] || configs.medium };
 }

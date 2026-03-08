@@ -100,12 +100,13 @@ function numbotSolve(answer, difficulty) {
     easy:    { length: 6, ops: ['+','-'] },
     medium:  { length: 7, ops: ['+','-'] },
     hard:    { length: 8, ops: ['+','-','*'] },
-    extreme: { length: 8, ops: ['+','-','*','/'] }
+    extreme: { length: 8, ops: ['+','-','*','/'] },
+    impossible: { length: 8, ops: ['+','-','*','/'] }
   };
   const cfg = configs[difficulty] || configs.easy;
   _ensureNcCodes(cfg.length, cfg.ops);
   const len = cfg.length;
-  const hardMode = (difficulty === 'hard' || difficulty === 'extreme');
+  const hardMode = (difficulty === 'hard' || difficulty === 'extreme' || difficulty === 'impossible');
   const bankCodes = _ncBankCodes;
   const bankStrings = _ncBankStrings;
   const answerCodes = [];
@@ -192,7 +193,8 @@ function computeNumbotAnalysis(state) {
     easy:    { length: 6, ops: ['+','-'] },
     medium:  { length: 7, ops: ['+','-'] },
     hard:    { length: 8, ops: ['+','-','*'] },
-    extreme: { length: 8, ops: ['+','-','*','/'] }
+    extreme: { length: 8, ops: ['+','-','*','/'] },
+    impossible: { length: 8, ops: ['+','-','*','/'] }
   };
   const diff = (state.puzzle && state.puzzle.difficulty) || 'easy';
   const cfg = configs[diff] || configs.easy;

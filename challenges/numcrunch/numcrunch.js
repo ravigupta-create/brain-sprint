@@ -6,7 +6,8 @@ function getNumcrunchPuzzle() {
     easy:    { length: 6, maxGuesses: 6, ops: ['+','-'] },
     medium:  { length: 7, maxGuesses: 6, ops: ['+','-'] },
     hard:    { length: 8, maxGuesses: 5, ops: ['+','-','*'] },
-    extreme: { length: 8, maxGuesses: 4, ops: ['+','-','*','/'] }
+    extreme: { length: 8, maxGuesses: 4, ops: ['+','-','*','/'] },
+    impossible: { length: 8, maxGuesses: 3, ops: ['+','-','*','/'] }
   };
   const cfg = configs[diff] || configs.easy;
   const { length, maxGuesses, ops } = cfg;
@@ -34,14 +35,14 @@ function getNumcrunchPuzzle() {
     if (result <= 0) continue;
     const eq = '' + a + op + b + '=' + result;
     if (eq.length === length) {
-      const hardMode = (diff === 'hard' || diff === 'extreme');
+      const hardMode = (diff === 'hard' || diff === 'extreme' || diff === 'impossible');
       return { equation: eq, length, maxGuesses, difficulty: diff, hardMode };
     }
   }
   // Fallback
   const fallbacks = { 6: '9+3=12', 7: '15+7=22', 8: '23+45=68' };
   const eq = fallbacks[length] || '9+3=12';
-  const hardMode = (diff === 'hard' || diff === 'extreme');
+  const hardMode = (diff === 'hard' || diff === 'extreme' || diff === 'impossible');
   return { equation: eq, length: eq.length, maxGuesses, difficulty: diff, hardMode };
 }
 

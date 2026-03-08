@@ -6,10 +6,11 @@ function getMazePuzzle() {
     easy:    { rows: 7,  cols: 7,  timeBonus: 30 },
     medium:  { rows: 11, cols: 11, timeBonus: 45 },
     hard:    { rows: 15, cols: 15, timeBonus: 60 },
-    extreme: { rows: 19, cols: 19, timeBonus: 90 }
+    extreme: { rows: 19, cols: 19, timeBonus: 90 },
+    impossible: { rows: 25, cols: 25, timeBonus: 120 }
   };
   const cfg = configs[d] || configs.medium;
-  const walls = generateMaze(cfg.rows, cfg.cols, d === 'extreme');
+  const walls = generateMaze(cfg.rows, cfg.cols, d === 'extreme' || d === 'impossible');
   const optimal = solveMaze(walls, cfg.rows, cfg.cols);
   return { ...cfg, walls, optimalLen: optimal.length };
 }

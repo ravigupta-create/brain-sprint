@@ -19,7 +19,8 @@ function getMosaicPuzzle() {
     easy:    {rows:3,cols:4,valueRange:4,ruleTypes:['sum','same'],par:60,linkedPairs:0},
     medium:  {rows:4,cols:4,valueRange:5,ruleTypes:['sum','same','different'],par:90,linkedPairs:2},
     hard:    {rows:4,cols:5,valueRange:6,ruleTypes:['sum','same','different','ascending'],par:120,linkedPairs:3},
-    extreme: {rows:5,cols:5,valueRange:6,ruleTypes:['sum','same','different','ascending'],par:150,linkedPairs:4}
+    extreme: {rows:5,cols:5,valueRange:6,ruleTypes:['sum','same','different','ascending'],par:150,linkedPairs:4},
+    impossible: {rows:5,cols:6,valueRange:7,ruleTypes:['sum','same','different','ascending'],par:180,linkedPairs:5}
   }[diff];
   const {rows,cols,valueRange,ruleTypes,par,linkedPairs} = cfg;
   const zones = partitionMosaicGrid(rows, cols);
@@ -195,7 +196,7 @@ function generateMosaicZoneValues(zone, valueRange, ruleTypes) {
 function showMosaicSymbolGuide() {
   const c = document.getElementById('game-container');
   const diff = GS.difficulty || 'easy';
-  const hasLinked = diff === 'medium' || diff === 'hard' || diff === 'extreme';
+  const hasLinked = diff === 'medium' || diff === 'hard' || diff === 'extreme' || diff === 'impossible';
   let html = `<div class="intro-screen" style="text-align:left">`;
   html += `<div style="text-align:center;font-size:28px;font-weight:800;margin-bottom:16px">Mosaic Symbol Guide</div>`;
   html += `<div style="display:flex;flex-direction:column;gap:14px">`;

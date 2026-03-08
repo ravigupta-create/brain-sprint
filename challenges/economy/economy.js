@@ -283,6 +283,7 @@ function getEconomyPuzzle() {
     case 'medium': numVars = 3; break;
     case 'hard': numVars = rngInt(3,4); break;
     case 'extreme': numVars = 4; break;
+    case 'impossible': numVars = 4; break;
   }
   numVars = Math.min(numVars, template.variables.length);
   const vars = template.variables.slice(0, numVars);
@@ -299,7 +300,7 @@ function getEconomyPuzzle() {
       if (out > bestOutput) bestOutput = out;
     }
   }
-  const threshold = {easy:0.60, medium:0.75, hard:0.85, extreme:0.95}[diff];
+  const threshold = {easy:0.60, medium:0.75, hard:0.85, extreme:0.95, impossible:0.99}[diff];
   return { ...template, activeVars: vars, bestOutput: Math.max(bestOutput, 1), threshold };
 }
 
@@ -312,7 +313,7 @@ function renderEconomy(puzzle) {
 
   const icons = {farm1:'\u{1F33E}',factory1:'\u{1F3ED}',city1:'\u{1F3DB}\uFE0F',cafe1:'\u2615',energy1:'\u26A1',game_dev1:'\u{1F3AE}',diet1:'\u{1F957}',invest1:'\u{1F4B0}',spaceship1:'\u{1F680}',restaurant1:'\u{1F37D}\uFE0F',fitness1:'\u{1F4AA}',eco_island1:'\u{1F3DD}\uFE0F'};
   const icon = icons[puzzle.id] || '\u{1F4CA}';
-  const diffColors = {easy:'#6aaa64',medium:'#c9b458',hard:'#f59e0b',extreme:'#e74c3c'};
+  const diffColors = {easy:'#6aaa64',medium:'#c9b458',hard:'#f59e0b',extreme:'#e74c3c',impossible:'#dc2626'};
   const dc = diffColors[GS.difficulty] || '#6366f1';
   const target = Math.round(puzzle.bestOutput * puzzle.threshold);
   const circumference = Math.round(2 * Math.PI * 52 * 100) / 100;

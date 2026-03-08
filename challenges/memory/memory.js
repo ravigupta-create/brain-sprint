@@ -6,7 +6,8 @@ function getMemoryPuzzle() {
     easy:    { rows: 3, cols: 4, pairs: 6,  time: 90,  parMoves: 10 },
     medium:  { rows: 4, cols: 4, pairs: 8,  time: 75,  parMoves: 14 },
     hard:    { rows: 4, cols: 5, pairs: 10, time: 60,  parMoves: 18 },
-    extreme: { rows: 6, cols: 6, pairs: 18, time: 90,  parMoves: 32 }
+    extreme: { rows: 6, cols: 6, pairs: 18, time: 90,  parMoves: 32 },
+    impossible: { rows: 6, cols: 6, pairs: 18, time: 45, parMoves: 24 }
   };
   const cfg = configs[d] || configs.medium;
   const symbols = ['🍎','🍋','🍇','🌸','🔥','💎','🎵','⚡','🌙','🍀','🎯','🦋','🌈','⭐','🎪','🐙','🎲','🔔','❄️','🌻'];

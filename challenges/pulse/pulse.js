@@ -6,7 +6,8 @@ function getPulsePuzzle() {
     easy:    { startZone: 35, startSpeed: 55, zoneShrink: 0.90, speedMult: 1.06, targetHits: 8 },
     medium:  { startZone: 28, startSpeed: 75, zoneShrink: 0.88, speedMult: 1.08, targetHits: 10 },
     hard:    { startZone: 22, startSpeed: 95, zoneShrink: 0.86, speedMult: 1.10, targetHits: 13 },
-    extreme: { startZone: 16, startSpeed: 115, zoneShrink: 0.84, speedMult: 1.12, targetHits: 16 }
+    extreme: { startZone: 16, startSpeed: 115, zoneShrink: 0.84, speedMult: 1.12, targetHits: 16 },
+    impossible: { startZone: 10, startSpeed: 140, zoneShrink: 0.80, speedMult: 1.15, targetHits: 20 }
   };
   return configs[d] || configs.medium;
 }

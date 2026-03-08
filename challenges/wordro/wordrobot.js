@@ -88,7 +88,7 @@ function wordrobotSolve(answer, difficulty) {
   const answerUp = answer.toUpperCase();
   const answerCodes = [answerUp.charCodeAt(0),answerUp.charCodeAt(1),answerUp.charCodeAt(2),answerUp.charCodeAt(3),answerUp.charCodeAt(4)];
   const ALL_GREEN = 242;
-  const hardMode = (difficulty === 'hard' || difficulty === 'extreme');
+  const hardMode = (difficulty === 'hard' || difficulty === 'extreme' || difficulty === 'impossible');
   const buckets = new Int32Array(243);
   let remaining = solverCodes.map((_,i) => i);
   const botGuesses = [];

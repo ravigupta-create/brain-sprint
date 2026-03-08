@@ -39,8 +39,9 @@ function getWordhivePuzzle() {
   let target;
   if (diff === 'easy')        { target = 5; }
   else if (diff === 'medium') { target = 12; }
-  else if (diff === 'hard')   { target = 20; }
-  else                        { target = 30; }
+  else if (diff === 'hard')       { target = 20; }
+  else if (diff === 'impossible') { target = 45; }
+  else                            { target = 30; }
 
   const minLen = 3;
   const centerPool = 'earstlnio';

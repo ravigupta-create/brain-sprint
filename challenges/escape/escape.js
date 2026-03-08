@@ -831,6 +831,7 @@ function getEscapePuzzle() {
       case 'medium': numChoices = 3; break;
       case 'hard': numChoices = rngInt(3,4); break;
       case 'extreme': numChoices = 4; break;
+      case 'impossible': numChoices = 5; break;
     }
     // Always keep at least 1 optimal and 1 non-optimal
     const optimalChoices = s.choices.filter(c => c.optimal);

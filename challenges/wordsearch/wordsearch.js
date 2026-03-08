@@ -32,6 +32,7 @@ function getWordsearchPuzzle() {
     case 'medium':  gridSize=10; wordCount=6;  directions=[[0,1],[1,0],[1,1],[1,-1]]; break;
     case 'hard':    gridSize=12; wordCount=8;  directions=[[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0]]; break;
     case 'extreme': gridSize=14; wordCount=10; directions=[[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0],[-1,-1],[-1,1]]; break;
+    case 'impossible': gridSize=16; wordCount=14; directions=[[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0],[-1,-1],[-1,1]]; break;
   }
   const themeObj = rngPick(WORDSEARCH_BANK);
   // Pick words that fit in the grid

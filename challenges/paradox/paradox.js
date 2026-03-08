@@ -431,7 +431,7 @@ function generateKnightsKnaves(rng, difficulty) {
 
 function getParadoxPuzzle() {
   const diff = GS.difficulty;
-  const diffLevel = {easy:1,medium:2,hard:3,extreme:3}[diff];
+  const diffLevel = {easy:1,medium:2,hard:3,extreme:3,impossible:3}[diff];
   // Filter by difficulty
   let pool = PARADOX_BANK.filter(p => {
     if (p.generator) return p.difficulty <= diffLevel;
@@ -451,7 +451,7 @@ function getParadoxPuzzle() {
     puzzle.options = rngShuffle([correctOpt, ...kept]);
     puzzle.correct = puzzle.options.indexOf(correctOpt);
   }
-  if (diff === 'extreme' && puzzle.options.length < 5) {
+  if ((diff === 'extreme' || diff === 'impossible') && puzzle.options.length < 5) {
     // Add a plausible distractor
     puzzle.options.push('The question itself is flawed');
     // correct index unchanged since we append

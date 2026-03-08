@@ -171,6 +171,7 @@ function getBlocksPuzzle() {
     case 'medium': numBlocks = rngInt(5,6); numDistractors = 0; break;
     case 'hard': numBlocks = rngInt(6,7); numDistractors = 1; break;
     case 'extreme': numBlocks = rngInt(7,8); numDistractors = 2; break;
+    case 'impossible': numBlocks = 8; numDistractors = 2; break;
   }
   numBlocks = Math.min(numBlocks, template.steps.length);
   // Pick a contiguous subsequence or spread
