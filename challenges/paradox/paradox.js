@@ -437,7 +437,7 @@ function getParadoxPuzzle() {
     if (p.generator) return p.difficulty <= diffLevel;
     return p.difficulty <= diffLevel;
   });
-  const chosen = rngPick(pool);
+  const chosen = rngPickUnseen(pool, 'paradox', 'id');
   if (chosen.generator) {
     return generateKnightsKnaves(GS.rng, diffLevel);
   }

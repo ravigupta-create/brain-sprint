@@ -164,7 +164,7 @@ function getBlocksPuzzle() {
   const diff = GS.difficulty;
   const maxLevel = diff === 'easy' ? 1 : diff === 'medium' ? 2 : 3;
   const pool = BLOCKS_BANK.filter(b => b.level <= maxLevel);
-  const template = rngPick(pool);
+  const template = rngPickUnseen(pool, 'blocks', 'id');
   let numBlocks, numDistractors;
   switch(diff) {
     case 'easy': numBlocks = 4; numDistractors = 0; break;

@@ -819,7 +819,7 @@ const ESCAPE_BANK = [
 ];
 
 function getEscapePuzzle() {
-  const template = rngPick(ESCAPE_BANK);
+  const template = rngPickUnseen(ESCAPE_BANK, 'escape', 'id');
   const params = template.params();
   const screens = template.screens(params);
   const diff = GS.difficulty;

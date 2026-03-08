@@ -50,6 +50,17 @@ function setDailyCompletion(ch, score) {
   d[ch] = score;
   lsSet('daily-'+getDailyDateStr(), d);
 }
+// --- No-repeat puzzle picker ---
+function rngPickUnseen(bank, challengeKey, idField) {
+  const seenKey = 'seen-' + challengeKey;
+  let seen = lsGet(seenKey, []);
+  let available = bank.filter(item => !seen.includes(item[idField]));
+  if (available.length === 0) { seen = []; available = bank; }
+  const picked = rngPick(available);
+  seen.push(picked[idField]);
+  lsSet(seenKey, seen);
+  return picked;
+}
 // --- Challenge Summary Helper ---
 function showChallengeSummary(config) {
   // config: { emoji, score, title, stats: [{label, value}], miniReview?, answerReveal?, difficulty? }

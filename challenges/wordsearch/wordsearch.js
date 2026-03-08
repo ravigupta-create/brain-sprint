@@ -34,7 +34,7 @@ function getWordsearchPuzzle() {
     case 'extreme': gridSize=14; wordCount=10; directions=[[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0],[-1,-1],[-1,1]]; break;
     case 'impossible': gridSize=16; wordCount=14; directions=[[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0],[-1,-1],[-1,1]]; break;
   }
-  const themeObj = rngPick(WORDSEARCH_BANK);
+  const themeObj = rngPickUnseen(WORDSEARCH_BANK, 'wordsearch', 'theme');
   // Pick words that fit in the grid
   const candidates = rngShuffle([...themeObj.words]).filter(w => w.length <= gridSize);
   const grid = Array.from({length:gridSize}, () => Array(gridSize).fill(''));

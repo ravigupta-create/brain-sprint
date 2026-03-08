@@ -276,7 +276,7 @@ const ECONOMY_BANK = [
 
 function getEconomyPuzzle() {
   const diff = GS.difficulty;
-  const template = rngPick(ECONOMY_BANK);
+  const template = rngPickUnseen(ECONOMY_BANK, 'economy', 'id');
   let numVars;
   switch(diff) {
     case 'easy': numVars = 2; break;

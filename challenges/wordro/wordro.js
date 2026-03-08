@@ -9,7 +9,14 @@ function getWordroPuzzle() {
     case 'impossible': maxGuesses = 3; break;
   }
   const pool = diff === 'easy' ? WORDRO_EASY : WORDRO_ANSWERS;
-  const word = rngPick(pool).toUpperCase();
+  const seenKey = 'seen-wordro';
+  let seen = lsGet(seenKey, []);
+  let available = pool.filter(w => !seen.includes(w));
+  if (available.length === 0) { seen = []; available = pool; }
+  const word = rngPick(available).toUpperCase();
+  seen.push(word.toLowerCase());
+  lsSet(seenKey, seen);
+
   const hardMode = (diff === 'hard' || diff === 'extreme' || diff === 'impossible');
   return { word, maxGuesses, hardMode, difficulty: diff };
 }
