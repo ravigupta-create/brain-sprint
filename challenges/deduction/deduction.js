@@ -14,17 +14,17 @@ function getDeductionPuzzle() {
     characters.push({ name: names[i], emoji: emojis[i], role: roles[i], trait: traits[i], isSaboteur: i === saboteurIdx, eliminated: false });
   }
   const configs = {
-    easy:    { questionChoices: 3, saboteurLies: 'never', clueQuality: 'direct' },
-    medium:  { questionChoices: 3, saboteurLies: 'accusations', clueQuality: 'moderate' },
-    hard:    { questionChoices: 2, saboteurLies: 'role+accusations', clueQuality: 'subtle' },
-    extreme: { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal' },
-    impossible: { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal' }
+    easy:       { questionChoices: 3, saboteurLies: 'never', clueQuality: 'direct', hideInfo: false, rounds: 5, noisyHonest: false, unreliableLiar: false },
+    medium:     { questionChoices: 3, saboteurLies: 'accusations', clueQuality: 'moderate', hideInfo: false, rounds: 5, noisyHonest: false, unreliableLiar: false },
+    hard:       { questionChoices: 2, saboteurLies: 'role+accusations', clueQuality: 'subtle', hideInfo: true, rounds: 5, noisyHonest: true, unreliableLiar: false },
+    extreme:    { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal', hideInfo: true, rounds: 5, noisyHonest: true, unreliableLiar: false },
+    impossible: { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal', hideInfo: true, rounds: 4, noisyHonest: true, unreliableLiar: true }
   };
   return { characters, saboteurIdx, config: configs[d] || configs.medium };
 }
 
 function renderDeduction(puzzle) {
-  GS.challengeState.deduction = { puzzle, round: 1, phase: 'question', totalRounds: 5, questionHistory: [] };
+  GS.challengeState.deduction = { puzzle, round: 1, phase: 'question', totalRounds: puzzle.config.rounds, questionHistory: [] };
   document.getElementById('btn-submit-challenge').style.display = 'none';
   renderDeductionRound();
 }
@@ -44,10 +44,11 @@ function renderDeductionRound() {
   html += `<div class="deduction-chars">`;
   p.characters.forEach((ch, i) => {
     const cls = ch.eliminated ? 'eliminated' : (st.phase === 'eliminate' ? 'target' : '');
+    const infoText = p.config.hideInfo ? '???' : `${ch.role} · ${ch.trait}`;
     html += `<div class="deduction-char ${cls}" ${st.phase === 'eliminate' && !ch.eliminated ? `onclick="selectDeductionEliminate(${i})"` : ''}>
       <div class="dc-emoji">${ch.emoji}</div>
       <div class="dc-name">${ch.name}</div>
-      <div class="dc-role">${ch.role} · ${ch.trait}</div>
+      <div class="dc-role">${infoText}</div>
     </div>`;
   });
   html += `</div>`;
@@ -107,73 +108,130 @@ function selectDeductionQuestion(idx) {
   const q = st._currentQuestions[idx];
   const alive = p.characters.filter(ch => !ch.eliminated);
   const responses = [];
+  const cfg = p.config;
 
   alive.forEach(ch => {
     let answer = '';
-    const lies = shouldSaboteurLie(ch, q.type, p.config);
+    const lies = shouldSaboteurLie(ch, q.type, cfg);
+    // On impossible, saboteur sometimes tells the truth even when "lying" mode is on — inconsistent behavior
+    const unreliableSkip = cfg.unreliableLiar && lies && rngInt(0, 3) === 0;
 
     if (q.type === 'role') {
-      if (ch.isSaboteur && lies) {
-        const fakeRoles = ['Engineer','Doctor','Teacher','Chef','Artist','Pilot'].filter(r => r !== ch.role);
-        answer = `I'm the ${fakeRoles[rngInt(0, fakeRoles.length - 1)]}.`;
+      if (ch.isSaboteur && lies && !unreliableSkip) {
+        // On hard+, claim a role of an eliminated character if possible (avoids direct conflicts)
+        const eliminated = p.characters.filter(c => c.eliminated);
+        let fakeRoles = ['Engineer','Doctor','Teacher','Chef','Artist','Pilot'].filter(r => r !== ch.role);
+        if (cfg.hideInfo && eliminated.length > 0) {
+          const elimRoles = eliminated.map(c => c.role);
+          const saferFakes = fakeRoles.filter(r => elimRoles.includes(r));
+          if (saferFakes.length > 0) fakeRoles = saferFakes;
+        }
+        const fakeRole = fakeRoles[rngInt(0, fakeRoles.length - 1)];
+        // Use same phrasing pool as honest crew
+        const phrases = [`I'm the ${fakeRole}.`, `${fakeRole} — that's me.`, `I serve as the ${fakeRole}.`];
+        answer = phrases[rngInt(0, phrases.length - 1)];
       } else {
-        answer = `I'm the ${ch.role}.`;
+        const phrases = [`I'm the ${ch.role}.`, `${ch.role} — that's me.`, `I serve as the ${ch.role}.`];
+        answer = phrases[rngInt(0, phrases.length - 1)];
       }
     } else if (q.type === 'trait') {
-      if (ch.isSaboteur && lies) {
-        const fakeTraits = ['Honest','Brave','Clever','Calm','Loyal','Cautious'].filter(t => t !== ch.trait);
-        answer = `I'd say I'm ${fakeTraits[rngInt(0, fakeTraits.length - 1)]}.`;
+      if (ch.isSaboteur && lies && !unreliableSkip) {
+        // Claim another alive character's trait to create confusion
+        const otherTraits = alive.filter(c => c !== ch).map(c => c.trait);
+        const fakeTrait = otherTraits.length > 0 ? otherTraits[rngInt(0, otherTraits.length - 1)] : ch.trait;
+        const phrases = [`I'd say I'm ${fakeTrait}.`, `People tell me I'm ${fakeTrait}.`, `${fakeTrait}, definitely.`];
+        answer = phrases[rngInt(0, phrases.length - 1)];
       } else {
-        answer = `I'd say I'm ${ch.trait}.`;
+        const phrases = [`I'd say I'm ${ch.trait}.`, `People tell me I'm ${ch.trait}.`, `${ch.trait}, definitely.`];
+        answer = phrases[rngInt(0, phrases.length - 1)];
       }
     } else if (q.type === 'accusation') {
-      if (ch.isSaboteur && lies) {
-        const innocents = alive.filter(c => !c.isSaboteur);
-        const target = innocents[rngInt(0, innocents.length - 1)];
-        answer = `I think ${target.name} has been acting strangely.`;
+      if (ch.isSaboteur && lies && !unreliableSkip) {
+        // Saboteur: mix between accusing an innocent and giving vague answers
+        if (rngInt(0, 2) === 0) {
+          const vague = [`Hard to say.`, `Can't be sure.`, `I trust most of us.`, `Everyone seems fine to me.`];
+          answer = vague[rngInt(0, vague.length - 1)];
+        } else {
+          const innocents = alive.filter(c => !c.isSaboteur);
+          const target = innocents[rngInt(0, innocents.length - 1)];
+          answer = `I think ${target.name} has been acting strangely.`;
+        }
       } else if (ch.isSaboteur) {
         answer = `Everyone seems trustworthy to me.`;
       } else {
-        // Honest crew: clue quality determines hint
+        // Honest crew response based on clue quality
         const saboteur = p.characters[p.saboteurIdx];
-        if (p.config.clueQuality === 'direct') {
+        if (cfg.clueQuality === 'direct') {
           answer = `${saboteur.name} gave me a bad feeling.`;
-        } else if (p.config.clueQuality === 'moderate') {
+        } else if (cfg.clueQuality === 'moderate') {
           const hints = [`Someone here isn't what they seem.`, `I've noticed inconsistencies from one person.`, `Not everyone is telling the truth.`];
           answer = hints[rngInt(0, hints.length - 1)];
-        } else if (p.config.clueQuality === 'subtle') {
-          const hints = [`Hard to say.`, `I trust most of us.`, `Can't be sure.`];
-          answer = hints[rngInt(0, hints.length - 1)];
         } else {
-          answer = `No comment.`;
+          // subtle/minimal: honest crew randomly accuse others too (noise)
+          if (cfg.noisyHonest && rngInt(0, 2) > 0) {
+            const others = alive.filter(c => c !== ch);
+            const randomTarget = others[rngInt(0, others.length - 1)];
+            const noisy = [
+              `I think ${randomTarget.name} has been acting strangely.`,
+              `Something feels off about ${randomTarget.name}.`,
+              `I'm not totally sure about ${randomTarget.name}.`,
+              `Hard to say.`,
+              `Can't be sure.`,
+              `Everyone seems fine to me.`
+            ];
+            answer = noisy[rngInt(0, noisy.length - 1)];
+          } else {
+            const vague = [`Hard to say.`, `I trust most of us.`, `Can't be sure.`, `No comment.`];
+            answer = vague[rngInt(0, vague.length - 1)];
+          }
         }
       }
     } else if (q.type === 'alibi') {
       const targetChar = alive.find(c => c.name === q.target);
       if (ch.name === q.target) {
-        answer = `I can speak for myself — I've been doing my job.`;
-      } else if (ch.isSaboteur && lies) {
+        const self = [`I can speak for myself — I've been doing my job.`, `I've been working the whole time.`, `I have nothing to hide.`];
+        answer = self[rngInt(0, self.length - 1)];
+      } else if (ch.isSaboteur && lies && !unreliableSkip) {
         if (targetChar && !targetChar.isSaboteur) {
-          answer = `I wouldn't trust ${q.target} completely.`;
+          // Mix between casting doubt and hedging (same pool as honest on hard+)
+          const responses = [`I wouldn't trust ${q.target} completely.`, `I'm not sure about ${q.target}.`, `${q.target} seems fine to me.`, `Can't say for sure.`];
+          answer = responses[rngInt(0, responses.length - 1)];
         } else {
           answer = `${q.target} seems fine to me.`;
         }
       } else {
-        if (targetChar && targetChar.isSaboteur && p.config.clueQuality === 'direct') {
+        if (targetChar && targetChar.isSaboteur && cfg.clueQuality === 'direct') {
           answer = `Actually, I'm not sure about ${q.target}.`;
+        } else if (cfg.noisyHonest && rngInt(0, 2) === 0) {
+          // Honest crew sometimes hedges on hard+ (noise)
+          const hedges = [`${q.target} has been reliable.`, `I think ${q.target} is fine.`, `Can't say for sure.`, `I'm not sure about ${q.target}.`];
+          answer = hedges[rngInt(0, hedges.length - 1)];
         } else {
           answer = `${q.target} has been reliable.`;
         }
       }
     } else if (q.type === 'targeted') {
       if (ch.name === q.target) {
-        if (ch.isSaboteur && lies) {
+        // Both honest and saboteur use the same response pool on hard+
+        if (cfg.noisyHonest || (ch.isSaboteur && lies)) {
+          const affirmations = [
+            `Yes, I am the ${ch.role}. You can count on me.`,
+            `Absolutely, I am!`,
+            `Of course. Why would you doubt me?`,
+            `That's right, I'm the ${ch.role}.`
+          ];
+          answer = affirmations[rngInt(0, affirmations.length - 1)];
+        } else if (ch.isSaboteur && lies && !unreliableSkip) {
           answer = `Absolutely, I am!`;
         } else {
           answer = `Yes, I am the ${ch.role}. You can count on me.`;
         }
       } else {
-        if (ch.isSaboteur && lies) {
+        // Others commenting on the target — use same phrases for honest and saboteur on hard+
+        if (cfg.noisyHonest) {
+          const comments = [`I believe so.`, `Seems legit.`, `I think so.`, `Can't say for certain.`, `I doubt it.`];
+          answer = comments[rngInt(0, comments.length - 1)];
+        } else if (ch.isSaboteur && lies && !unreliableSkip) {
           const targetChar = alive.find(c => c.name === q.target);
           answer = targetChar && !targetChar.isSaboteur ? `I doubt it.` : `Seems legit.`;
         } else {
@@ -249,4 +307,3 @@ function endDeduction(won) {
     miniReview: elimList ? `<div style="font-size:12px;color:var(--fg2);margin-bottom:4px">Eliminations:</div>${elimList}` : ''
   });
 }
-
