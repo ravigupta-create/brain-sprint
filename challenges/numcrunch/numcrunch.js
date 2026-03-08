@@ -59,6 +59,10 @@ function renderNumcrunch(puzzle) {
     keyStates: {},
     revealedHints: { correct: {}, present: new Set() }
   };
+  // Cleanup old keydown handler before overwriting state
+  const oldState = GS.challengeState.numcrunch;
+  if (oldState && oldState._keyHandler) document.removeEventListener('keydown', oldState._keyHandler);
+
   GS.challengeState.numcrunch = state;
 
   const diffLabel = puzzle.difficulty.charAt(0).toUpperCase() + puzzle.difficulty.slice(1);
@@ -105,9 +109,6 @@ function renderNumcrunch(puzzle) {
 
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'none';
-
-  // Physical keyboard support — cleanup old handler first
-  if (state._keyHandler) document.removeEventListener('keydown', state._keyHandler);
   state._keyHandler = function(e) {
     if (document.getElementById('lockout-screen').style.display !== 'none') return;
     if (state.gameOver) return;
