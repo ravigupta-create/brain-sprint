@@ -343,9 +343,6 @@ function updateBlocksUI() {
     const div = document.createElement('div');
     div.className = 'block-item' + (state.swapSelected === i ? ' selected-swap' : '');
     if (state.puzzle.distractors.includes(text)) div.classList.add('distractor');
-    // Skip entrance animation on re-renders — blocks are already visible
-    div.style.opacity = '1';
-    if (state.swapSelected !== i) div.style.animation = 'none';
     div.draggable = true;
     div.dataset.idx = i;
     div.onclick = () => tapBlock(i);
