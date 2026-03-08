@@ -22,7 +22,7 @@
 .block-item.selected-swap{
   border-color:var(--accent);background:var(--accent-light);
   box-shadow:0 0 0 3px rgba(99,102,241,0.3);
-  animation:swapGlow 1.5s ease-in-out infinite;
+  opacity:1;animation:swapGlow 1.5s ease-in-out infinite;
 }
 @keyframes swapGlow{
   0%,100%{box-shadow:0 0 0 3px rgba(99,102,241,0.2)}
