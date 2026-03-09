@@ -36,9 +36,9 @@ const GS = {
   attempts: {},
 };
 const MULTIPLIERS = { easy: 1, medium: 1.5, hard: 2, extreme: 3, impossible: 5 };
-const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch' };
-const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮' };
-const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch'];
+const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch', colorcode:'Color Code', quickmath:'Quick Math', pattern:'Pattern Lock' };
+const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮', colorcode:'🎯', quickmath:'⚡', pattern:'🔮' };
+const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch','colorcode','quickmath','pattern'];
 const COMPLETED_REVIEW_HANDLERS = {};
 
 // --- localStorage ---
@@ -61,16 +61,47 @@ function rngPickUnseen(bank, challengeKey, idField) {
   lsSet(seenKey, seen);
   return picked;
 }
+// --- Personal Bests ---
+function getPersonalBests() { return lsGet('personal-bests', {}); }
+function savePersonalBest(challenge, difficulty, score) {
+  const bests = getPersonalBests();
+  const key = challenge + '-' + difficulty;
+  const prev = bests[key] || 0;
+  if (score > prev) {
+    bests[key] = score;
+    lsSet('personal-bests', bests);
+    return { isNew: true, prev };
+  }
+  return { isNew: false, prev };
+}
+function getBestForChallenge(challenge) {
+  const bests = getPersonalBests();
+  let best = 0;
+  for (const key in bests) {
+    if (key.startsWith(challenge + '-') && bests[key] > best) best = bests[key];
+  }
+  return best;
+}
+
 // --- Challenge Summary Helper ---
 function showChallengeSummary(config) {
   // config: { emoji, score, title, stats: [{label, value}], miniReview?, answerReveal?, difficulty? }
   const c = document.getElementById('game-container');
   const diff = config.difficulty || GS.difficulty;
   const diffLabel = diff ? diff.charAt(0).toUpperCase() + diff.slice(1) : '';
+
+  // Track personal best
+  const ch = GS.selectedChallenges[GS.currentChallengeIdx];
+  let pbInfo = null;
+  if (ch && diff) pbInfo = savePersonalBest(ch, diff, config.score);
+
   let html = '<div class="cs-panel">';
   html += `<span class="cs-emoji">${config.emoji}</span>`;
   html += `<div class="cs-score">${config.score}<span>/100</span></div>`;
   if (config.title) html += `<div class="cs-title">${config.title}</div>`;
+  if (pbInfo && pbInfo.isNew && config.score > 0) {
+    html += `<div class="cs-pb-badge">New Personal Best!</div>`;
+  }
   if (diffLabel) html += `<div class="cs-diff-badge ${diff}">${diffLabel}</div>`;
   if (config.stats && config.stats.length > 0) {
     html += '<div class="cs-stats">';
@@ -89,10 +120,11 @@ function showChallengeSummary(config) {
   html += '</div>';
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'none';
-  // Screen flash + confetti based on score
-  if (config.score === 100) { screenFlash('gold'); launchConfetti(60); }
-  else if (config.score >= 60) screenFlash('green');
-  else if (config.score === 0) screenFlash('red');
+  // Screen flash + confetti + sounds based on score
+  if (config.score === 100) { screenFlash('gold'); launchConfetti(60); SFX.win(); }
+  else if (config.score >= 60) { screenFlash('green'); SFX.correct(); }
+  else if (config.score === 0) { screenFlash('red'); SFX.lose(); }
+  else { SFX.lose(); }
 }
 
 function getStats() { return lsGet('stats', { played:0, totalScore:0, bestScore:0, streak:0, maxStreak:0, lastDate:null }); }
@@ -284,6 +316,7 @@ function stopLandingParticles() {
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('.btn');
   if (!btn) return;
+  SFX.click();
   const rect = btn.getBoundingClientRect();
   const ripple = document.createElement('span');
   ripple.className = 'ripple';
@@ -363,6 +396,17 @@ function updateChallengeSelectUI() {
       c.classList.add('completed-today');
     }
     if (GS.selectedChallenges.includes(ch)) c.classList.add('selected');
+    // Show personal best badge
+    let pbEl = c.querySelector('.ch-pb');
+    const best = getBestForChallenge(ch);
+    if (best > 0) {
+      if (!pbEl) {
+        pbEl = document.createElement('div');
+        pbEl.className = 'ch-pb';
+        c.appendChild(pbEl);
+      }
+      pbEl.textContent = 'Best: ' + best;
+    }
   });
   const fullSprint = document.getElementById('btn-full-sprint');
   if (GS.selectedChallenges.length === CHALLENGE_ORDER.length) {
@@ -502,6 +546,19 @@ function showCompletedPuzzleResults(ch, score) {
     } else if (ch === 'mosaic') {
       reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Zones correct</span><span class="cs-stat-value">${saved.correctZones} / ${saved.totalZones}</span></div>`;
       if (saved.attempts > 0) reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Retry penalty</span><span class="cs-stat-value">-${saved.attempts * 10} pts</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'colorcode') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Result</span><span class="cs-stat-value">${saved.won ? '🎯 Cracked' : '💀 Failed'}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Guesses</span><span class="cs-stat-value">${saved.guesses} / ${saved.maxGuesses}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Code length</span><span class="cs-stat-value">${saved.slots}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'quickmath') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.target} target</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Total answered</span><span class="cs-stat-value">${saved.total}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Best streak</span><span class="cs-stat-value">${saved.bestStreak}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'pattern') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.total}</span></div>`;
       reviewHtml += '</div>';
     } else {
       reviewHtml += '</div>';

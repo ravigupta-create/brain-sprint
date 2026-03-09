@@ -128,6 +128,34 @@ const CHALLENGE_INSTRUCTIONS = {
       'Gray = character not in the equation'
     ],
     tip: 'Your guess must be a valid equation (e.g., 12+34=46). The = sign is part of the equation!'
+  },
+  colorcode: {
+    steps: [
+      'Crack the secret color code',
+      'Click a slot to select it, then pick a color from the palette',
+      'Submit your guess to get feedback pegs',
+      'Black peg = right color, right position. White peg = right color, wrong position',
+      'Use the feedback to deduce the code within the allowed guesses'
+    ],
+    tip: 'Start by testing different colors to figure out which ones are in the code!'
+  },
+  quickmath: {
+    steps: [
+      'Solve as many math problems as you can before time runs out',
+      'Type your answer and press Enter or tap the checkmark',
+      'Every 5 correct answers in a row earns +3 bonus seconds',
+      'Score is based on how many you get right vs the target'
+    ],
+    tip: 'Speed matters! Don\'t second-guess — a wrong answer just resets your streak.'
+  },
+  pattern: {
+    steps: [
+      'Figure out the pattern in each number sequence',
+      'Select the number that comes next in the sequence',
+      'You get multiple rounds — each correct answer earns points',
+      'After choosing, the rule behind the pattern is revealed'
+    ],
+    tip: 'Look at the differences between numbers, or try multiplying. Patterns get trickier on harder difficulties!'
   }
 };
 
@@ -196,6 +224,9 @@ function beginChallenge() {
     case 'maze': renderMaze(getMazePuzzle()); break;
     case 'mosaic': renderMosaic(getMosaicPuzzle()); break;
     case 'numcrunch': renderNumcrunch(getNumcrunchPuzzle()); break;
+    case 'colorcode': renderColorCode(getColorCodePuzzle()); break;
+    case 'quickmath': renderQuickMath(getQuickMathPuzzle()); break;
+    case 'pattern': renderPattern(getPatternPuzzle()); break;
   }
 }
 

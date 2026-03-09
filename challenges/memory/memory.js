@@ -72,6 +72,7 @@ function flipMemoryCard(r, cc) {
 
   const card = document.getElementById(`mc-${r}-${cc}`);
   card.classList.add('flipped');
+  SFX.tick();
   st.flipped.push({ r, c: cc });
 
   if (st.flipped.length === 2) {
@@ -97,6 +98,7 @@ function checkMemoryMatch() {
     st.combo++;
 
     setTimeout(() => {
+      SFX.correct();
       const cardA = document.getElementById(`mc-${a.r}-${a.c}`);
       const cardB = document.getElementById(`mc-${b.r}-${b.c}`);
       if (cardA) { cardA.classList.add('matched', 'match-anim'); }

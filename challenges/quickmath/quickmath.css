@@ -1,0 +1,57 @@
+/* Challenge 16: Quick Math */
+.qm-container{text-align:center;padding:8px 0}
+.qm-stats{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;padding:8px 16px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+}
+.qm-timer{
+  font-family:'Courier New',monospace;font-size:20px;font-weight:800;color:var(--accent);
+  transition:color 0.3s;
+}
+.qm-timer.qm-timer-low{color:var(--red);animation:pulse 0.5s ease-in-out infinite}
+.qm-score{font-size:28px;font-weight:900;color:var(--fg)}
+.qm-streak{font-size:14px;font-weight:600;color:var(--orange)}
+.qm-problem{
+  font-family:'Noto Serif',serif;font-size:36px;font-weight:800;
+  margin:24px 0 8px;min-height:50px;color:var(--fg);
+}
+.qm-problem-enter{animation:countUp 0.25s ease}
+.qm-feedback{font-size:15px;font-weight:600;min-height:24px;margin-bottom:12px;transition:color 0.2s}
+.qm-feedback.qm-correct{color:var(--green);animation:correctPop 0.3s ease}
+.qm-feedback.qm-wrong{color:var(--red);animation:shake 0.3s ease}
+.qm-input{
+  width:160px;padding:14px 20px;font-size:28px;font-weight:700;text-align:center;
+  border:2px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--bg2);color:var(--fg);outline:none;
+  font-family:'Libre Franklin',sans-serif;
+  transition:border-color 0.2s;
+}
+.qm-input:focus{border-color:var(--accent)}
+.qm-input::placeholder{color:var(--fg3);font-weight:400}
+/* Hide number input spinners */
+.qm-input::-webkit-outer-spin-button,
+.qm-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.qm-input[type=number]{-moz-appearance:textfield}
+.qm-numpad{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  max-width:240px;margin:16px auto 0;
+}
+.qm-num-btn{
+  padding:14px;font-size:20px;font-weight:700;
+  border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--bg2);color:var(--fg);cursor:pointer;
+  transition:background 0.15s,transform 0.1s;min-height:48px;
+  font-family:'Libre Franklin',sans-serif;
+}
+.qm-num-btn:hover{background:var(--bg3)}
+.qm-num-btn:active{transform:scale(0.95);background:var(--accent-light)}
+.qm-num-btn.qm-enter{background:var(--accent);color:#fff;font-size:18px}
+.qm-num-btn.qm-enter:hover{background:var(--accent2)}
+.qm-num-btn.qm-negative{font-size:16px}
+@media(max-width:480px){
+  .qm-problem{font-size:28px}
+  .qm-input{width:140px;font-size:24px;padding:12px 16px}
+  .qm-numpad{max-width:200px;gap:6px}
+  .qm-num-btn{padding:12px;font-size:18px}
+}

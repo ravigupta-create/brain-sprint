@@ -41,6 +41,9 @@ function showResults() {
   const avg = totalRaw / GS.selectedChallenges.length;
   if (avg >= 80) { setTimeout(() => launchConfetti(120), 600); }
   else if (avg >= 50) { setTimeout(() => launchConfetti(50), 600); }
+
+  // Check achievements
+  setTimeout(() => checkAchievements(finalScore), 1500);
 }
 
 function animateCountUp(elemId, start, end, duration) {

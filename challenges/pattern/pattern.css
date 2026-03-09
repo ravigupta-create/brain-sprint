@@ -1,0 +1,66 @@
+/* Challenge 17: Pattern Lock */
+.pt-container{text-align:center;padding:8px 0}
+.pt-progress{font-size:13px;font-weight:600;color:var(--fg2);margin-bottom:8px}
+.pt-label{font-family:'Noto Serif',serif;font-size:20px;font-weight:700;margin-bottom:20px}
+.pt-sequence{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  gap:8px;margin:20px 0;padding:16px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+}
+.pt-num{
+  font-size:24px;font-weight:800;color:var(--fg);
+  padding:8px 12px;background:var(--card-bg);border-radius:var(--radius);
+  border:1px solid var(--border);min-width:40px;
+  opacity:0;animation:fadeIn 0.3s ease forwards;
+}
+.pt-arrow{color:var(--fg3);font-size:16px}
+.pt-mystery{
+  font-size:24px;font-weight:800;color:var(--accent);
+  padding:8px 14px;border-radius:var(--radius);
+  border:2px dashed var(--accent);min-width:40px;
+  animation:pulse 1.5s ease-in-out infinite;
+  transition:all 0.3s ease;
+}
+.pt-mystery.pt-reveal-correct{
+  background:rgba(106,170,100,0.15);border-color:var(--green);color:var(--green);
+  border-style:solid;animation:correctPop 0.3s ease;
+}
+.pt-mystery.pt-reveal-wrong{
+  background:rgba(231,76,60,0.15);border-color:var(--red);color:var(--red);
+  border-style:solid;animation:shake 0.3s ease;
+}
+.pt-choices{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));
+  gap:10px;margin:20px 0;max-width:400px;margin-left:auto;margin-right:auto;
+}
+.pt-choice-btn{
+  padding:14px 8px;font-size:20px;font-weight:700;
+  border:2px solid var(--border);border-radius:var(--radius);
+  background:var(--card-bg);color:var(--fg);cursor:pointer;
+  transition:border-color 0.15s,background 0.15s,transform 0.15s;
+  font-family:'Libre Franklin',sans-serif;min-height:48px;
+}
+.pt-choice-btn:hover:not(:disabled){border-color:var(--accent);background:var(--accent-light);transform:translateY(-2px)}
+.pt-choice-btn:active:not(:disabled){transform:scale(0.97)}
+.pt-choice-btn:disabled{cursor:default;opacity:0.8}
+.pt-choice-btn.pt-correct{
+  border-color:var(--green);background:rgba(106,170,100,0.15);color:var(--green);
+  animation:correctPop 0.3s ease;
+}
+.pt-choice-btn.pt-incorrect{
+  border-color:var(--red);background:rgba(231,76,60,0.15);color:var(--red);
+  animation:shake 0.3s ease;
+}
+.pt-feedback{
+  font-size:14px;min-height:24px;margin-top:12px;
+  padding:10px 16px;border-radius:var(--radius);
+  opacity:0;animation:fadeIn 0.3s ease 0.2s forwards;
+}
+.pt-feedback:empty{padding:0}
+.pt-fb-correct{background:rgba(106,170,100,0.1);color:var(--green)}
+.pt-fb-wrong{background:rgba(231,76,60,0.1);color:var(--red)}
+@media(max-width:480px){
+  .pt-num{font-size:18px;padding:6px 8px;min-width:32px}
+  .pt-mystery{font-size:18px;padding:6px 10px}
+  .pt-choice-btn{font-size:18px;padding:12px 6px}
+}

@@ -26,6 +26,9 @@
 <link rel="stylesheet" href="challenges/memory/memory.css">
 <link rel="stylesheet" href="challenges/maze/maze.css">
 <link rel="stylesheet" href="challenges/mosaic/mosaic.css">
+<link rel="stylesheet" href="challenges/colorcode/colorcode.css">
+<link rel="stylesheet" href="challenges/quickmath/quickmath.css">
+<link rel="stylesheet" href="challenges/pattern/pattern.css">
 </head>
 <body>
 <!-- LOCKOUT SCREEN -->
@@ -45,6 +48,7 @@
   <h1>BRAIN SPRINT</h1>
   <div class="right">
     <span class="timer-display" id="timer-display">0:00.00</span>
+    <button id="btn-sound" onclick="SFX.toggle()" aria-label="Toggle sound">🔊</button>
     <button id="btn-stats" onclick="showStats()" aria-label="Stats">📊</button>
     <button id="btn-theme" onclick="toggleTheme()" aria-label="Toggle theme">◐</button>
   </div>
@@ -53,7 +57,7 @@
   <!-- SCREEN: Landing -->
   <div class="screen active" id="screen-landing">
     <div class="landing-title">Brain Sprint</div>
-    <div class="landing-sub">Fourteen challenges. One timer. How sharp are you today?</div>
+    <div class="landing-sub">Seventeen challenges. One timer. How sharp are you today?</div>
     <div class="mode-cards">
       <div class="mode-card selected" onclick="selectMode('daily')" id="mode-daily">
         <div class="icon"><div class="cal-icon"><div class="cal-month" id="cal-month">JAN</div><div class="cal-day" id="cal-day">1</div></div></div>
@@ -119,9 +123,10 @@
     <div class="section-title">Choose Your Challenge</div>
     <div class="section-sub">Pick one or go for the Full Sprint</div>
     <button class="btn btn-outline btn-full btn-lg" id="btn-full-sprint" onclick="selectFullSprint()" style="margin-bottom:16px">
-      ⚡ Full Sprint — All 14 Challenges
+      ⚡ Full Sprint — All 17 Challenges
     </button>
     <div class="challenge-grid" id="challenge-grid">
+      <div class="ch-category">Logic & Strategy</div>
       <div class="challenge-card" onclick="toggleChallenge('blocks')" data-ch="blocks" id="card-blocks">
         <div class="ch-icon">🧩</div>
         <div class="ch-name">Logic Blocks</div>
@@ -142,6 +147,7 @@
         <div class="ch-name">Escape Puzzle</div>
         <div class="ch-desc">Navigate a 5-screen story making the right choices</div>
       </div>
+      <div class="ch-category">Words & Language</div>
       <div class="challenge-card" onclick="toggleChallenge('wordsearch')" data-ch="wordsearch" id="card-wordsearch">
         <div class="ch-icon">🔠</div>
         <div class="ch-name">Word Search</div>
@@ -162,6 +168,7 @@
         <div class="ch-name">Word Bloom</div>
         <div class="ch-desc">Grow words from 7 letter petals — center letter required</div>
       </div>
+      <div class="ch-category">Speed & Memory</div>
       <div class="challenge-card" onclick="toggleChallenge('pulse')" data-ch="pulse" id="card-pulse">
         <div class="ch-icon">💗</div>
         <div class="ch-name">Perfect Pulse</div>
@@ -187,10 +194,26 @@
         <div class="ch-name">Mosaic</div>
         <div class="ch-desc">Place number tokens into zones to satisfy each rule</div>
       </div>
+      <div class="ch-category">Numbers & Patterns</div>
       <div class="challenge-card" onclick="toggleChallenge('numcrunch')" data-ch="numcrunch" id="card-numcrunch">
         <div class="ch-icon">🧮</div>
         <div class="ch-name">Number Crunch</div>
         <div class="ch-desc">Guess the hidden math equation with color clues</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('colorcode')" data-ch="colorcode" id="card-colorcode">
+        <div class="ch-icon">🎯</div>
+        <div class="ch-name">Color Code</div>
+        <div class="ch-desc">Crack the secret color code with logic</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('quickmath')" data-ch="quickmath" id="card-quickmath">
+        <div class="ch-icon">⚡</div>
+        <div class="ch-name">Quick Math</div>
+        <div class="ch-desc">Solve rapid-fire math before time runs out</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('pattern')" data-ch="pattern" id="card-pattern">
+        <div class="ch-icon">🔮</div>
+        <div class="ch-name">Pattern Lock</div>
+        <div class="ch-desc">Figure out the next number in the sequence</div>
       </div>
     </div>
     <button class="btn btn-primary btn-full btn-lg" id="btn-start" onclick="startGame()" disabled style="margin-top:12px">Start Challenge</button>
@@ -233,6 +256,7 @@
     <div class="section-sub" style="margin-top:16px">Last 7 Days</div>
     <div class="streak-bar" id="streak-bar"></div>
     <div id="history-list" style="margin-top:16px"></div>
+    <div id="achievements-section"></div>
     <button class="btn btn-secondary btn-full" onclick="goToLanding()" style="margin-top:16px">Back</button>
   </div>
 </div>
@@ -250,7 +274,9 @@
 <div id="toast-container"></div>
 
 <!-- Shared JS: load order matters -->
+<script src="shared/sounds.js"></script>
 <script src="shared/core.js"></script>
+<script src="shared/achievements.js"></script>
 <script src="shared/lockout.js"></script>
 <script src="shared/wordlists.js"></script>
 
@@ -271,6 +297,9 @@
 <script src="challenges/mosaic/mosaic.js"></script>
 <script src="challenges/numcrunch/numcrunch.js"></script>
 <script src="challenges/numcrunch/numbot.js"></script>
+<script src="challenges/colorcode/colorcode.js"></script>
+<script src="challenges/quickmath/quickmath.js"></script>
+<script src="challenges/pattern/pattern.js"></script>
 
 <!-- Integration + Results + Stats + Init (must load after all challenges) -->
 <script src="shared/integration.js"></script>

@@ -1,0 +1,43 @@
+/* Challenge 15: Color Code */
+.cc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cc-guesses-left{font-size:13px;font-weight:600;color:var(--fg2);padding:4px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
+.cc-guesses-left.low{color:var(--red);border-color:var(--red)}
+.cc-board{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;animation:fadeIn 0.4s ease}
+.cc-row{
+  display:flex;align-items:center;gap:12px;padding:8px 12px;
+  border-radius:var(--radius);background:var(--bg2);border:2px solid transparent;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.cc-row.cc-active-row{border-color:var(--accent);box-shadow:0 0 12px rgba(99,102,241,0.15)}
+.cc-slots{display:flex;gap:8px;flex:1;justify-content:center}
+.cc-slot{
+  width:36px;height:36px;border-radius:50%;
+  border:2px dashed var(--border);background:var(--bg3);
+  cursor:pointer;transition:border-color 0.2s,transform 0.15s,box-shadow 0.2s;
+}
+.cc-slot.cc-selected{border-color:var(--accent);border-style:solid;box-shadow:0 0 8px rgba(99,102,241,0.3);transform:scale(1.1)}
+.cc-slot.cc-filled{border-style:solid;border-color:rgba(0,0,0,0.15)}
+.cc-slot.pop{animation:correctPop 0.15s ease}
+.cc-pegs{display:grid;grid-template-columns:repeat(auto-fill,12px);gap:4px;min-width:60px}
+.cc-peg{
+  width:12px;height:12px;border-radius:50%;
+  background:var(--bg3);border:1px solid var(--border);
+  transition:background 0.3s,border-color 0.3s,transform 0.3s;
+}
+.cc-peg-exact{background:var(--fg);border-color:var(--fg);animation:correctPop 0.3s ease both}
+.cc-peg-color{background:var(--card-bg);border-color:var(--fg);animation:correctPop 0.3s ease both}
+.cc-msg{font-size:13px;color:var(--red);min-height:20px;margin:4px 0}
+.cc-palette{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.cc-color-btn{
+  width:40px;height:40px;border-radius:50%;border:3px solid var(--border);
+  cursor:pointer;transition:transform 0.15s,border-color 0.15s,box-shadow 0.2s;
+}
+.cc-color-btn:hover{transform:scale(1.15);border-color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.cc-color-btn:active{transform:scale(0.95)}
+.cc-controls{display:flex;gap:10px;justify-content:center;margin-top:12px}
+@media(max-width:480px){
+  .cc-slot{width:30px;height:30px}
+  .cc-color-btn{width:34px;height:34px}
+  .cc-pegs{min-width:48px;grid-template-columns:repeat(auto-fill,10px)}
+  .cc-peg{width:10px;height:10px}
+}

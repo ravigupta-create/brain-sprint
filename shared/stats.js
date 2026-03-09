@@ -92,6 +92,10 @@ function renderStatsScreen() {
     </div>`;
   });
   histDiv.innerHTML = histHtml;
+
+  // Achievements
+  const achDiv = document.getElementById('achievements-section');
+  if (achDiv) achDiv.innerHTML = renderAchievementsSection();
 }
 
 function closeStats() {

@@ -2,6 +2,8 @@
 function init() {
   checkLockOnLoad();
   initTheme();
+  SFX.init();
+  SFX._updateIcon();
   loadBloomWords();
   // Show today's date on the Daily button and calendar icon
   const d = new Date();

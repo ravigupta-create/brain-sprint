@@ -113,6 +113,7 @@ function hitPulse() {
   if (inZone) {
     showPulseHit();
   } else {
+    SFX.wrong();
     endPulseGame();
   }
 }
@@ -121,6 +122,7 @@ function showPulseHit() {
   const st = GS.challengeState.pulse;
   st.waiting = true;
   st.hits++;
+  SFX.pop();
 
   // Flash feedback
   const track = document.getElementById('pulse-track');
