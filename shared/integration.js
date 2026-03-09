@@ -242,6 +242,7 @@ function loadCurrentChallenge() {
   } else {
     html += `<div class="timer-toggle-row">
       <span class="timer-toggle-label">⏱ Timer</span>
+      <span class="timer-toggle-status ${GS.timerEnabled ? 'on' : 'off'}" id="timer-status">${GS.timerEnabled ? 'ON' : 'OFF'}</span>
       <label class="toggle-switch">
         <input type="checkbox" id="timer-toggle" ${GS.timerEnabled ? 'checked' : ''} onchange="toggleTimerPref()">
         <span class="toggle-slider"></span>
@@ -332,5 +333,10 @@ function toggleTimerPref() {
   const p = getPrefs();
   p.timerEnabled = GS.timerEnabled;
   savePrefs(p);
+  const status = document.getElementById('timer-status');
+  if (status) {
+    status.textContent = GS.timerEnabled ? 'ON' : 'OFF';
+    status.className = 'timer-toggle-status ' + (GS.timerEnabled ? 'on' : 'off');
+  }
 }
 
