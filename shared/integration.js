@@ -266,7 +266,6 @@ function beginChallenge() {
   if (GS.currentChallengeIdx === 0 && !GS.timerRunning) {
     startTimer();
   }
-  const ch = GS.selectedChallenges[GS.currentChallengeIdx];
   switch(ch) {
     case 'paradox': renderParadox(getParadoxPuzzle()); break;
     case 'blocks': renderBlocks(getBlocksPuzzle()); break;
