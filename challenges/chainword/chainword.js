@@ -108,26 +108,31 @@ function startChainwordTimer() {
   st.timeLeft = st.puzzle.timePerWord;
   if (st.timer) clearInterval(st.timer);
 
-  st.timer = setInterval(() => {
-    st.timeLeft--;
-    const timerEl = document.getElementById('chain-timer');
-    if (timerEl) {
-      timerEl.textContent = st.timeLeft + 's';
-      if (st.timeLeft <= 3) timerEl.classList.add('chain-timer-low');
-    }
-
-    if (st.timeLeft <= 0) {
-      clearInterval(st.timer);
-      st.gameOver = true;
-      SFX.wrong();
-      const feedback = document.getElementById('chain-feedback');
-      if (feedback) {
-        feedback.textContent = 'Time\'s up!';
-        feedback.className = 'chain-feedback chain-fb-wrong';
+  if (GS.timerEnabled) {
+    st.timer = setInterval(() => {
+      st.timeLeft--;
+      const timerEl = document.getElementById('chain-timer');
+      if (timerEl) {
+        timerEl.textContent = st.timeLeft + 's';
+        if (st.timeLeft <= 3) timerEl.classList.add('chain-timer-low');
       }
-      setTimeout(() => endChainword(), 1200);
-    }
-  }, 1000);
+
+      if (st.timeLeft <= 0) {
+        clearInterval(st.timer);
+        st.gameOver = true;
+        SFX.wrong();
+        const feedback = document.getElementById('chain-feedback');
+        if (feedback) {
+          feedback.textContent = 'Time\'s up!';
+          feedback.className = 'chain-feedback chain-fb-wrong';
+        }
+        setTimeout(() => endChainword(), 1200);
+      }
+    }, 1000);
+  } else {
+    const timerEl = document.getElementById('chain-timer');
+    if (timerEl) timerEl.textContent = '∞';
+  }
 }
 
 function submitChainword() {

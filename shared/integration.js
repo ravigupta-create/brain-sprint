@@ -237,6 +237,17 @@ function loadCurrentChallenge() {
   });
   html += `</div>`;
   html += `<div class="intro-tip">💡 ${info.tip}</div>`;
+  if (ch === 'pulse') {
+    html += `<div class="timer-note">⏱ Timer cannot be disabled — timing is the gameplay!</div>`;
+  } else {
+    html += `<div class="timer-toggle-row">
+      <span class="timer-toggle-label">⏱ Timer</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="timer-toggle" ${GS.timerEnabled ? 'checked' : ''} onchange="toggleTimerPref()">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`;
+  }
   if (ch === 'mosaic') {
     html += `<button class="btn btn-secondary btn-lg btn-full" style="margin-bottom:8px" onclick="showMosaicSymbolGuide()">Symbol Guide</button>`;
   }
@@ -313,5 +324,13 @@ function showNextOrFinish() {
 function nextChallenge() {
   GS.currentChallengeIdx++;
   loadCurrentChallenge();
+}
+
+function toggleTimerPref() {
+  const cb = document.getElementById('timer-toggle');
+  GS.timerEnabled = cb.checked;
+  const p = getPrefs();
+  p.timerEnabled = GS.timerEnabled;
+  savePrefs(p);
 }
 

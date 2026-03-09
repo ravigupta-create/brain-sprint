@@ -83,19 +83,24 @@ function renderOddRound() {
   c.innerHTML = html;
 
   // Start timer
-  st.timerId = setInterval(() => {
-    st.timeLeft--;
+  if (GS.timerEnabled) {
+    st.timerId = setInterval(() => {
+      st.timeLeft--;
+      const el = document.getElementById('odd-timer');
+      if (el) {
+        el.textContent = st.timeLeft + 's';
+        if (st.timeLeft <= 3) el.classList.add('odd-timer-low');
+      }
+      if (st.timeLeft <= 0) {
+        clearInterval(st.timerId);
+        st.timerId = null;
+        handleOddTimeout();
+      }
+    }, 1000);
+  } else {
     const el = document.getElementById('odd-timer');
-    if (el) {
-      el.textContent = st.timeLeft + 's';
-      if (st.timeLeft <= 3) el.classList.add('odd-timer-low');
-    }
-    if (st.timeLeft <= 0) {
-      clearInterval(st.timerId);
-      st.timerId = null;
-      handleOddTimeout();
-    }
-  }, 1000);
+    if (el) el.textContent = '∞';
+  }
 }
 
 function selectOddItem(idx) {

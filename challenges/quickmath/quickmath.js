@@ -47,6 +47,9 @@ function renderQuickMath(puzzle) {
   html += '<button class="qm-num-btn qm-enter" onclick="qmSubmitAnswer()">✓</button>';
   html += '</div>';
   html += '</div>';
+  if (!GS.timerEnabled) {
+    html += '<button class="btn btn-secondary btn-lg btn-full" style="margin-top:12px" onclick="endQuickMath()">Finish</button>';
+  }
 
   c.innerHTML = html;
 
@@ -62,18 +65,23 @@ function renderQuickMath(puzzle) {
 
   // Start timer
   const st = GS.challengeState.quickmath;
-  st.timerId = setInterval(() => {
-    st.timeLeft--;
+  if (GS.timerEnabled) {
+    st.timerId = setInterval(() => {
+      st.timeLeft--;
+      const el = document.getElementById('qm-timer');
+      if (el) {
+        el.textContent = st.timeLeft + 's';
+        if (st.timeLeft <= 10) el.classList.add('qm-timer-low');
+      }
+      if (st.timeLeft <= 0) {
+        clearInterval(st.timerId);
+        endQuickMath();
+      }
+    }, 1000);
+  } else {
     const el = document.getElementById('qm-timer');
-    if (el) {
-      el.textContent = st.timeLeft + 's';
-      if (st.timeLeft <= 10) el.classList.add('qm-timer-low');
-    }
-    if (st.timeLeft <= 0) {
-      clearInterval(st.timerId);
-      endQuickMath();
-    }
-  }, 1000);
+    if (el) el.textContent = '∞';
+  }
 }
 
 function qmGenerateProblem() {
@@ -157,7 +165,7 @@ function qmSubmitAnswer() {
       feedback.className = 'qm-feedback qm-correct';
     }
     // Bonus time for streaks
-    if (st.streak > 0 && st.streak % 5 === 0) {
+    if (GS.timerEnabled && st.streak > 0 && st.streak % 5 === 0) {
       st.timeLeft = Math.min(st.timeLeft + 3, st.puzzle.time);
       const timerEl = document.getElementById('qm-timer');
       if (timerEl) timerEl.textContent = st.timeLeft + 's';

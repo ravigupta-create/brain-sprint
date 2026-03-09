@@ -51,15 +51,20 @@ function renderMemory(puzzle) {
   c.innerHTML = html;
 
   // Start countdown
-  st.timerId = setInterval(() => {
-    st.timeLeft--;
+  if (GS.timerEnabled) {
+    st.timerId = setInterval(() => {
+      st.timeLeft--;
+      const el = document.getElementById('mem-timer');
+      if (el) el.textContent = `⏱ ${st.timeLeft}s`;
+      if (st.timeLeft <= 0) {
+        clearInterval(st.timerId);
+        endMemoryGame(false);
+      }
+    }, 1000);
+  } else {
     const el = document.getElementById('mem-timer');
-    if (el) el.textContent = `⏱ ${st.timeLeft}s`;
-    if (st.timeLeft <= 0) {
-      clearInterval(st.timerId);
-      endMemoryGame(false);
-    }
-  }, 1000);
+    if (el) el.textContent = '⏱ ∞';
+  }
 }
 
 function flipMemoryCard(r, cc) {

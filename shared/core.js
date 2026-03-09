@@ -29,6 +29,7 @@ const GS = {
   timerElapsed: 0,
   timerRunning: false,
   timerRAF: null,
+  timerEnabled: true,
   results: {},
   rng: null,
   screenStack: ['screen-landing'],
@@ -136,13 +137,14 @@ function addHistory(entry) {
   if (h.length > 30) h.length = 30;
   lsSet('history', h);
 }
-function getPrefs() { return lsGet('prefs', { theme:'light', lastDiff:'medium' }); }
+function getPrefs() { return lsGet('prefs', { theme:'light', lastDiff:'medium', timerEnabled:true }); }
 function savePrefs(p) { lsSet('prefs', p); }
 
 // --- Theme ---
 function initTheme() {
   const p = getPrefs();
   if (p.theme === 'dark') document.body.classList.add('dark');
+  GS.timerEnabled = p.timerEnabled !== false;
 }
 function toggleTheme() {
   document.body.classList.toggle('dark');
@@ -153,6 +155,10 @@ function toggleTheme() {
 
 // --- Timer ---
 function startTimer() {
+  if (!GS.timerEnabled) {
+    document.getElementById('timer-display').style.display = 'none';
+    return;
+  }
   GS.timerStart = performance.now();
   GS.timerRunning = true;
   GS.timerElapsed = 0;
@@ -199,8 +205,8 @@ function showScreen(id) {
   backBtn.style.display = (id === 'screen-landing') ? 'none' : 'block';
   // Timer visibility
   const timer = document.getElementById('timer-display');
-  if (id === 'screen-game') timer.style.display = 'block';
-  else if (id !== 'screen-results') timer.style.display = 'none';
+  if (id === 'screen-game' && GS.timerEnabled) timer.style.display = 'block';
+  else if (id !== 'screen-results' || !GS.timerEnabled) timer.style.display = 'none';
   // Landing particles
   if (id === 'screen-landing') startLandingParticles();
   else stopLandingParticles();

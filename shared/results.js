@@ -2,10 +2,15 @@
 
 function showResults() {
   navigateTo('screen-results');
-  document.getElementById('timer-display').style.display = 'block';
   const multiplier = MULTIPLIERS[GS.difficulty];
-  const timeStr = formatTime(GS.timerElapsed);
-  document.getElementById('results-time').textContent = `Time: ${timeStr}`;
+  const timeStr = GS.timerEnabled ? formatTime(GS.timerElapsed) : 'untimed';
+  if (GS.timerEnabled) {
+    document.getElementById('timer-display').style.display = 'block';
+    document.getElementById('results-time').textContent = `Time: ${timeStr}`;
+  } else {
+    document.getElementById('timer-display').style.display = 'none';
+    document.getElementById('results-time').textContent = 'Time: --:--';
+  }
   document.getElementById('results-multiplier').textContent = `${multiplier}x (${GS.difficulty})`;
 
   // Score breakdown
