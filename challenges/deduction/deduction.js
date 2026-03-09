@@ -9,25 +9,26 @@ function getDeductionPuzzle() {
   const names = rngShuffle(namePool).slice(0,6);
   const emojis = rngShuffle(emojiPool).slice(0,6);
   const saboteurIdx = rngInt(0,5);
+  const configs = {
+    easy:       { questionChoices: 3, lieChance: 0.25, twinCount: 1, clueQuality: 'direct', hideInfo: false, rounds: 5, noisyHonest: false },
+    medium:     { questionChoices: 3, lieChance: 0.4,  twinCount: 1, clueQuality: 'moderate', hideInfo: false, rounds: 5, noisyHonest: false },
+    hard:       { questionChoices: 2, lieChance: 0.55, twinCount: 1, clueQuality: 'subtle', hideInfo: true, rounds: 5, noisyHonest: true },
+    extreme:    { questionChoices: 2, lieChance: 0.65, twinCount: 2, clueQuality: 'minimal', hideInfo: true, rounds: 5, noisyHonest: true },
+    impossible: { questionChoices: 2, lieChance: 0.5,  twinCount: 2, clueQuality: 'minimal', hideInfo: true, rounds: 4, noisyHonest: true }
+  };
+  const cfg = configs[d] || configs.medium;
   const characters = [];
   for (let i = 0; i < 6; i++) {
-    characters.push({ name: names[i], emoji: emojis[i], role: roles[i], trait: traits[i], isSaboteur: i === saboteurIdx, isDecoy: false, eliminated: false });
+    characters.push({ name: names[i], emoji: emojis[i], role: roles[i], trait: traits[i], isSaboteur: i === saboteurIdx, isTwin: false, eliminated: false });
   }
-  // On extreme/impossible, one innocent becomes a decoy who behaves identically to the saboteur
-  if (d === 'extreme' || d === 'impossible') {
-    const innocentIndices = [];
-    for (let i = 0; i < 6; i++) { if (i !== saboteurIdx) innocentIndices.push(i); }
-    const decoyIdx = innocentIndices[rngInt(0, innocentIndices.length - 1)];
-    characters[decoyIdx].isDecoy = true;
+  // Assign twins — always at least 1 innocent mirrors the saboteur
+  const innocentIndices = [];
+  for (let i = 0; i < 6; i++) { if (i !== saboteurIdx) innocentIndices.push(i); }
+  const shuffledInnocents = rngShuffle(innocentIndices);
+  for (let t = 0; t < cfg.twinCount && t < shuffledInnocents.length; t++) {
+    characters[shuffledInnocents[t]].isTwin = true;
   }
-  const configs = {
-    easy:       { questionChoices: 3, saboteurLies: 'never', clueQuality: 'direct', hideInfo: false, rounds: 5, noisyHonest: false, unreliableLiar: false },
-    medium:     { questionChoices: 3, saboteurLies: 'accusations', clueQuality: 'moderate', hideInfo: false, rounds: 5, noisyHonest: false, unreliableLiar: false },
-    hard:       { questionChoices: 2, saboteurLies: 'role+accusations', clueQuality: 'subtle', hideInfo: true, rounds: 5, noisyHonest: true, unreliableLiar: false },
-    extreme:    { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal', hideInfo: true, rounds: 5, noisyHonest: true, unreliableLiar: false },
-    impossible: { questionChoices: 2, saboteurLies: 'everything', clueQuality: 'minimal', hideInfo: true, rounds: 4, noisyHonest: true, unreliableLiar: true }
-  };
-  return { characters, saboteurIdx, config: configs[d] || configs.medium };
+  return { characters, saboteurIdx, config: cfg };
 }
 
 function renderDeduction(puzzle) {
@@ -114,27 +115,45 @@ function selectDeductionQuestion(idx) {
   const p = st.puzzle;
   const q = st._currentQuestions[idx];
   const alive = p.characters.filter(ch => !ch.eliminated);
-  const responses = [];
   const cfg = p.config;
 
+  // Spontaneous: saboteur randomly decides to lie THIS round (no pattern)
+  const sabLies = GS.rng() < cfg.lieChance;
+
+  // Pre-compute shared lie content so saboteur + twins give matching answers
+  const sabChar = p.characters[p.saboteurIdx];
+  let sharedFakeTrait = null;
+  let sharedAccuseTarget = null;
+  let sharedAlibiDoubt = false;
+
+  if (sabLies) {
+    // Shared fake trait for trait questions
+    const otherTraits = alive.filter(c => !c.isSaboteur && !c.isTwin).map(c => c.trait);
+    sharedFakeTrait = otherTraits.length > 0 ? otherTraits[rngInt(0, otherTraits.length - 1)] : sabChar.trait;
+    // Shared accusation target
+    const targets = alive.filter(c => !c.isSaboteur && !c.isTwin);
+    if (targets.length > 0 && rngInt(0, 2) > 0) {
+      sharedAccuseTarget = targets[rngInt(0, targets.length - 1)].name;
+    }
+    // Shared alibi stance
+    sharedAlibiDoubt = rngInt(0, 1) === 0;
+  }
+
+  const responses = [];
   alive.forEach(ch => {
     let answer = '';
-    const lies = shouldSaboteurLie(ch, q.type, cfg);
-    // On impossible, saboteur sometimes tells the truth even when "lying" mode is on — inconsistent behavior
-    const unreliableSkip = cfg.unreliableLiar && lies && rngInt(0, 3) === 0;
+    const isMimic = ch.isSaboteur || ch.isTwin;
 
     if (q.type === 'role') {
-      if ((ch.isSaboteur || ch.isDecoy) && lies && !unreliableSkip) {
-        // On hard+, claim a role of an eliminated character if possible (avoids direct conflicts)
-        const eliminated = p.characters.filter(c => c.eliminated);
+      if (isMimic && sabLies) {
+        // Each mimic claims a different fake role (not their own)
         let fakeRoles = ['Engineer','Doctor','Teacher','Chef','Artist','Pilot'].filter(r => r !== ch.role);
-        if (cfg.hideInfo && eliminated.length > 0) {
-          const elimRoles = eliminated.map(c => c.role);
-          const saferFakes = fakeRoles.filter(r => elimRoles.includes(r));
-          if (saferFakes.length > 0) fakeRoles = saferFakes;
+        if (cfg.hideInfo) {
+          const elimRoles = p.characters.filter(c => c.eliminated).map(c => c.role);
+          const safer = fakeRoles.filter(r => elimRoles.includes(r));
+          if (safer.length > 0) fakeRoles = safer;
         }
         const fakeRole = fakeRoles[rngInt(0, fakeRoles.length - 1)];
-        // Use same phrasing pool as honest crew
         const phrases = [`I'm the ${fakeRole}.`, `${fakeRole} — that's me.`, `I serve as the ${fakeRole}.`];
         answer = phrases[rngInt(0, phrases.length - 1)];
       } else {
@@ -142,31 +161,30 @@ function selectDeductionQuestion(idx) {
         answer = phrases[rngInt(0, phrases.length - 1)];
       }
     } else if (q.type === 'trait') {
-      if ((ch.isSaboteur || ch.isDecoy) && lies && !unreliableSkip) {
-        // Claim another alive character's trait to create confusion
-        const otherTraits = alive.filter(c => c !== ch).map(c => c.trait);
-        const fakeTrait = otherTraits.length > 0 ? otherTraits[rngInt(0, otherTraits.length - 1)] : ch.trait;
-        const phrases = [`I'd say I'm ${fakeTrait}.`, `People tell me I'm ${fakeTrait}.`, `${fakeTrait}, definitely.`];
+      if (isMimic && sabLies) {
+        // All mimics claim the SAME fake trait (links them)
+        const phrases = [`I'd say I'm ${sharedFakeTrait}.`, `People tell me I'm ${sharedFakeTrait}.`, `${sharedFakeTrait}, definitely.`];
         answer = phrases[rngInt(0, phrases.length - 1)];
       } else {
         const phrases = [`I'd say I'm ${ch.trait}.`, `People tell me I'm ${ch.trait}.`, `${ch.trait}, definitely.`];
         answer = phrases[rngInt(0, phrases.length - 1)];
       }
     } else if (q.type === 'accusation') {
-      if ((ch.isSaboteur || ch.isDecoy) && lies && !unreliableSkip) {
-        // Saboteur: mix between accusing an innocent and giving vague answers
-        if (rngInt(0, 2) === 0) {
+      if (isMimic) {
+        if (sharedAccuseTarget && sabLies) {
+          // All mimics accuse the SAME innocent (links them)
+          const phrases = [
+            `I think ${sharedAccuseTarget} has been acting strangely.`,
+            `Something feels off about ${sharedAccuseTarget}.`,
+            `I'm not totally sure about ${sharedAccuseTarget}.`
+          ];
+          answer = phrases[rngInt(0, phrases.length - 1)];
+        } else {
           const vague = [`Hard to say.`, `Can't be sure.`, `I trust most of us.`, `Everyone seems fine to me.`];
           answer = vague[rngInt(0, vague.length - 1)];
-        } else {
-          const innocents = alive.filter(c => !c.isSaboteur && !c.isDecoy);
-          const target = innocents[rngInt(0, innocents.length - 1)];
-          answer = `I think ${target.name} has been acting strangely.`;
         }
-      } else if (ch.isSaboteur || ch.isDecoy) {
-        answer = `Everyone seems trustworthy to me.`;
       } else {
-        // Honest crew response based on clue quality
+        // Honest crew based on clue quality
         const saboteur = p.characters[p.saboteurIdx];
         if (cfg.clueQuality === 'direct') {
           answer = `${saboteur.name} gave me a bad feeling.`;
@@ -174,7 +192,6 @@ function selectDeductionQuestion(idx) {
           const hints = [`Someone here isn't what they seem.`, `I've noticed inconsistencies from one person.`, `Not everyone is telling the truth.`];
           answer = hints[rngInt(0, hints.length - 1)];
         } else {
-          // subtle/minimal: honest crew randomly accuse others too (noise)
           if (cfg.noisyHonest && rngInt(0, 2) > 0) {
             const others = alive.filter(c => c !== ch);
             const randomTarget = others[rngInt(0, others.length - 1)];
@@ -182,9 +199,7 @@ function selectDeductionQuestion(idx) {
               `I think ${randomTarget.name} has been acting strangely.`,
               `Something feels off about ${randomTarget.name}.`,
               `I'm not totally sure about ${randomTarget.name}.`,
-              `Hard to say.`,
-              `Can't be sure.`,
-              `Everyone seems fine to me.`
+              `Hard to say.`, `Can't be sure.`, `Everyone seems fine to me.`
             ];
             answer = noisy[rngInt(0, noisy.length - 1)];
           } else {
@@ -198,11 +213,14 @@ function selectDeductionQuestion(idx) {
       if (ch.name === q.target) {
         const self = [`I can speak for myself — I've been doing my job.`, `I've been working the whole time.`, `I have nothing to hide.`];
         answer = self[rngInt(0, self.length - 1)];
-      } else if ((ch.isSaboteur || ch.isDecoy) && lies && !unreliableSkip) {
-        if (targetChar && !targetChar.isSaboteur && !targetChar.isDecoy) {
-          // Mix between casting doubt and hedging (same pool as honest on hard+)
-          const responses = [`I wouldn't trust ${q.target} completely.`, `I'm not sure about ${q.target}.`, `${q.target} seems fine to me.`, `Can't say for sure.`];
-          answer = responses[rngInt(0, responses.length - 1)];
+      } else if (isMimic && sabLies) {
+        if (targetChar && !targetChar.isSaboteur && !targetChar.isTwin) {
+          if (sharedAlibiDoubt) {
+            const doubts = [`I wouldn't trust ${q.target} completely.`, `I'm not sure about ${q.target}.`, `Can't say for sure.`];
+            answer = doubts[rngInt(0, doubts.length - 1)];
+          } else {
+            answer = `${q.target} seems fine to me.`;
+          }
         } else {
           answer = `${q.target} seems fine to me.`;
         }
@@ -210,7 +228,6 @@ function selectDeductionQuestion(idx) {
         if (targetChar && targetChar.isSaboteur && cfg.clueQuality === 'direct') {
           answer = `Actually, I'm not sure about ${q.target}.`;
         } else if (cfg.noisyHonest && rngInt(0, 2) === 0) {
-          // Honest crew sometimes hedges on hard+ (noise)
           const hedges = [`${q.target} has been reliable.`, `I think ${q.target} is fine.`, `Can't say for sure.`, `I'm not sure about ${q.target}.`];
           answer = hedges[rngInt(0, hedges.length - 1)];
         } else {
@@ -219,8 +236,7 @@ function selectDeductionQuestion(idx) {
       }
     } else if (q.type === 'targeted') {
       if (ch.name === q.target) {
-        // Both honest and saboteur use the same response pool on hard+
-        if (cfg.noisyHonest || ((ch.isSaboteur || ch.isDecoy) && lies)) {
+        if (cfg.noisyHonest || (isMimic && sabLies)) {
           const affirmations = [
             `Yes, I am the ${ch.role}. You can count on me.`,
             `Absolutely, I am!`,
@@ -228,19 +244,16 @@ function selectDeductionQuestion(idx) {
             `That's right, I'm the ${ch.role}.`
           ];
           answer = affirmations[rngInt(0, affirmations.length - 1)];
-        } else if ((ch.isSaboteur || ch.isDecoy) && lies && !unreliableSkip) {
-          answer = `Absolutely, I am!`;
         } else {
           answer = `Yes, I am the ${ch.role}. You can count on me.`;
         }
       } else {
-        // Others commenting on the target — use same phrases for honest and saboteur on hard+
         if (cfg.noisyHonest) {
           const comments = [`I believe so.`, `Seems legit.`, `I think so.`, `Can't say for certain.`, `I doubt it.`];
           answer = comments[rngInt(0, comments.length - 1)];
-        } else if ((ch.isSaboteur || ch.isDecoy) && lies && !unreliableSkip) {
+        } else if (isMimic && sabLies) {
           const targetChar = alive.find(c => c.name === q.target);
-          answer = targetChar && !targetChar.isSaboteur && !targetChar.isDecoy ? `I doubt it.` : `Seems legit.`;
+          answer = targetChar && !targetChar.isSaboteur && !targetChar.isTwin ? `I doubt it.` : `Seems legit.`;
         } else {
           answer = `I believe so.`;
         }
@@ -253,15 +266,6 @@ function selectDeductionQuestion(idx) {
   st.questionHistory.push({ round: st.round, question: q.text, responses: st._currentResponses });
   st.phase = 'responses';
   renderDeductionRound();
-}
-
-function shouldSaboteurLie(ch, qType, config) {
-  if (!ch.isSaboteur && !ch.isDecoy) return false;
-  if (config.saboteurLies === 'never') return false;
-  if (config.saboteurLies === 'accusations') return qType === 'accusation';
-  if (config.saboteurLies === 'role+accusations') return qType === 'role' || qType === 'accusation' || qType === 'targeted';
-  if (config.saboteurLies === 'everything') return true;
-  return false;
 }
 
 function goToDeductionEliminate() {
