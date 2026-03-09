@@ -1,0 +1,35 @@
+/* Challenge 19: Estimation Station */
+.est-container{text-align:center;padding:8px 0}
+.est-progress{font-size:13px;font-weight:600;color:var(--fg2);margin-bottom:12px}
+.est-question{
+  font-family:'Noto Serif',serif;font-size:20px;font-weight:700;
+  margin-bottom:12px;line-height:1.4;animation:fadeIn 0.4s ease;
+}
+.est-hint{
+  font-size:13px;color:var(--fg2);font-style:italic;
+  padding:8px 14px;background:var(--bg2);border-radius:var(--radius);
+  border-left:3px solid var(--accent);margin-bottom:16px;
+  max-width:320px;margin-left:auto;margin-right:auto;
+}
+.est-input-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0}
+.est-input{
+  width:160px;padding:14px 20px;font-size:24px;font-weight:700;text-align:center;
+  border:2px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--bg2);color:var(--fg);outline:none;
+  font-family:'Libre Franklin',sans-serif;transition:border-color 0.2s;
+}
+.est-input:focus{border-color:var(--accent)}
+.est-input::-webkit-outer-spin-button,.est-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.est-input[type=number]{-moz-appearance:textfield}
+.est-unit{font-size:14px;font-weight:600;color:var(--fg2)}
+.est-feedback{
+  font-size:14px;min-height:24px;margin-top:16px;padding:12px 16px;
+  border-radius:var(--radius);line-height:1.5;
+}
+.est-feedback:empty{padding:0}
+.est-fb-correct{background:rgba(106,170,100,0.1);color:var(--green);animation:fadeIn 0.3s ease}
+.est-fb-wrong{background:rgba(231,76,60,0.1);color:var(--red);animation:fadeIn 0.3s ease}
+@media(max-width:480px){
+  .est-question{font-size:17px}
+  .est-input{width:130px;font-size:20px;padding:12px 16px}
+}

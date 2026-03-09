@@ -1,0 +1,32 @@
+/* Challenge 21: Simon Says */
+.simon-container{text-align:center;padding:8px 0}
+.simon-stats{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;color:var(--fg2);margin-bottom:12px;
+  padding:8px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+}
+.simon-status{
+  font-size:16px;font-weight:700;color:var(--accent);margin-bottom:16px;
+  min-height:24px;transition:color 0.3s;
+}
+.simon-grid{
+  display:grid;gap:10px;max-width:320px;margin:0 auto;
+}
+.simon-btn{
+  aspect-ratio:1;border:none;border-radius:var(--radius-lg);
+  font-size:13px;font-weight:700;color:rgba(255,255,255,0.9);
+  cursor:pointer;transition:transform 0.15s,box-shadow 0.15s,background 0.15s;
+  text-shadow:0 1px 3px rgba(0,0,0,0.3);
+  min-height:60px;min-width:60px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+.simon-btn:disabled{cursor:default;opacity:0.85}
+.simon-btn:not(:disabled):hover{transform:scale(1.04)}
+.simon-btn:not(:disabled):active{transform:scale(0.96)}
+.simon-flash{animation:simonFlash 0.15s ease}
+@keyframes simonFlash{0%{filter:brightness(1)}50%{filter:brightness(1.6)}100%{filter:brightness(1)}}
+.simon-msg{font-size:13px;min-height:20px;margin-top:12px;color:var(--fg2)}
+@media(max-width:480px){
+  .simon-grid{max-width:260px;gap:8px}
+  .simon-btn{font-size:11px;min-height:50px;min-width:50px}
+}

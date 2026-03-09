@@ -36,9 +36,9 @@ const GS = {
   attempts: {},
 };
 const MULTIPLIERS = { easy: 1, medium: 1.5, hard: 2, extreme: 3, impossible: 5 };
-const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch', colorcode:'Color Code', quickmath:'Quick Math', pattern:'Pattern Lock' };
-const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮', colorcode:'🎯', quickmath:'⚡', pattern:'🔮' };
-const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch','colorcode','quickmath','pattern'];
+const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch', colorcode:'Color Code', quickmath:'Quick Math', pattern:'Pattern Lock', oddoneout:'Odd One Out', estimation:'Estimation Station', hanoi:'Tower of Hanoi', simon:'Simon Says', chainword:'Word Chain' };
+const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮', colorcode:'🎯', quickmath:'⚡', pattern:'🔮', oddoneout:'👁️', estimation:'📐', hanoi:'🗼', simon:'🔔', chainword:'🔗' };
+const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch','colorcode','quickmath','pattern','oddoneout','estimation','hanoi','simon','chainword'];
 const COMPLETED_REVIEW_HANDLERS = {};
 
 // --- localStorage ---
@@ -560,6 +560,26 @@ function showCompletedPuzzleResults(ch, score) {
     } else if (ch === 'pattern') {
       reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.total}</span></div>`;
       reviewHtml += '</div>';
+    } else if (ch === 'oddoneout') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.total}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'estimation') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Points earned</span><span class="cs-stat-value">${saved.totalScore} / ${saved.rounds * 100}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'hanoi') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Moves</span><span class="cs-stat-value">${saved.moves} (optimal: ${saved.optimal})</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Discs</span><span class="cs-stat-value">${saved.discs}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'simon') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Rounds completed</span><span class="cs-stat-value">${saved.roundsCompleted} / ${saved.totalRounds}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max sequence</span><span class="cs-stat-value">${saved.seqLength}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'chainword') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Chain length</span><span class="cs-stat-value">${saved.chain.length} / ${saved.targetLen}</span></div>`;
+      reviewHtml += '</div>';
+      if (saved.chain) {
+        reviewHtml += '<div class="cs-mini-review">' + saved.chain.map(w => `<span class="cs-tag found">${w}</span>`).join(' → ') + '</div>';
+      }
     } else {
       reviewHtml += '</div>';
     }

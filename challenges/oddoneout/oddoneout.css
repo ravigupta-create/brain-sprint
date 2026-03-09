@@ -1,0 +1,36 @@
+/* Challenge 18: Spot the Odd One Out */
+.odd-container{text-align:center;padding:8px 0}
+.odd-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.odd-round{font-size:14px;font-weight:700;color:var(--fg2)}
+.odd-timer{font-family:'Courier New',monospace;font-size:18px;font-weight:800;color:var(--accent);transition:color 0.3s}
+.odd-timer.odd-timer-low{color:var(--red);animation:pulse 0.5s ease-in-out infinite}
+.odd-prompt{font-family:'Noto Serif',serif;font-size:18px;font-weight:700;margin-bottom:16px}
+.odd-grid{display:grid;gap:8px;margin:0 auto;max-width:400px}
+.odd-cell{
+  padding:12px 8px;font-size:18px;font-weight:700;
+  border:2px solid var(--border);border-radius:var(--radius);
+  background:var(--card-bg);color:var(--fg);cursor:pointer;
+  transition:border-color 0.15s,background 0.15s,transform 0.15s;
+  min-height:44px;font-family:'Libre Franklin',sans-serif;
+  opacity:0;animation:fadeIn 0.3s ease forwards;
+}
+.odd-cell:nth-child(1){animation-delay:0.02s}.odd-cell:nth-child(2){animation-delay:0.04s}
+.odd-cell:nth-child(3){animation-delay:0.06s}.odd-cell:nth-child(4){animation-delay:0.08s}
+.odd-cell:nth-child(5){animation-delay:0.1s}.odd-cell:nth-child(6){animation-delay:0.12s}
+.odd-cell:nth-child(7){animation-delay:0.14s}.odd-cell:nth-child(8){animation-delay:0.16s}
+.odd-cell:nth-child(9){animation-delay:0.18s}.odd-cell:nth-child(10){animation-delay:0.2s}
+.odd-cell:nth-child(11){animation-delay:0.22s}.odd-cell:nth-child(12){animation-delay:0.24s}
+.odd-cell:nth-child(13){animation-delay:0.26s}.odd-cell:nth-child(14){animation-delay:0.28s}
+.odd-cell:nth-child(15){animation-delay:0.3s}.odd-cell:nth-child(16){animation-delay:0.32s}
+.odd-cell:nth-child(17){animation-delay:0.34s}.odd-cell:nth-child(18){animation-delay:0.36s}
+.odd-cell:nth-child(19){animation-delay:0.38s}.odd-cell:nth-child(20){animation-delay:0.4s}
+.odd-cell:hover:not(:disabled){border-color:var(--accent);transform:scale(1.05)}
+.odd-cell:active:not(:disabled){transform:scale(0.97)}
+.odd-cell:disabled{cursor:default}
+.odd-cell.odd-correct{border-color:var(--green);background:rgba(106,170,100,0.15);animation:correctPop 0.3s ease}
+.odd-cell.odd-wrong{border-color:var(--red);background:rgba(231,76,60,0.15);animation:shake 0.3s ease}
+.odd-feedback{font-size:14px;min-height:24px;margin-top:14px;padding:10px 16px;border-radius:var(--radius)}
+.odd-feedback:empty{padding:0}
+.odd-fb-correct{background:rgba(106,170,100,0.1);color:var(--green);animation:fadeIn 0.3s ease}
+.odd-fb-wrong{background:rgba(231,76,60,0.1);color:var(--red);animation:fadeIn 0.3s ease}
+@media(max-width:480px){.odd-cell{font-size:15px;padding:10px 6px}}

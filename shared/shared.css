@@ -220,6 +220,17 @@ body.dark .challenge-card{background:rgba(26,26,27,0.6)}
 .challenge-card:nth-child(15){animation-delay:0.3s}
 .challenge-card:nth-child(16){animation-delay:0.32s}
 .challenge-card:nth-child(17){animation-delay:0.34s}
+.challenge-card:nth-child(18){animation-delay:0.36s}
+.challenge-card:nth-child(19){animation-delay:0.38s}
+.challenge-card:nth-child(20){animation-delay:0.4s}
+.challenge-card:nth-child(21){animation-delay:0.42s}
+.challenge-card:nth-child(22){animation-delay:0.44s}
+.challenge-card:nth-child(23){animation-delay:0.46s}
+.challenge-card:nth-child(24){animation-delay:0.48s}
+.challenge-card:nth-child(25){animation-delay:0.5s}
+.challenge-card:nth-child(26){animation-delay:0.52s}
+.challenge-card:nth-child(27){animation-delay:0.54s}
+.challenge-card:nth-child(28){animation-delay:0.56s}
 .challenge-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,0.12)}
 .challenge-card.selected{border-color:var(--accent);background:var(--accent-light)}
 .challenge-card.completed-today{opacity:0.6;cursor:pointer}
@@ -312,6 +323,11 @@ input[type=range]::-webkit-slider-thumb{
 .score-row:nth-child(15){animation-delay:1.5s}
 .score-row:nth-child(16){animation-delay:1.6s}
 .score-row:nth-child(17){animation-delay:1.7s}
+.score-row:nth-child(18){animation-delay:1.8s}
+.score-row:nth-child(19){animation-delay:1.9s}
+.score-row:nth-child(20){animation-delay:2.0s}
+.score-row:nth-child(21){animation-delay:2.1s}
+.score-row:nth-child(22){animation-delay:2.2s}
 .score-row .ch-info{display:flex;align-items:center;gap:10px}
 .score-row .ch-info .ch-icon-sm{font-size:20px}
 .score-row .ch-info .ch-label{font-weight:600;font-size:14px}

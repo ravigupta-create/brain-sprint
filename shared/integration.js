@@ -156,6 +156,51 @@ const CHALLENGE_INSTRUCTIONS = {
       'After choosing, the rule behind the pattern is revealed'
     ],
     tip: 'Look at the differences between numbers, or try multiplying. Patterns get trickier on harder difficulties!'
+  },
+  oddoneout: {
+    steps: [
+      'A grid of items is shown — all but one belong to the same category',
+      'Find and tap the item that doesn\'t belong',
+      'You have limited time per round',
+      'Score is based on how many you get right'
+    ],
+    tip: 'Look for the pattern first — is it numbers, animals, or something else? The odd one breaks the rule!'
+  },
+  estimation: {
+    steps: [
+      'A trivia question asks you to estimate a number',
+      'Type your best guess and press Lock In',
+      'The closer your guess, the more points you earn',
+      'Multiple rounds — accuracy matters!'
+    ],
+    tip: 'On easier difficulties, a hint is provided. Use what you know and make educated guesses!'
+  },
+  hanoi: {
+    steps: [
+      'Move all discs from peg A to peg C',
+      'Tap a peg to pick up its top disc, then tap another peg to drop it',
+      'You can never place a larger disc on top of a smaller one',
+      'Try to solve it in the fewest moves possible'
+    ],
+    tip: 'The optimal solution uses 2^n - 1 moves. Think recursively!'
+  },
+  simon: {
+    steps: [
+      'Watch the sequence of colored buttons light up',
+      'After the sequence plays, repeat it by tapping the buttons in order',
+      'Each round adds one more step to the sequence',
+      'One wrong tap ends the game!'
+    ],
+    tip: 'Try to group the colors into chunks to remember longer sequences.'
+  },
+  chainword: {
+    steps: [
+      'A starting word is given',
+      'Type a word that starts with the last letter of the previous word',
+      'Build the longest chain before time runs out',
+      'Each word must meet the minimum length requirement'
+    ],
+    tip: 'Think of words quickly! Common endings like E, S, and T give you many options.'
   }
 };
 
@@ -227,6 +272,11 @@ function beginChallenge() {
     case 'colorcode': renderColorCode(getColorCodePuzzle()); break;
     case 'quickmath': renderQuickMath(getQuickMathPuzzle()); break;
     case 'pattern': renderPattern(getPatternPuzzle()); break;
+    case 'oddoneout': renderOddOneOut(getOddOneOutPuzzle()); break;
+    case 'estimation': renderEstimation(getEstimationPuzzle()); break;
+    case 'hanoi': renderHanoi(getHanoiPuzzle()); break;
+    case 'simon': renderSimon(getSimonPuzzle()); break;
+    case 'chainword': renderChainword(getChainwordPuzzle()); break;
   }
 }
 

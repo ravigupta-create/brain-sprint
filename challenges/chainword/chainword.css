@@ -1,0 +1,46 @@
+/* Challenge 22: Word Chain */
+.chain-container{text-align:center;padding:8px 0}
+.chain-stats{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;color:var(--fg2);margin-bottom:12px;
+  padding:8px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+}
+.chain-timer{
+  font-family:'Courier New',monospace;font-size:18px;font-weight:800;
+  color:var(--accent);transition:color 0.3s;
+}
+.chain-timer.chain-timer-low{color:var(--red);animation:pulse 0.5s ease-in-out infinite}
+.chain-words{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  gap:6px;margin-bottom:16px;min-height:36px;
+}
+.chain-word{
+  display:inline-block;padding:4px 12px;border-radius:20px;
+  font-size:14px;font-weight:700;
+  background:var(--bg3);color:var(--fg);border:1px solid var(--border);
+}
+.chain-word-current{
+  background:var(--accent-light);border-color:var(--accent);color:var(--accent);
+}
+.chain-arrow{color:var(--fg3);font-size:14px;font-weight:700}
+.chain-prompt{font-size:16px;font-weight:600;margin-bottom:8px}
+.chain-hint{
+  font-size:12px;color:var(--fg3);font-style:italic;margin-bottom:12px;
+}
+.chain-input-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0}
+.chain-input{
+  width:180px;padding:12px 16px;font-size:18px;font-weight:600;
+  text-align:center;text-transform:lowercase;
+  border:2px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--bg2);color:var(--fg);outline:none;
+  font-family:'Libre Franklin',sans-serif;transition:border-color 0.2s;
+}
+.chain-input:focus{border-color:var(--accent)}
+.chain-feedback{font-size:14px;min-height:24px;margin-top:12px;padding:8px 16px;border-radius:var(--radius)}
+.chain-feedback:empty{padding:0}
+.chain-fb-correct{background:rgba(106,170,100,0.1);color:var(--green);animation:fadeIn 0.3s ease}
+.chain-fb-wrong{background:rgba(231,76,60,0.1);color:var(--red);animation:fadeIn 0.3s ease}
+@media(max-width:480px){
+  .chain-input{width:140px;font-size:16px;padding:10px 12px}
+  .chain-word{font-size:12px;padding:3px 8px}
+}

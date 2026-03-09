@@ -29,6 +29,11 @@
 <link rel="stylesheet" href="challenges/colorcode/colorcode.css">
 <link rel="stylesheet" href="challenges/quickmath/quickmath.css">
 <link rel="stylesheet" href="challenges/pattern/pattern.css">
+<link rel="stylesheet" href="challenges/oddoneout/oddoneout.css">
+<link rel="stylesheet" href="challenges/estimation/estimation.css">
+<link rel="stylesheet" href="challenges/hanoi/hanoi.css">
+<link rel="stylesheet" href="challenges/simon/simon.css">
+<link rel="stylesheet" href="challenges/chainword/chainword.css">
 </head>
 <body>
 <!-- LOCKOUT SCREEN -->
@@ -57,7 +62,7 @@
   <!-- SCREEN: Landing -->
   <div class="screen active" id="screen-landing">
     <div class="landing-title">Brain Sprint</div>
-    <div class="landing-sub">Seventeen challenges. One timer. How sharp are you today?</div>
+    <div class="landing-sub">Twenty-two challenges. One timer. How sharp are you today?</div>
     <div class="mode-cards">
       <div class="mode-card selected" onclick="selectMode('daily')" id="mode-daily">
         <div class="icon"><div class="cal-icon"><div class="cal-month" id="cal-month">JAN</div><div class="cal-day" id="cal-day">1</div></div></div>
@@ -123,7 +128,7 @@
     <div class="section-title">Choose Your Challenge</div>
     <div class="section-sub">Pick one or go for the Full Sprint</div>
     <button class="btn btn-outline btn-full btn-lg" id="btn-full-sprint" onclick="selectFullSprint()" style="margin-bottom:16px">
-      ⚡ Full Sprint — All 17 Challenges
+      ⚡ Full Sprint — All 22 Challenges
     </button>
     <div class="challenge-grid" id="challenge-grid">
       <div class="ch-category">Logic & Strategy</div>
@@ -215,6 +220,32 @@
         <div class="ch-name">Pattern Lock</div>
         <div class="ch-desc">Figure out the next number in the sequence</div>
       </div>
+      <div class="ch-category">Observation & Estimation</div>
+      <div class="challenge-card" onclick="toggleChallenge('oddoneout')" data-ch="oddoneout" id="card-oddoneout">
+        <div class="ch-icon">👁️</div>
+        <div class="ch-name">Odd One Out</div>
+        <div class="ch-desc">Spot the item that doesn't belong in the group</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('estimation')" data-ch="estimation" id="card-estimation">
+        <div class="ch-icon">📐</div>
+        <div class="ch-name">Estimation Station</div>
+        <div class="ch-desc">How close can you guess real-world numbers?</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('hanoi')" data-ch="hanoi" id="card-hanoi">
+        <div class="ch-icon">🗼</div>
+        <div class="ch-name">Tower of Hanoi</div>
+        <div class="ch-desc">Move all discs to the last peg in minimal moves</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('simon')" data-ch="simon" id="card-simon">
+        <div class="ch-icon">🔔</div>
+        <div class="ch-name">Simon Says</div>
+        <div class="ch-desc">Watch and repeat the growing color sequence</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('chainword')" data-ch="chainword" id="card-chainword">
+        <div class="ch-icon">🔗</div>
+        <div class="ch-name">Word Chain</div>
+        <div class="ch-desc">Build a chain — each word starts with the last letter</div>
+      </div>
     </div>
     <button class="btn btn-primary btn-full btn-lg" id="btn-start" onclick="startGame()" disabled style="margin-top:12px">Start Challenge</button>
   </div>
@@ -300,6 +331,11 @@
 <script src="challenges/colorcode/colorcode.js"></script>
 <script src="challenges/quickmath/quickmath.js"></script>
 <script src="challenges/pattern/pattern.js"></script>
+<script src="challenges/oddoneout/oddoneout.js"></script>
+<script src="challenges/estimation/estimation.js"></script>
+<script src="challenges/hanoi/hanoi.js"></script>
+<script src="challenges/simon/simon.js"></script>
+<script src="challenges/chainword/chainword.js"></script>
 
 <!-- Integration + Results + Stats + Init (must load after all challenges) -->
 <script src="shared/integration.js"></script>
