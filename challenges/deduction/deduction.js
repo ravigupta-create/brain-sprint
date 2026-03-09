@@ -10,8 +10,8 @@ function getDeductionPuzzle() {
   const emojis = rngShuffle(emojiPool).slice(0,6);
   const saboteurIdx = rngInt(0,5);
   const configs = {
-    easy:       { questionChoices: 3, lieChance: 0.25, twinCount: 1, clueQuality: 'direct', hideInfo: false, rounds: 5, noisyHonest: false },
-    medium:     { questionChoices: 3, lieChance: 0.4,  twinCount: 1, clueQuality: 'moderate', hideInfo: false, rounds: 5, noisyHonest: false },
+    easy:       { questionChoices: 3, lieChance: 0.25, twinCount: 0, clueQuality: 'direct', hideInfo: false, rounds: 5, noisyHonest: false },
+    medium:     { questionChoices: 3, lieChance: 0.4,  twinCount: 0, clueQuality: 'moderate', hideInfo: false, rounds: 5, noisyHonest: false },
     hard:       { questionChoices: 2, lieChance: 0.55, twinCount: 1, clueQuality: 'subtle', hideInfo: true, rounds: 5, noisyHonest: true },
     extreme:    { questionChoices: 2, lieChance: 0.65, twinCount: 2, clueQuality: 'minimal', hideInfo: true, rounds: 5, noisyHonest: true },
     impossible: { questionChoices: 2, lieChance: 0.5,  twinCount: 2, clueQuality: 'minimal', hideInfo: true, rounds: 4, noisyHonest: true }
