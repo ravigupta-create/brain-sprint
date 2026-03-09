@@ -57,6 +57,17 @@
   background:var(--accent);color:#fff;
   transform:scale(0.92);
 }
+/* Timer */
+.maze-countdown{color:var(--accent);font-weight:700}
+.maze-timer-low{color:var(--red)!important;animation:pulse 0.5s ease-in-out infinite}
+/* Optimal path replay */
+.maze-cell.maze-optimal{background:rgba(106,170,100,0.3);transition:background 0.15s}
+.maze-cell.maze-optimal-head{background:var(--green)}
+.maze-cell.maze-optimal-head::after{
+  content:'●';position:absolute;inset:2px;border-radius:50%;
+  background:var(--green);color:#fff;font-weight:800;
+  display:flex;align-items:center;justify-content:center;font-size:inherit;z-index:1;
+}
 @media(max-width:480px){
   .maze-cell{font-size:10px}
 }

@@ -3,16 +3,16 @@
 function getMazePuzzle() {
   const d = GS.difficulty;
   const configs = {
-    easy:    { rows: 7,  cols: 7,  timeBonus: 30 },
-    medium:  { rows: 11, cols: 11, timeBonus: 45 },
-    hard:    { rows: 15, cols: 15, timeBonus: 60 },
-    extreme: { rows: 19, cols: 19, timeBonus: 90 },
-    impossible: { rows: 25, cols: 25, timeBonus: 120 }
+    easy:    { rows: 7,  cols: 7,  timeBonus: 30, timeLimit: 0 },
+    medium:  { rows: 11, cols: 11, timeBonus: 45, timeLimit: 0 },
+    hard:    { rows: 15, cols: 15, timeBonus: 60, timeLimit: 90 },
+    extreme: { rows: 19, cols: 19, timeBonus: 90, timeLimit: 60 },
+    impossible: { rows: 25, cols: 25, timeBonus: 120, timeLimit: 25 }
   };
   const cfg = configs[d] || configs.medium;
   const walls = generateMaze(cfg.rows, cfg.cols, d === 'extreme' || d === 'impossible');
   const optimal = solveMaze(walls, cfg.rows, cfg.cols);
-  return { ...cfg, walls, optimalLen: optimal.length };
+  return { ...cfg, walls, optimalLen: optimal.length, optimalPath: optimal };
 }
 
 function generateMaze(rows, cols, deceptive) {
@@ -85,12 +85,13 @@ function renderMaze(puzzle) {
   GS.challengeState.maze = {
     puzzle, playerR: 0, playerC: 0, steps: 0,
     visited: Array.from({ length: puzzle.rows }, () => Array(puzzle.cols).fill(false)),
-    startTime: Date.now(), finished: false
+    startTime: Date.now(), finished: false, timeLeft: puzzle.timeLimit, timerId: null
   };
   GS.challengeState.maze.visited[0][0] = true;
 
+  const hasTimer = puzzle.timeLimit > 0 && GS.timerEnabled;
   let html = `<div style="padding:8px 0">`;
-  html += `<div class="maze-stats"><span id="maze-steps">Steps: 0</span><span id="maze-optimal">Optimal: ${puzzle.optimalLen - 1}</span></div>`;
+  html += `<div class="maze-stats"><span id="maze-steps">Steps: 0</span>${hasTimer ? `<span class="maze-countdown" id="maze-timer">${puzzle.timeLimit}s</span>` : ''}<span id="maze-optimal">Optimal: ${puzzle.optimalLen - 1}</span></div>`;
   html += `<div class="maze-grid" id="maze-grid" style="grid-template-columns:repeat(${puzzle.cols},${cellSize}px);grid-auto-rows:${cellSize}px">`;
   for (let r = 0; r < puzzle.rows; r++) {
     for (let cc = 0; cc < puzzle.cols; cc++) {
@@ -156,6 +157,23 @@ function renderMaze(puzzle) {
       moveMazePlayer(dy > 0 ? 1 : -1, 0);
     }
   }, { passive: true });
+
+  // Start countdown timer if applicable
+  if (hasTimer) {
+    const mst = GS.challengeState.maze;
+    mst.timerId = setInterval(() => {
+      mst.timeLeft--;
+      const tel = document.getElementById('maze-timer');
+      if (tel) {
+        tel.textContent = mst.timeLeft + 's';
+        if (mst.timeLeft <= 5) tel.classList.add('maze-timer-low');
+      }
+      if (mst.timeLeft <= 0) {
+        clearInterval(mst.timerId);
+        endMazeTimeout();
+      }
+    }, 1000);
+  }
 }
 
 function moveMazePlayer(dr, dc) {
@@ -218,9 +236,49 @@ function updateMazeVisuals() {
   }
 }
 
+function endMazeTimeout() {
+  const st = GS.challengeState.maze;
+  st.finished = true;
+  if (st.timerId) { clearInterval(st.timerId); st.timerId = null; }
+  if (st._keyHandler) { document.removeEventListener('keydown', st._keyHandler); st._keyHandler = null; }
+
+  const score = 0;
+  GS.results.maze = score;
+  if (GS.mode === 'daily') {
+    setDailyCompletion('maze', score);
+    lsSet('daily-maze-state-'+getDailyDateStr(), { steps: st.steps, optimalSteps: st.puzzle.optimalLen - 1, elapsed: 0, score: 0, pathEff: 0, timeBonus: 0 });
+  }
+
+  SFX.lose();
+  setTimeout(() => {
+    if (!document.getElementById('game-container')) return;
+    showChallengeSummary({
+      emoji: '⏱️',
+      score: 0,
+      title: "Time's Up!",
+      stats: [
+        { label: 'Steps taken', value: st.steps },
+        { label: 'Optimal', value: st.puzzle.optimalLen - 1 }
+      ]
+    });
+    // Add replay button
+    const panel = document.querySelector('.cs-panel');
+    if (panel) {
+      const continueBtn = panel.querySelector('.btn-primary');
+      const replayBtn = document.createElement('button');
+      replayBtn.className = 'btn btn-secondary btn-lg btn-full';
+      replayBtn.style.marginTop = '8px';
+      replayBtn.textContent = '🗺️ Show Optimal Path';
+      replayBtn.onclick = showMazeOptimalPath;
+      continueBtn.parentNode.insertBefore(replayBtn, continueBtn);
+    }
+  }, 400);
+}
+
 function endMazeGame() {
   const st = GS.challengeState.maze;
   st.finished = true;
+  if (st.timerId) { clearInterval(st.timerId); st.timerId = null; }
   if (st._keyHandler) { document.removeEventListener('keydown', st._keyHandler); st._keyHandler = null; }
 
   const elapsed = (Date.now() - st.startTime) / 1000;
@@ -248,6 +306,67 @@ function endMazeGame() {
         { label: 'Time bonus', value: `${timeBonus} pts` }
       ]
     });
+    // Add replay button if not optimal
+    if (st.steps > optimalSteps) {
+      const panel = document.querySelector('.cs-panel');
+      if (panel) {
+        const continueBtn = panel.querySelector('.btn-primary');
+        const replayBtn = document.createElement('button');
+        replayBtn.className = 'btn btn-secondary btn-lg btn-full';
+        replayBtn.style.marginTop = '8px';
+        replayBtn.textContent = '🗺️ Show Optimal Path';
+        replayBtn.onclick = showMazeOptimalPath;
+        continueBtn.parentNode.insertBefore(replayBtn, continueBtn);
+      }
+    }
   }, 400);
+}
+
+function showMazeOptimalPath() {
+  const st = GS.challengeState.maze;
+  const puzzle = st.puzzle;
+  const path = puzzle.optimalPath;
+  const c = document.getElementById('game-container');
+  const cellSize = Math.min(Math.floor((Math.min(window.innerWidth, 600) - 48) / puzzle.cols), 36);
+
+  let html = '<div style="padding:8px 0">';
+  html += `<div class="maze-stats"><span>Optimal Path</span><span>${path.length - 1} steps</span></div>`;
+  html += `<div class="maze-grid" id="maze-grid" style="grid-template-columns:repeat(${puzzle.cols},${cellSize}px);grid-auto-rows:${cellSize}px">`;
+  for (let r = 0; r < puzzle.rows; r++) {
+    for (let cc = 0; cc < puzzle.cols; cc++) {
+      const w = puzzle.walls[r][cc];
+      let cls = 'maze-cell';
+      if (w.top) cls += ' wall-top';
+      if (w.left) cls += ' wall-left';
+      if (cc === puzzle.cols - 1 && w.right) cls += ' wall-right';
+      if (r === puzzle.rows - 1 && w.bottom) cls += ' wall-bottom';
+      if (r > 0 && cc > 0 && !w.top && !w.left &&
+          puzzle.walls[r-1][cc].left && puzzle.walls[r][cc-1].top) cls += ' corner-tl';
+      let content = '';
+      if (r === 0 && cc === 0) content = '●';
+      if (r === puzzle.rows - 1 && cc === puzzle.cols - 1) content = '🏁';
+      html += `<div class="${cls}" id="mz-${r}-${cc}">${content}</div>`;
+    }
+  }
+  html += '</div>';
+  html += '<button class="btn btn-primary btn-lg btn-full" style="margin-top:16px" onclick="showNextOrFinish()">Continue →</button>';
+  html += '</div>';
+  c.innerHTML = html;
+  document.getElementById('btn-submit-challenge').style.display = 'none';
+
+  // Animate optimal path step by step
+  const delay = Math.max(40, Math.min(120, 600 / path.length));
+  path.forEach((step, i) => {
+    setTimeout(() => {
+      const cell = document.getElementById(`mz-${step.r}-${step.c}`);
+      if (!cell) return;
+      cell.classList.add('maze-optimal');
+      if (i > 0) {
+        const prev = document.getElementById(`mz-${path[i-1].r}-${path[i-1].c}`);
+        if (prev) prev.classList.remove('maze-optimal-head');
+      }
+      cell.classList.add('maze-optimal-head');
+    }, i * delay);
+  });
 }
 
