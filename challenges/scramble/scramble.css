@@ -1,0 +1,30 @@
+/* ===== CHALLENGE: WORD SCRAMBLE ===== */
+.scramble-game { max-width: 420px; margin: 0 auto; padding: 12px; text-align: center; }
+.scramble-header { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 14px; color: var(--fg2); font-weight: 600; }
+.scramble-letters { display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.scramble-letter {
+  width: 44px; height: 50px; display: flex; align-items: center; justify-content: center;
+  background: var(--accent); color: #fff; font-size: 22px; font-weight: 800;
+  border-radius: 8px; box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  animation: scrPop 0.3s ease backwards;
+}
+.scramble-letter:nth-child(1) { animation-delay: 0s; }
+.scramble-letter:nth-child(2) { animation-delay: 0.05s; }
+.scramble-letter:nth-child(3) { animation-delay: 0.1s; }
+.scramble-letter:nth-child(4) { animation-delay: 0.15s; }
+.scramble-letter:nth-child(5) { animation-delay: 0.2s; }
+.scramble-letter:nth-child(6) { animation-delay: 0.25s; }
+.scramble-letter:nth-child(7) { animation-delay: 0.3s; }
+.scramble-letter:nth-child(8) { animation-delay: 0.35s; }
+.scramble-solved { background: var(--green) !important; }
+.scramble-missed { background: var(--red) !important; }
+.scramble-hint { font-size: 13px; color: var(--fg2); margin-bottom: 12px; }
+.scramble-hint strong { color: var(--accent); }
+.scramble-input {
+  width: 100%; padding: 14px 16px; font-size: 20px; text-align: center;
+  border: 2px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--fg); outline: none; font-family: inherit;
+  letter-spacing: 2px; text-transform: lowercase; box-sizing: border-box;
+}
+.scramble-input:focus { border-color: var(--accent); }
+@keyframes scrPop { from { transform: scale(0) rotate(20deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }

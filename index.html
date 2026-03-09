@@ -34,6 +34,14 @@
 <link rel="stylesheet" href="challenges/hanoi/hanoi.css">
 <link rel="stylesheet" href="challenges/simon/simon.css">
 <link rel="stylesheet" href="challenges/chainword/chainword.css">
+<link rel="stylesheet" href="challenges/typing/typing.css">
+<link rel="stylesheet" href="challenges/reaction/reaction.css">
+<link rel="stylesheet" href="challenges/nummemory/nummemory.css">
+<link rel="stylesheet" href="challenges/stroop/stroop.css">
+<link rel="stylesheet" href="challenges/sliding/sliding.css">
+<link rel="stylesheet" href="challenges/spotdiff/spotdiff.css">
+<link rel="stylesheet" href="challenges/scramble/scramble.css">
+<link rel="stylesheet" href="challenges/math24/math24.css">
 </head>
 <body>
 <!-- LOCKOUT SCREEN -->
@@ -62,7 +70,8 @@
   <!-- SCREEN: Landing -->
   <div class="screen active" id="screen-landing">
     <div class="landing-title">Brain Sprint</div>
-    <div class="landing-sub">Twenty-two challenges. One timer. How sharp are you today?</div>
+    <div class="landing-sub">Thirty challenges. One timer. How sharp are you today?</div>
+    <div id="xp-bar-landing"></div>
     <div class="mode-cards">
       <div class="mode-card selected" onclick="selectMode('daily')" id="mode-daily">
         <div class="icon"><div class="cal-icon"><div class="cal-month" id="cal-month">JAN</div><div class="cal-day" id="cal-day">1</div></div></div>
@@ -128,7 +137,7 @@
     <div class="section-title">Choose Your Challenge</div>
     <div class="section-sub">Pick one or go for the Full Sprint</div>
     <button class="btn btn-outline btn-full btn-lg" id="btn-full-sprint" onclick="selectFullSprint()" style="margin-bottom:16px">
-      ⚡ Full Sprint — All 22 Challenges
+      ⚡ Full Sprint — All 30 Challenges
     </button>
     <div class="challenge-grid" id="challenge-grid">
       <div class="ch-category">Logic & Strategy</div>
@@ -246,6 +255,48 @@
         <div class="ch-name">Word Chain</div>
         <div class="ch-desc">Build a chain — each word starts with the last letter</div>
       </div>
+      <div class="ch-category">Reflexes & Speed</div>
+      <div class="challenge-card" onclick="toggleChallenge('typing')" data-ch="typing" id="card-typing">
+        <div class="ch-icon">⌨️</div>
+        <div class="ch-name">Typing Speed</div>
+        <div class="ch-desc">Type words as fast and accurately as you can</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('reaction')" data-ch="reaction" id="card-reaction">
+        <div class="ch-icon">🏎️</div>
+        <div class="ch-name">Reaction Time</div>
+        <div class="ch-desc">Wait for green, then click as fast as possible</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('stroop')" data-ch="stroop" id="card-stroop">
+        <div class="ch-icon">🌈</div>
+        <div class="ch-name">Stroop Test</div>
+        <div class="ch-desc">Name the color, not the word — harder than it sounds!</div>
+      </div>
+      <div class="ch-category">Puzzles & Math</div>
+      <div class="challenge-card" onclick="toggleChallenge('nummemory')" data-ch="nummemory" id="card-nummemory">
+        <div class="ch-icon">💭</div>
+        <div class="ch-name">Number Memory</div>
+        <div class="ch-desc">Remember increasingly long number sequences</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('sliding')" data-ch="sliding" id="card-sliding">
+        <div class="ch-icon">🧊</div>
+        <div class="ch-name">Sliding Puzzle</div>
+        <div class="ch-desc">Slide tiles into the correct order</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('spotdiff')" data-ch="spotdiff" id="card-spotdiff">
+        <div class="ch-icon">🔍</div>
+        <div class="ch-name">Spot the Diff</div>
+        <div class="ch-desc">Find all the differences between two grids</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('scramble')" data-ch="scramble" id="card-scramble">
+        <div class="ch-icon">🔀</div>
+        <div class="ch-name">Word Scramble</div>
+        <div class="ch-desc">Unscramble the jumbled letters to find the word</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('math24')" data-ch="math24" id="card-math24">
+        <div class="ch-icon">🎲</div>
+        <div class="ch-name">Math 24</div>
+        <div class="ch-desc">Use 4 numbers and +−×÷ to make exactly 24</div>
+      </div>
     </div>
     <div class="timer-toggle-row timer-toggle-global" id="global-timer-toggle">
       <span class="timer-toggle-label">⏱ All Timers</span>
@@ -278,6 +329,8 @@
       <div class="results-time" id="results-time"></div>
     </div>
     <div class="score-big" id="results-score">0</div>
+    <span class="grade-badge overall-grade" id="overall-grade-badge" style="display:none"></span>
+    <div class="xp-earned-row" id="xp-earned-row" style="display:none"></div>
     <div class="score-breakdown" id="score-breakdown"></div>
     <div class="multiplier-row">
       <span>Difficulty Multiplier</span>
@@ -291,7 +344,9 @@
   <!-- SCREEN: Stats -->
   <div class="screen" id="screen-stats">
     <div class="section-title">Your Stats</div>
+    <div id="stats-xp-bar"></div>
     <div class="stats-grid" id="stats-grid"></div>
+    <div id="streak-calendar"></div>
     <div class="section-sub" style="margin-top:16px">Last 7 Days</div>
     <div class="streak-bar" id="streak-bar"></div>
     <div id="history-list" style="margin-top:16px"></div>
@@ -316,6 +371,7 @@
 <script src="shared/sounds.js"></script>
 <script src="shared/core.js"></script>
 <script src="shared/achievements.js"></script>
+<script src="shared/xp.js"></script>
 <script src="shared/lockout.js"></script>
 <script src="shared/wordlists.js"></script>
 
@@ -344,6 +400,14 @@
 <script src="challenges/hanoi/hanoi.js"></script>
 <script src="challenges/simon/simon.js"></script>
 <script src="challenges/chainword/chainword.js"></script>
+<script src="challenges/typing/typing.js"></script>
+<script src="challenges/reaction/reaction.js"></script>
+<script src="challenges/nummemory/nummemory.js"></script>
+<script src="challenges/stroop/stroop.js"></script>
+<script src="challenges/sliding/sliding.js"></script>
+<script src="challenges/spotdiff/spotdiff.js"></script>
+<script src="challenges/scramble/scramble.js"></script>
+<script src="challenges/math24/math24.js"></script>
 
 <!-- Integration + Results + Stats + Init (must load after all challenges) -->
 <script src="shared/integration.js"></script>

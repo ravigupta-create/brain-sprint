@@ -1,0 +1,21 @@
+/* ===== CHALLENGE: SPOT THE DIFFERENCE ===== */
+.spotdiff-game { text-align: center; padding: 8px; }
+.spotdiff-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: var(--fg2); }
+.spotdiff-header strong { color: var(--fg); }
+.spotdiff-label { font-size: 12px; color: var(--fg2); text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 4px; font-weight: 600; }
+.spotdiff-grids { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.spotdiff-grid {
+  display: inline-grid; gap: 2px; background: var(--bg3);
+  padding: 4px; border-radius: var(--radius); border: 2px solid var(--border);
+}
+.sd-cell {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); border-radius: 4px; user-select: none;
+  transition: all 0.2s;
+}
+.sd-clickable { cursor: pointer; }
+.sd-clickable:hover { background: var(--accent-light); }
+.sd-found { background: var(--green) !important; opacity: 0.8; animation: sdPop 0.3s ease; }
+.sd-wrong { background: var(--red) !important; animation: sdShake 0.3s; }
+@keyframes sdPop { from { transform: scale(1.2); } to { transform: scale(1); } }
+@keyframes sdShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }

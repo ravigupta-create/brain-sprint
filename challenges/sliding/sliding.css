@@ -1,0 +1,21 @@
+/* ===== CHALLENGE: SLIDING PUZZLE ===== */
+.sliding-game { text-align: center; padding: 12px; }
+.sliding-info { margin-bottom: 12px; font-size: 16px; color: var(--fg2); }
+.sliding-info strong { color: var(--fg); }
+.sliding-grid {
+  display: inline-grid; gap: 3px; background: var(--bg3);
+  padding: 6px; border-radius: var(--radius-lg); border: 2px solid var(--border);
+}
+.sliding-cell {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; font-weight: 800; user-select: none;
+  transition: transform 0.12s ease, background 0.2s;
+}
+.sliding-tile {
+  background: var(--accent); color: #fff; cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.sliding-tile:hover { transform: scale(1.05); }
+.sliding-tile:active { transform: scale(0.95); }
+.sliding-correct { background: var(--green) !important; }
+.sliding-empty { background: transparent; }

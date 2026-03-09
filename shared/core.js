@@ -37,9 +37,9 @@ const GS = {
   attempts: {},
 };
 const MULTIPLIERS = { easy: 1, medium: 1.5, hard: 2, extreme: 3, impossible: 5 };
-const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch', colorcode:'Color Code', quickmath:'Quick Math', pattern:'Pattern Lock', oddoneout:'Odd One Out', estimation:'Estimation Station', hanoi:'Tower of Hanoi', simon:'Simon Says', chainword:'Word Chain' };
-const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮', colorcode:'🎯', quickmath:'⚡', pattern:'🔮', oddoneout:'👁️', estimation:'📐', hanoi:'🗼', simon:'🔔', chainword:'🔗' };
-const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch','colorcode','quickmath','pattern','oddoneout','estimation','hanoi','simon','chainword'];
+const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch', colorcode:'Color Code', quickmath:'Quick Math', pattern:'Pattern Lock', oddoneout:'Odd One Out', estimation:'Estimation Station', hanoi:'Tower of Hanoi', simon:'Simon Says', chainword:'Word Chain', typing:'Typing Speed', reaction:'Reaction Time', nummemory:'Number Memory', stroop:'Stroop Test', sliding:'Sliding Puzzle', spotdiff:'Spot the Diff', scramble:'Word Scramble', math24:'Math 24' };
+const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮', colorcode:'🎯', quickmath:'⚡', pattern:'🔮', oddoneout:'👁️', estimation:'📐', hanoi:'🗼', simon:'🔔', chainword:'🔗', typing:'⌨️', reaction:'🏎️', nummemory:'💭', stroop:'🌈', sliding:'🧊', spotdiff:'🔍', scramble:'🔀', math24:'🎲' };
+const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch','colorcode','quickmath','pattern','oddoneout','estimation','hanoi','simon','chainword','typing','reaction','nummemory','stroop','sliding','spotdiff','scramble','math24'];
 const COMPLETED_REVIEW_HANDLERS = {};
 
 // --- localStorage ---
@@ -597,6 +597,36 @@ function showCompletedPuzzleResults(ch, score) {
       if (saved.chain) {
         reviewHtml += '<div class="cs-mini-review">' + saved.chain.map(w => `<span class="cs-tag found">${w}</span>`).join(' → ') + '</div>';
       }
+    } else if (ch === 'typing') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Words</span><span class="cs-stat-value">${saved.correct} / ${saved.totalWords}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">WPM</span><span class="cs-stat-value">${saved.wpm}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Accuracy</span><span class="cs-stat-value">${saved.accuracy}%</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'reaction') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Average</span><span class="cs-stat-value">${saved.avg}ms</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Best</span><span class="cs-stat-value">${saved.best}ms</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'nummemory') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max level</span><span class="cs-stat-value">${saved.maxLevel}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max digits</span><span class="cs-stat-value">${saved.startLen + saved.maxLevel - 1}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'stroop') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.rounds}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Best streak</span><span class="cs-stat-value">${saved.bestStreak}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'sliding') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Moves</span><span class="cs-stat-value">${saved.moves}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Grid</span><span class="cs-stat-value">${saved.size}×${saved.size}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'spotdiff') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Found</span><span class="cs-stat-value">${saved.found} / ${saved.total}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'scramble') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.total}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'math24') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Solved</span><span class="cs-stat-value">${saved.correct} / ${saved.rounds}</span></div>`;
+      reviewHtml += '</div>';
     } else {
       reviewHtml += '</div>';
     }
@@ -639,4 +669,9 @@ function goToLanding() {
   GS.screenStack = ['screen-landing', 'screen-difficulty', 'screen-challenge-select'];
   showScreen('screen-challenge-select');
   updateChallengeSelectUI();
+  // Refresh XP bar on landing
+  const xpBarEl = document.getElementById('xp-bar-landing');
+  if (xpBarEl && typeof renderXPBar === 'function') {
+    xpBarEl.innerHTML = renderXPBar();
+  }
 }

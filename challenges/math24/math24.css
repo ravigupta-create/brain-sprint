@@ -1,0 +1,28 @@
+/* ===== CHALLENGE: MATH 24 ===== */
+.math24-game { max-width: 420px; margin: 0 auto; padding: 12px; text-align: center; }
+.math24-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: var(--fg2); font-weight: 600; }
+.math24-target { font-size: 16px; color: var(--fg2); margin-bottom: 12px; }
+.math24-24 { font-size: 36px; font-weight: 900; color: var(--accent); }
+.math24-numbers { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
+.math24-num {
+  width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+  font-size: 26px; font-weight: 800; border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  animation: m24Pop 0.4s ease backwards;
+}
+.math24-num:nth-child(1) { animation-delay: 0s; }
+.math24-num:nth-child(2) { animation-delay: 0.1s; }
+.math24-num:nth-child(3) { animation-delay: 0.2s; }
+.math24-num:nth-child(4) { animation-delay: 0.3s; }
+.math24-hint { font-size: 13px; color: var(--fg2); margin-bottom: 12px; }
+.math24-input {
+  width: 100%; padding: 14px 16px; font-size: 20px; text-align: center;
+  border: 2px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--fg); outline: none; font-family: 'Courier New', monospace;
+  box-sizing: border-box;
+}
+.math24-input:focus { border-color: var(--accent); }
+.math24-buttons { display: flex; gap: 8px; margin-top: 10px; }
+.math24-feedback { margin-top: 12px; font-size: 16px; font-weight: 700; min-height: 24px; }
+@keyframes m24Pop { from { transform: scale(0) rotate(-10deg); } to { transform: scale(1) rotate(0); } }

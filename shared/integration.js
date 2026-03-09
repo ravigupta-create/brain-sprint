@@ -198,6 +198,78 @@ const CHALLENGE_INSTRUCTIONS = {
       'Keep building the chain until you reach the target length or run out of time. No repeating words! Your score = chain length vs target'
     ],
     tip: 'Think ahead! Words ending in common letters (E, S, T, R) give you more options for the next word. Avoid words ending in uncommon letters like X, Z, or Q. On harder difficulties, the minimum word length is longer (4-5 letters) and you have less time per word.'
+  },
+  typing: {
+    steps: [
+      'Words appear on screen — your job is to type each one as fast and accurately as possible',
+      'Type the highlighted word and press Space or Enter to submit it and move to the next word',
+      'Correct characters turn green as you type, wrong ones turn red — fix mistakes before submitting',
+      'Complete as many words as you can before the timer runs out. Score is based on WPM, accuracy, and completion'
+    ],
+    tip: 'Focus on accuracy first, speed second — wrong words hurt your score more than slow typing. On harder difficulties, the words are longer and more complex. The input field auto-focuses, so just start typing!'
+  },
+  reaction: {
+    steps: [
+      'Tap the colored zone to begin. It will turn RED — wait patiently!',
+      'After a random delay (1-5 seconds), the zone turns GREEN — tap/click as fast as possible!',
+      'Your reaction time is measured in milliseconds. Under 250ms is excellent, under 350ms is good',
+      'If you tap during the red phase (too early), you get a penalty and must retry that round'
+    ],
+    tip: 'Rest your finger near the screen and focus on the color change. Don\'t try to predict the timing — that leads to "too early" penalties. On harder difficulties, you need faster reaction times to score well.'
+  },
+  nummemory: {
+    steps: [
+      'A number appears on screen for a few seconds — memorize it!',
+      'The number disappears and you must type it back from memory',
+      'If correct, you advance to the next level with a LONGER number. If wrong, you lose a life',
+      'The game ends when you run out of lives. Your score depends on the highest level you reached'
+    ],
+    tip: 'Try chunking the digits into groups (like a phone number: 555-1234). On Easy you start with 3 digits and have 3 lives. On Impossible you start with 7 digits and only have 1 life!'
+  },
+  stroop: {
+    steps: [
+      'A color word (like "RED") appears — but it\'s displayed in a DIFFERENT color (like blue text)',
+      'Your task: select the COLOR that the text is DISPLAYED IN, not what the word says',
+      'For example, if you see "RED" written in blue text, you should pick BLUE',
+      'Work fast! Each round has a time limit and wrong answers break your streak'
+    ],
+    tip: 'This is the famous Stroop Effect — your brain automatically reads the word, making it hard to identify the color. Try to blur your focus so you see the color without reading the word. On harder difficulties, more colors are added and time is shorter.'
+  },
+  sliding: {
+    steps: [
+      'A grid of numbered tiles is shuffled, with one empty space',
+      'Your goal: arrange all numbers in order (1, 2, 3... from top-left to bottom-right)',
+      'Tap any tile adjacent to the empty space to slide it into that space',
+      'Solve the puzzle in as few moves as possible — your score is based on move efficiency'
+    ],
+    tip: 'Work row by row from the top. First get the top row in order, then the second row, etc. On Easy/Medium it\'s a 3x3 grid (8-puzzle), Hard/Extreme is 4x4 (15-puzzle), and Impossible is 5x5 (24-puzzle)!'
+  },
+  spotdiff: {
+    steps: [
+      'Two emoji grids are shown — the "Original" and the "Modified" version',
+      'Some emojis have been swapped in the modified grid — find all the differences!',
+      'Tap on the changed emojis in the MODIFIED (bottom) grid to mark them as found',
+      'Find all differences before time runs out. Tapping a non-difference flashes red'
+    ],
+    tip: 'Scan row by row systematically rather than looking randomly. On harder difficulties, the grid is bigger and there are more differences to find with less time.'
+  },
+  scramble: {
+    steps: [
+      'Jumbled letters appear on screen — they spell a real word, but scrambled!',
+      'Figure out the word and type it in the input field, then press Submit',
+      'You play multiple rounds with different words. Each correct word earns points',
+      'If you\'re stuck, press Skip to see the answer and move on (but you won\'t score for that round)'
+    ],
+    tip: 'Look for common letter patterns (TH, ING, TION, etc.) in the scrambled letters. On Easy, you get a hint showing the first letters. On harder difficulties, the words are longer and you have less time per word.'
+  },
+  math24: {
+    steps: [
+      'Four numbers are shown. Your goal: combine ALL four using +, −, ×, ÷ to make exactly 24',
+      'Type a math expression using the given numbers (e.g., "(8-2)*(5-1)" = 24)',
+      'You must use each number exactly once. Parentheses are allowed and encouraged!',
+      'Press Check to verify your answer, or Skip to see the solution and move on'
+    ],
+    tip: 'Common strategies: try to make 6×4, 8×3, 12×2, or 24×1 from the four numbers. Multiplication and division often work better than addition. Every puzzle is guaranteed to have at least one solution!'
   }
 };
 
@@ -289,6 +361,14 @@ function beginChallenge() {
     case 'hanoi': renderHanoi(getHanoiPuzzle()); break;
     case 'simon': renderSimon(getSimonPuzzle()); break;
     case 'chainword': renderChainword(getChainwordPuzzle()); break;
+    case 'typing': renderTyping(getTypingPuzzle()); break;
+    case 'reaction': renderReaction(getReactionPuzzle()); break;
+    case 'nummemory': renderNumMemory(getNumMemoryPuzzle()); break;
+    case 'stroop': renderStroop(getStroopPuzzle()); break;
+    case 'sliding': renderSliding(getSlidingPuzzle()); break;
+    case 'spotdiff': renderSpotDiff(getSpotDiffPuzzle()); break;
+    case 'scramble': renderScramble(getScramblePuzzle()); break;
+    case 'math24': renderMath24(getMath24Puzzle()); break;
   }
 }
 

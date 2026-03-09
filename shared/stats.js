@@ -61,6 +61,16 @@ function renderStatsScreen() {
     }
     requestAnimationFrame(tick);
   });
+
+  // XP bar in stats
+  const xpBarEl = document.getElementById('stats-xp-bar');
+  if (xpBarEl && typeof renderXPBar === 'function') {
+    xpBarEl.innerHTML = renderXPBar();
+  }
+
+  // Streak calendar (current month)
+  renderStreakCalendar();
+
   // Last 7 days streak bar
   const bar = document.getElementById('streak-bar');
   let barHtml = '';
@@ -73,32 +83,83 @@ function renderStatsScreen() {
     barHtml += `<div class="streak-day ${done?'done':''} ${isToday?'today':''}" title="${dStr}"></div>`;
   }
   bar.innerHTML = barHtml;
+
   // History
   const history = getHistory();
   const histDiv = document.getElementById('history-list');
   if (history.length === 0) {
     histDiv.innerHTML = '<div style="color:var(--fg2);text-align:center">No games yet</div>';
-    return;
+  } else {
+    let histHtml = '<div class="section-sub">Recent Games</div>';
+    history.slice(0, 10).forEach((h, i) => {
+      const emojis = h.challenges.map(ch => CHALLENGE_ICONS[ch] || '❓').join('');
+      const grade = typeof getGrade === 'function' && h.challenges.length > 0
+        ? getGrade(Math.round(Object.values(h.results || {}).reduce((a,b)=>a+b,0) / h.challenges.length))
+        : '';
+      histHtml += `<div class="score-row" style="animation-delay:${0.1 + i * 0.06}s">
+        <div class="ch-info">
+          <span class="ch-icon-sm">${emojis.slice(0, 12)}${emojis.length > 12 ? '…' : ''}</span>
+          <span class="ch-label">${h.date} (${h.mode}/${h.difficulty})</span>
+        </div>
+        <span class="ch-score">${h.score}${grade ? ' <span class="grade-badge grade-'+grade+'" style="width:24px;height:24px;font-size:12px">'+grade+'</span>' : ''}</span>
+      </div>`;
+    });
+    histDiv.innerHTML = histHtml;
   }
-  let histHtml = '<div class="section-sub">Recent Games</div>';
-  history.slice(0, 10).forEach((h, i) => {
-    const emojis = h.challenges.map(ch => CHALLENGE_ICONS[ch]).join('');
-    histHtml += `<div class="score-row" style="animation-delay:${0.1 + i * 0.06}s">
-      <div class="ch-info">
-        <span class="ch-icon-sm">${emojis}</span>
-        <span class="ch-label">${h.date} (${h.mode}/${h.difficulty})</span>
-      </div>
-      <span class="ch-score">${h.score} — ${h.timeStr || formatTime(h.time)}</span>
-    </div>`;
-  });
-  histDiv.innerHTML = histHtml;
 
   // Achievements
   const achDiv = document.getElementById('achievements-section');
   if (achDiv) achDiv.innerHTML = renderAchievementsSection();
 }
 
+function renderStreakCalendar() {
+  const calDiv = document.getElementById('streak-calendar');
+  if (!calDiv) return;
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dayLabels = ['S','M','T','W','T','F','S'];
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = now.getDate();
+
+  let html = `<div class="streak-calendar">
+    <div class="streak-cal-header">
+      <span class="streak-cal-title">Activity Calendar</span>
+      <span class="streak-cal-month">${monthNames[month]} ${year}</span>
+    </div>
+    <div class="streak-cal-grid">`;
+
+  // Day labels
+  dayLabels.forEach(d => {
+    html += `<div class="streak-cal-day-label">${d}</div>`;
+  });
+
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="streak-cal-cell empty"></div>`;
+  }
+
+  // Days of month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dailyData = lsGet('daily-' + dateStr, null);
+    const played = dailyData !== null;
+    const isToday = d === today;
+    const isFuture = d > today;
+    let cls = 'streak-cal-cell';
+    if (played) cls += ' played';
+    if (isToday) cls += ' today';
+    if (isFuture) cls += ' future';
+    html += `<div class="${cls}" title="${dateStr}">${d}</div>`;
+  }
+
+  html += `</div></div>`;
+  calDiv.innerHTML = html;
+}
+
 function closeStats() {
   document.getElementById('stats-modal').classList.remove('active');
 }
-

@@ -1,0 +1,24 @@
+/* ===== CHALLENGE: STROOP TEST ===== */
+.stroop-game { max-width: 420px; margin: 0 auto; padding: 12px; text-align: center; }
+.stroop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: var(--fg2); }
+.stroop-streak { color: var(--orange); font-size: 16px; }
+.stroop-instruction { font-size: 14px; color: var(--fg2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.stroop-word {
+  font-size: 56px; font-weight: 900; margin: 20px 0; line-height: 1.2;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.1); animation: stroopPop 0.25s ease;
+  user-select: none;
+}
+.stroop-timer-bar { height: 4px; background: var(--bg3); border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
+.stroop-timer-fill { height: 100%; width: 100%; background: var(--accent); border-radius: 2px; }
+.stroop-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.stroop-btn {
+  padding: 14px 8px; border: none; border-radius: var(--radius); color: #fff;
+  font-size: 14px; font-weight: 800; cursor: pointer; transition: transform 0.1s, opacity 0.1s;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.stroop-btn:active { transform: scale(0.95); }
+.stroop-btn:disabled { opacity: 0.5; cursor: default; }
+.stroop-correct-btn { outline: 3px solid #fff; outline-offset: -3px; animation: stroopFlash 0.3s; }
+.stroop-wrong-btn { opacity: 0.3; }
+@keyframes stroopPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes stroopFlash { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }

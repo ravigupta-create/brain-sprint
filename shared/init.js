@@ -12,6 +12,11 @@ function init() {
   document.getElementById('cal-month').textContent = months[d.getMonth()];
   document.getElementById('cal-day').textContent = d.getDate();
   document.getElementById('daily-label').textContent = `${monthsFull[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  // XP bar on landing
+  const xpBarEl = document.getElementById('xp-bar-landing');
+  if (xpBarEl && typeof renderXPBar === 'function') {
+    xpBarEl.innerHTML = renderXPBar();
+  }
   // Check if daily already done
   if (GS.mode === 'daily') {
     const daily = getDailyCompletion();
