@@ -105,6 +105,9 @@ function getNumgridPuzzle() {
 
 function renderNumgrid(data) {
   const { puzzle, solution, size, boxR, boxC } = data;
+  // Clean up old handler before overwriting state
+  if (GS.challengeState._keyHandler) document.removeEventListener('keydown', GS.challengeState._keyHandler);
+
   GS.challengeState = {
     puzzle: puzzle.map(r => [...r]),
     solution,
@@ -140,9 +143,6 @@ function renderNumgrid(data) {
   html += `</div>`;
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'inline-flex';
-
-  // Keyboard support — cleanup old handler first
-  if (GS.challengeState._keyHandler) document.removeEventListener('keydown', GS.challengeState._keyHandler);
   GS.challengeState._keyHandler = (e) => {
     const num = parseInt(e.key);
     if (num >= 1 && num <= size) numgridInput(num);

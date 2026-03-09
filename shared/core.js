@@ -250,6 +250,7 @@ function screenFlash(type) {
 
 // --- Landing Particle System ---
 let _particleRAF = null;
+let _particleResizeHandler = null;
 function startLandingParticles() {
   let canvas = document.getElementById('landing-particles');
   if (!canvas) {
@@ -263,6 +264,8 @@ function startLandingParticles() {
   const count = 30;
   function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
   resize();
+  if (_particleResizeHandler) window.removeEventListener('resize', _particleResizeHandler);
+  _particleResizeHandler = resize;
   window.addEventListener('resize', resize);
   const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#6366f1';
   for (let i = 0; i < count; i++) {
@@ -308,6 +311,7 @@ function startLandingParticles() {
 }
 function stopLandingParticles() {
   if (_particleRAF) { cancelAnimationFrame(_particleRAF); _particleRAF = null; }
+  if (_particleResizeHandler) { window.removeEventListener('resize', _particleResizeHandler); _particleResizeHandler = null; }
   const canvas = document.getElementById('landing-particles');
   if (canvas) canvas.style.display = 'none';
 }

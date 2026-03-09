@@ -91,8 +91,11 @@ function getWordhivePuzzle() {
 
 function renderWordhive(data) {
   const { center, outer, validWords, target, minLen } = data;
+  // Clean up old handler before overwriting state
+  if (GS.challengeState._keyHandler) document.removeEventListener('keydown', GS.challengeState._keyHandler);
+
   GS.challengeState = {
-    center, outer: [...outer], validWords, target, minLen: minLen || 5,
+    center, outer: [...outer], validWords, target, minLen: minLen || 3,
     input: '',
     found: [],
     message: ''
@@ -114,9 +117,6 @@ function renderWordhive(data) {
 
   updateWordhiveHiveUI();
   document.getElementById('btn-submit-challenge').style.display = 'inline-flex';
-
-  // Keyboard support — cleanup old handler first
-  if (GS.challengeState._keyHandler) document.removeEventListener('keydown', GS.challengeState._keyHandler);
   GS.challengeState._keyHandler = (e) => {
     if (e.key === 'Enter') { wordhiveEnter(); return; }
     if (e.key === 'Backspace') { wordhiveDelete(); return; }
@@ -238,7 +238,7 @@ function submitWordhive() {
   GS.results.wordhive = score;
   if (GS.mode === 'daily') {
     setDailyCompletion('wordhive', score);
-    lsSet('daily-wordhive-state-'+getDailyDateStr(), { found: st.found, target: st.target, validWords: st.validWords, centerLetter: st.centerLetter, letters: st.letters });
+    lsSet('daily-wordhive-state-'+getDailyDateStr(), { found: st.found, target: st.target, validWords: st.validWords, centerLetter: st.center, letters: st.outer });
   }
 
   // Show results

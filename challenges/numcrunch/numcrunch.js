@@ -110,7 +110,8 @@ function renderNumcrunch(puzzle) {
   c.innerHTML = html;
   document.getElementById('btn-submit-challenge').style.display = 'none';
   state._keyHandler = function(e) {
-    if (document.getElementById('lockout-screen').style.display !== 'none') return;
+    const lockout = document.getElementById('lockout-screen');
+    if (lockout && lockout.style.display !== 'none') return;
     if (state.gameOver) return;
     if (e.key === 'Enter' || e.key === 'Return') { numcrunchKeyPress('ENTER'); e.preventDefault(); }
     else if (e.key === 'Backspace' || e.key === 'Delete') { numcrunchKeyPress('DEL'); e.preventDefault(); }

@@ -88,7 +88,7 @@ function generatePatternRound(cfg, diff) {
   const choices = [answer];
   const offsets = [-3, -2, -1, 1, 2, 3, 5, 7, -5, 10, -10];
   while (choices.length < cfg.choices) {
-    const offset = offsets[Math.floor(Math.random() * offsets.length)];
+    const offset = offsets[Math.floor(GS.rng() * offsets.length)];
     const wrong = answer + offset;
     if (wrong > 0 && !choices.includes(wrong)) choices.push(wrong);
   }

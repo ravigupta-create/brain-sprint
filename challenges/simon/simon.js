@@ -94,6 +94,7 @@ function playSimonSequence() {
   const speed = st.puzzle.speed;
 
   function playNext() {
+    if (st.gameOver) return;
     if (i >= st.sequence.length) {
       st.playing = false;
       st.inputEnabled = true;
@@ -196,6 +197,7 @@ function simonPlayerTap(idx) {
     st.playerInput = [];
 
     setTimeout(() => {
+      if (st.gameOver) return;
       drawSimon();
       setTimeout(() => playSimonSequence(), 600);
     }, 1000);

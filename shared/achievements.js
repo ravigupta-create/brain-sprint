@@ -80,7 +80,7 @@ function checkAchievements(finalScore) {
   // High roller (1000+ score in session)
   if (finalScore >= 1000) unlockAchievement('score_1000');
 
-  // Daily complete (all 17 daily challenges done)
+  // Daily complete (all daily challenges done)
   if (GS.mode === 'daily') {
     const daily = getDailyCompletion();
     if (CHALLENGE_ORDER.every(ch => daily[ch] !== undefined)) unlockAchievement('daily_complete');
