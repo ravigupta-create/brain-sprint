@@ -137,7 +137,7 @@ function addHistory(entry) {
   if (h.length > 30) h.length = 30;
   lsSet('history', h);
 }
-function getPrefs() { return lsGet('prefs', { theme:'light', lastDiff:'medium', timerEnabled:true }); }
+function getPrefs() { return lsGet('prefs', { theme:'light', lastDiff:'medium', timerEnabled:true, challengeTimers:{} }); }
 function savePrefs(p) { lsSet('prefs', p); }
 
 // --- Theme ---
@@ -398,6 +398,13 @@ function goToChallengeSelect() {
 }
 
 function updateChallengeSelectUI() {
+  // Sync global timer toggle
+  const prefs = getPrefs();
+  const globalOn = prefs.timerEnabled !== false;
+  const gcb = document.getElementById('global-timer-cb');
+  if (gcb) gcb.checked = globalOn;
+  const gst = document.getElementById('global-timer-status');
+  if (gst) { gst.textContent = globalOn ? 'ON' : 'OFF'; gst.className = 'timer-toggle-status ' + (globalOn ? 'on' : 'off'); }
   const daily = getDailyCompletion();
   document.querySelectorAll('.challenge-card').forEach(c => {
     const ch = c.dataset.ch;

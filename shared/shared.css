@@ -474,6 +474,7 @@ input[type=range]::-webkit-slider-thumb{
 }
 .toggle-switch input:checked + .toggle-slider{background:var(--green)}
 .toggle-switch input:checked + .toggle-slider::before{transform:translateX(22px)}
+.timer-toggle-global{margin-top:12px;margin-bottom:0}
 .timer-note{
   font-size:12px;color:var(--fg2);font-style:italic;
   margin-bottom:16px;text-align:center;

@@ -247,6 +247,14 @@
         <div class="ch-desc">Build a chain — each word starts with the last letter</div>
       </div>
     </div>
+    <div class="timer-toggle-row timer-toggle-global" id="global-timer-toggle">
+      <span class="timer-toggle-label">⏱ All Timers</span>
+      <span class="timer-toggle-status on" id="global-timer-status">ON</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="global-timer-cb" checked onchange="toggleGlobalTimer()">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
     <button class="btn btn-primary btn-full btn-lg" id="btn-start" onclick="startGame()" disabled style="margin-top:12px">Start Challenge</button>
   </div>
 

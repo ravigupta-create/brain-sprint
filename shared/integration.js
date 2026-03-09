@@ -240,11 +240,12 @@ function loadCurrentChallenge() {
   if (ch === 'pulse') {
     html += `<div class="timer-note">⏱ Timer cannot be disabled — timing is the gameplay!</div>`;
   } else {
+    const chTimerOn = getChallengeTimer(ch);
     html += `<div class="timer-toggle-row">
       <span class="timer-toggle-label">⏱ Timer</span>
-      <span class="timer-toggle-status ${GS.timerEnabled ? 'on' : 'off'}" id="timer-status">${GS.timerEnabled ? 'ON' : 'OFF'}</span>
+      <span class="timer-toggle-status ${chTimerOn ? 'on' : 'off'}" id="timer-status">${chTimerOn ? 'ON' : 'OFF'}</span>
       <label class="toggle-switch">
-        <input type="checkbox" id="timer-toggle" ${GS.timerEnabled ? 'checked' : ''} onchange="toggleTimerPref()">
+        <input type="checkbox" id="timer-toggle" ${chTimerOn ? 'checked' : ''} onchange="toggleChallengeTimer('${ch}')">
         <span class="toggle-slider"></span>
       </label>
     </div>`;
@@ -258,7 +259,10 @@ function loadCurrentChallenge() {
 }
 
 function beginChallenge() {
-  // Start timer on first challenge
+  // Set timer state for this specific challenge
+  const ch = GS.selectedChallenges[GS.currentChallengeIdx];
+  GS.timerEnabled = (ch === 'pulse') ? true : getChallengeTimer(ch);
+  // Start global elapsed timer on first challenge
   if (GS.currentChallengeIdx === 0 && !GS.timerRunning) {
     startTimer();
   }
@@ -327,16 +331,37 @@ function nextChallenge() {
   loadCurrentChallenge();
 }
 
-function toggleTimerPref() {
-  const cb = document.getElementById('timer-toggle');
-  GS.timerEnabled = cb.checked;
+function getChallengeTimer(ch) {
   const p = getPrefs();
-  p.timerEnabled = GS.timerEnabled;
+  if (!p.challengeTimers) p.challengeTimers = {};
+  return ch in p.challengeTimers ? p.challengeTimers[ch] : p.timerEnabled !== false;
+}
+
+function toggleChallengeTimer(ch) {
+  const cb = document.getElementById('timer-toggle');
+  const p = getPrefs();
+  if (!p.challengeTimers) p.challengeTimers = {};
+  p.challengeTimers[ch] = cb.checked;
   savePrefs(p);
   const status = document.getElementById('timer-status');
   if (status) {
-    status.textContent = GS.timerEnabled ? 'ON' : 'OFF';
-    status.className = 'timer-toggle-status ' + (GS.timerEnabled ? 'on' : 'off');
+    status.textContent = cb.checked ? 'ON' : 'OFF';
+    status.className = 'timer-toggle-status ' + (cb.checked ? 'on' : 'off');
+  }
+}
+
+function toggleGlobalTimer() {
+  const cb = document.getElementById('global-timer-cb');
+  const on = cb.checked;
+  const p = getPrefs();
+  p.timerEnabled = on;
+  p.challengeTimers = {}; // reset all per-challenge overrides
+  savePrefs(p);
+  GS.timerEnabled = on;
+  const status = document.getElementById('global-timer-status');
+  if (status) {
+    status.textContent = on ? 'ON' : 'OFF';
+    status.className = 'timer-toggle-status ' + (on ? 'on' : 'off');
   }
 }
 
