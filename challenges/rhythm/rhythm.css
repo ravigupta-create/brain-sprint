@@ -1,0 +1,30 @@
+/* ===== CHALLENGE: RHYTHM TAP ===== */
+.rhythm-game { text-align: center; padding: 12px; max-width: 420px; margin: 0 auto; }
+.rhythm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.rhythm-level { font-size: 14px; font-weight: 700; color: var(--accent); }
+.rhythm-instruction { font-size: 16px; font-weight: 600; color: var(--fg); margin-bottom: 16px; min-height: 24px; }
+.rhythm-visual { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+.rhythm-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg3); border: 2px solid var(--border);
+  transition: all 0.15s;
+}
+.rhythm-dot-active {
+  background: var(--accent) !important; border-color: var(--accent) !important;
+  transform: scale(1.3); box-shadow: 0 0 12px rgba(99,102,241,0.5);
+}
+.rhythm-dot-player {
+  background: var(--green) !important; border-color: var(--green) !important;
+  transform: scale(1.2);
+}
+.rhythm-pad {
+  width: 100%; min-height: 150px; background: var(--bg2);
+  border: 3px solid var(--border); border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; transition: all 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rhythm-pad:active, .rhythm-pad-pulse {
+  transform: scale(0.97); background: var(--accent-light); border-color: var(--accent);
+}
+.rhythm-pad-text { font-size: 20px; font-weight: 700; color: var(--fg2); }

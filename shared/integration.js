@@ -270,6 +270,78 @@ const CHALLENGE_INSTRUCTIONS = {
       'Press Check to verify your answer, or Skip to see the solution and move on'
     ],
     tip: 'Common strategies: try to make 6×4, 8×3, 12×2, or 24×1 from the four numbers. Multiplication and division often work better than addition. Every puzzle is guaranteed to have at least one solution!'
+  },
+  aim: {
+    steps: [
+      'Red targets appear at random positions in the arena — click/tap each one as fast as you can!',
+      'Each target you hit counts as a score. Clicking empty space counts as a miss',
+      'Targets get slightly smaller as you progress, requiring more precision',
+      'Hit all targets before time runs out. Score is based on completion rate and accuracy'
+    ],
+    tip: 'Keep your eyes on the center and use peripheral vision to spot targets. On harder difficulties, targets are smaller and shrink faster. Focus on accuracy over speed — misses hurt your score!'
+  },
+  vismemory: {
+    steps: [
+      'A grid of tiles flashes — some tiles briefly turn blue. Memorize which ones!',
+      'After the tiles hide, tap all the tiles that were blue from memory',
+      'Each correct tap is a hit. Tapping a wrong tile costs a life',
+      'Each level adds more tiles to remember. How far can you go?'
+    ],
+    tip: 'Try to see the shape formed by the blue tiles rather than memorizing each one individually. On harder difficulties, tiles flash for less time and you start with more tiles to remember.'
+  },
+  chimp: {
+    steps: [
+      'Numbers appear on a grid (1, 2, 3, etc.). Memorize their positions!',
+      'Click number 1 first — this hides all the numbers behind blank squares',
+      'Now click the remaining squares in numerical order (2, 3, 4...) from memory',
+      'Each level adds one more number. A wrong click costs a life'
+    ],
+    tip: 'This is based on the famous experiment where chimps outperformed humans! Try to take a mental "snapshot" of the grid. Focus on the positions of the first few numbers — the rest often follow a spatial pattern.'
+  },
+  rotation: {
+    steps: [
+      'A reference shape (made of blocks) is shown at the top',
+      'Below it are several options — one is the SAME shape, just rotated',
+      'Your job: pick the one that matches the reference when rotated (turned)',
+      'Careful on Hard+: some options are MIRROR images, which look similar but are flipped!'
+    ],
+    tip: 'Try mentally rotating the reference shape 90° at a time and comparing. Look at distinctive features like corners or protruding blocks. Mirrored shapes cannot be rotated to match — they\'re flipped!'
+  },
+  pathtracer: {
+    steps: [
+      'Dots on a grid light up one by one, tracing a path. Watch carefully!',
+      'After the path finishes, it\'s your turn — tap the dots in the same order',
+      'Get it right and the path gets longer next level. Get it wrong and you lose a life',
+      'The path is always connected (each dot is adjacent to the previous one)'
+    ],
+    tip: 'Try to follow the path with your eyes and remember the "direction" changes (up, right, down, etc.) rather than individual positions. On harder difficulties, paths are shown faster.'
+  },
+  association: {
+    steps: [
+      'A word is shown (like "Ocean"). Pick the word most closely related to it',
+      'Choose from the options below — only one is the best match',
+      'Speed matters! Each round has a time limit. A streak bonus rewards consecutive correct answers',
+      'Trust your first instinct — overthinking often leads to wrong answers'
+    ],
+    tip: 'Think about what word you would naturally say after the prompt word. Look for functional relationships (telescope→star) over loose connections. On harder difficulties, more distractors are added.'
+  },
+  sortrace: {
+    steps: [
+      'A list of items is shown in random order — they belong to a known sequence',
+      'Use the arrow buttons to move items up/down until they\'re in the correct order',
+      'The category tells you the sorting rule (e.g., "Planets from Sun" or "Largest first")',
+      'Press Check Order when done. Correct = points, wrong = see the answer'
+    ],
+    tip: 'Read the category carefully — it tells you exactly how to sort. "Ascending" means smallest first. If you\'re unsure about an item\'s position, place the ones you\'re certain about first.'
+  },
+  rhythm: {
+    steps: [
+      'Listen to a short rhythm pattern — beats play with specific timing between them',
+      'Each beat lights up a dot and plays a tone so you can see AND hear the rhythm',
+      'When it\'s your turn, tap the pad to reproduce the exact same timing',
+      'Your timing accuracy is measured. Each level adds one more beat'
+    ],
+    tip: 'Close your eyes and focus on the GAPS between beats — that\'s what matters most. Tap with the same pauses between your taps as you heard. On harder difficulties, the timing tolerance is tighter.'
   }
 };
 
@@ -369,6 +441,14 @@ function beginChallenge() {
     case 'spotdiff': renderSpotDiff(getSpotDiffPuzzle()); break;
     case 'scramble': renderScramble(getScramblePuzzle()); break;
     case 'math24': renderMath24(getMath24Puzzle()); break;
+    case 'aim': renderAim(getAimPuzzle()); break;
+    case 'vismemory': renderVisMemory(getVisMemoryPuzzle()); break;
+    case 'chimp': renderChimp(getChimpPuzzle()); break;
+    case 'rotation': renderRotation(getRotationPuzzle()); break;
+    case 'pathtracer': renderPathTracer(getPathTracerPuzzle()); break;
+    case 'association': renderAssociation(getAssociationPuzzle()); break;
+    case 'sortrace': renderSortRace(getSortRacePuzzle()); break;
+    case 'rhythm': renderRhythm(getRhythmPuzzle()); break;
   }
 }
 

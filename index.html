@@ -42,6 +42,14 @@
 <link rel="stylesheet" href="challenges/spotdiff/spotdiff.css">
 <link rel="stylesheet" href="challenges/scramble/scramble.css">
 <link rel="stylesheet" href="challenges/math24/math24.css">
+<link rel="stylesheet" href="challenges/aim/aim.css">
+<link rel="stylesheet" href="challenges/vismemory/vismemory.css">
+<link rel="stylesheet" href="challenges/chimp/chimp.css">
+<link rel="stylesheet" href="challenges/rotation/rotation.css">
+<link rel="stylesheet" href="challenges/pathtracer/pathtracer.css">
+<link rel="stylesheet" href="challenges/association/association.css">
+<link rel="stylesheet" href="challenges/sortrace/sortrace.css">
+<link rel="stylesheet" href="challenges/rhythm/rhythm.css">
 </head>
 <body>
 <!-- LOCKOUT SCREEN -->
@@ -70,7 +78,7 @@
   <!-- SCREEN: Landing -->
   <div class="screen active" id="screen-landing">
     <div class="landing-title">Brain Sprint</div>
-    <div class="landing-sub">Thirty challenges. One timer. How sharp are you today?</div>
+    <div class="landing-sub">Thirty-eight challenges. One timer. How sharp are you today?</div>
     <div id="xp-bar-landing"></div>
     <div class="mode-cards">
       <div class="mode-card selected" onclick="selectMode('daily')" id="mode-daily">
@@ -137,7 +145,7 @@
     <div class="section-title">Choose Your Challenge</div>
     <div class="section-sub">Pick one or go for the Full Sprint</div>
     <button class="btn btn-outline btn-full btn-lg" id="btn-full-sprint" onclick="selectFullSprint()" style="margin-bottom:16px">
-      ⚡ Full Sprint — All 30 Challenges
+      ⚡ Full Sprint — All 38 Challenges
     </button>
     <div class="challenge-grid" id="challenge-grid">
       <div class="ch-category">Logic & Strategy</div>
@@ -297,6 +305,49 @@
         <div class="ch-name">Math 24</div>
         <div class="ch-desc">Use 4 numbers and +−×÷ to make exactly 24</div>
       </div>
+      <div class="ch-category">Aim & Precision</div>
+      <div class="challenge-card" onclick="toggleChallenge('aim')" data-ch="aim" id="card-aim">
+        <div class="ch-icon">🎪</div>
+        <div class="ch-name">Aim Trainer</div>
+        <div class="ch-desc">Click targets as fast and accurately as you can</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('chimp')" data-ch="chimp" id="card-chimp">
+        <div class="ch-icon">🐒</div>
+        <div class="ch-name">Chimp Test</div>
+        <div class="ch-desc">Numbers flash — click them in order from memory</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('rhythm')" data-ch="rhythm" id="card-rhythm">
+        <div class="ch-icon">🥁</div>
+        <div class="ch-name">Rhythm Tap</div>
+        <div class="ch-desc">Listen to a beat pattern and tap it back</div>
+      </div>
+      <div class="ch-category">Visual & Spatial</div>
+      <div class="challenge-card" onclick="toggleChallenge('vismemory')" data-ch="vismemory" id="card-vismemory">
+        <div class="ch-icon">🟦</div>
+        <div class="ch-name">Visual Memory</div>
+        <div class="ch-desc">Tiles flash — recall which ones lit up</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('rotation')" data-ch="rotation" id="card-rotation">
+        <div class="ch-icon">🔄</div>
+        <div class="ch-name">Mental Rotation</div>
+        <div class="ch-desc">Identify the rotated shape among the options</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('pathtracer')" data-ch="pathtracer" id="card-pathtracer">
+        <div class="ch-icon">✏️</div>
+        <div class="ch-name">Path Tracer</div>
+        <div class="ch-desc">Watch a path through dots, then retrace it</div>
+      </div>
+      <div class="ch-category">Language & Reasoning</div>
+      <div class="challenge-card" onclick="toggleChallenge('association')" data-ch="association" id="card-association">
+        <div class="ch-icon">💬</div>
+        <div class="ch-name">Word Association</div>
+        <div class="ch-desc">Pick the word most closely related to the prompt</div>
+      </div>
+      <div class="challenge-card" onclick="toggleChallenge('sortrace')" data-ch="sortrace" id="card-sortrace">
+        <div class="ch-icon">📋</div>
+        <div class="ch-name">Sort Race</div>
+        <div class="ch-desc">Put items in the correct order as fast as you can</div>
+      </div>
     </div>
     <div class="timer-toggle-row timer-toggle-global" id="global-timer-toggle">
       <span class="timer-toggle-label">⏱ All Timers</span>
@@ -408,6 +459,14 @@
 <script src="challenges/spotdiff/spotdiff.js"></script>
 <script src="challenges/scramble/scramble.js"></script>
 <script src="challenges/math24/math24.js"></script>
+<script src="challenges/aim/aim.js"></script>
+<script src="challenges/vismemory/vismemory.js"></script>
+<script src="challenges/chimp/chimp.js"></script>
+<script src="challenges/rotation/rotation.js"></script>
+<script src="challenges/pathtracer/pathtracer.js"></script>
+<script src="challenges/association/association.js"></script>
+<script src="challenges/sortrace/sortrace.js"></script>
+<script src="challenges/rhythm/rhythm.js"></script>
 
 <!-- Integration + Results + Stats + Init (must load after all challenges) -->
 <script src="shared/integration.js"></script>

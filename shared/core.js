@@ -37,9 +37,9 @@ const GS = {
   attempts: {},
 };
 const MULTIPLIERS = { easy: 1, medium: 1.5, hard: 2, extreme: 3, impossible: 5 };
-const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch', colorcode:'Color Code', quickmath:'Quick Math', pattern:'Pattern Lock', oddoneout:'Odd One Out', estimation:'Estimation Station', hanoi:'Tower of Hanoi', simon:'Simon Says', chainword:'Word Chain', typing:'Typing Speed', reaction:'Reaction Time', nummemory:'Number Memory', stroop:'Stroop Test', sliding:'Sliding Puzzle', spotdiff:'Spot the Diff', scramble:'Word Scramble', math24:'Math 24' };
-const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮', colorcode:'🎯', quickmath:'⚡', pattern:'🔮', oddoneout:'👁️', estimation:'📐', hanoi:'🗼', simon:'🔔', chainword:'🔗', typing:'⌨️', reaction:'🏎️', nummemory:'💭', stroop:'🌈', sliding:'🧊', spotdiff:'🔍', scramble:'🔀', math24:'🎲' };
-const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch','colorcode','quickmath','pattern','oddoneout','estimation','hanoi','simon','chainword','typing','reaction','nummemory','stroop','sliding','spotdiff','scramble','math24'];
+const CHALLENGE_NAMES = { blocks:'Logic Blocks', economy:'Tiny Economy', paradox:'Mini Paradox', escape:'Escape Puzzle', wordsearch:'Word Search', wordro:'Decipher', numgrid:'Number Grid', wordhive:'Word Bloom', pulse:'Perfect Pulse', deduction:'Deduction', memory:'Memory Flip', maze:'Maze Runner', mosaic:'Mosaic', numcrunch:'Number Crunch', colorcode:'Color Code', quickmath:'Quick Math', pattern:'Pattern Lock', oddoneout:'Odd One Out', estimation:'Estimation Station', hanoi:'Tower of Hanoi', simon:'Simon Says', chainword:'Word Chain', typing:'Typing Speed', reaction:'Reaction Time', nummemory:'Number Memory', stroop:'Stroop Test', sliding:'Sliding Puzzle', spotdiff:'Spot the Diff', scramble:'Word Scramble', math24:'Math 24', aim:'Aim Trainer', vismemory:'Visual Memory', chimp:'Chimp Test', rotation:'Mental Rotation', pathtracer:'Path Tracer', association:'Word Association', sortrace:'Sort Race', rhythm:'Rhythm Tap' };
+const CHALLENGE_ICONS = { blocks:'🧩', economy:'📊', paradox:'🤔', escape:'🚪', wordsearch:'🔠', wordro:'🔐', numgrid:'🔢', wordhive:'🌼', pulse:'💗', deduction:'🕵️', memory:'🃏', maze:'🌀', mosaic:'🎨', numcrunch:'🧮', colorcode:'🎯', quickmath:'⚡', pattern:'🔮', oddoneout:'👁️', estimation:'📐', hanoi:'🗼', simon:'🔔', chainword:'🔗', typing:'⌨️', reaction:'🏎️', nummemory:'💭', stroop:'🌈', sliding:'🧊', spotdiff:'🔍', scramble:'🔀', math24:'🎲', aim:'🎪', vismemory:'🟦', chimp:'🐒', rotation:'🔄', pathtracer:'✏️', association:'💬', sortrace:'📋', rhythm:'🥁' };
+const CHALLENGE_ORDER = ['blocks','economy','paradox','escape','wordsearch','wordro','numgrid','wordhive','pulse','deduction','memory','maze','mosaic','numcrunch','colorcode','quickmath','pattern','oddoneout','estimation','hanoi','simon','chainword','typing','reaction','nummemory','stroop','sliding','spotdiff','scramble','math24','aim','vismemory','chimp','rotation','pathtracer','association','sortrace','rhythm'];
 const COMPLETED_REVIEW_HANDLERS = {};
 
 // --- localStorage ---
@@ -626,6 +626,37 @@ function showCompletedPuzzleResults(ch, score) {
       reviewHtml += '</div>';
     } else if (ch === 'math24') {
       reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Solved</span><span class="cs-stat-value">${saved.correct} / ${saved.rounds}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'aim') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Hits</span><span class="cs-stat-value">${saved.hit} / ${saved.total}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Accuracy</span><span class="cs-stat-value">${saved.accuracy}%</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Avg time</span><span class="cs-stat-value">${saved.avgTime}ms</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'vismemory') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max level</span><span class="cs-stat-value">${saved.maxLevel}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max tiles</span><span class="cs-stat-value">${saved.maxTiles}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'chimp') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max level</span><span class="cs-stat-value">${saved.maxLevel}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max numbers</span><span class="cs-stat-value">${saved.maxNums}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'rotation') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.rounds}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'pathtracer') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max level</span><span class="cs-stat-value">${saved.maxLevel}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max path length</span><span class="cs-stat-value">${saved.maxPathLen}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'association') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.rounds}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Best streak</span><span class="cs-stat-value">${saved.bestStreak}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'sortrace') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Correct</span><span class="cs-stat-value">${saved.correct} / ${saved.rounds}</span></div>`;
+      reviewHtml += '</div>';
+    } else if (ch === 'rhythm') {
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max level</span><span class="cs-stat-value">${saved.maxLevel}</span></div>`;
+      reviewHtml += `<div class="cs-stat-row"><span class="cs-stat-label">Max beats</span><span class="cs-stat-value">${saved.maxBeats}</span></div>`;
       reviewHtml += '</div>';
     } else {
       reviewHtml += '</div>';

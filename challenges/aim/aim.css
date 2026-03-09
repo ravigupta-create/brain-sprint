@@ -1,0 +1,27 @@
+/* ===== CHALLENGE: AIM TRAINER ===== */
+.aim-game { padding: 8px; }
+.aim-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: var(--fg2); margin-bottom: 8px; }
+.aim-arena {
+  position: relative; width: 100%; height: 300px; background: var(--bg2);
+  border: 2px solid var(--border); border-radius: var(--radius-lg);
+  cursor: crosshair; overflow: hidden; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.aim-target {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ef4444, #991b1b);
+  box-shadow: 0 0 12px rgba(239,68,68,0.5);
+  cursor: pointer; animation: aimPop 0.15s ease;
+  z-index: 2;
+}
+.aim-target::after {
+  content: ''; position: absolute; top: 25%; left: 25%;
+  width: 50%; height: 50%; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 70%);
+  opacity: 0.4;
+}
+.aim-start-msg {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; font-size: 18px; font-weight: 600; color: var(--fg2);
+}
+@keyframes aimPop { from { transform: scale(0); } to { transform: scale(1); } }

@@ -1,0 +1,24 @@
+/* ===== CHALLENGE: PATH TRACER ===== */
+.pathtr-game { text-align: center; padding: 12px; }
+.pathtr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.pathtr-level { font-size: 14px; font-weight: 700; color: var(--accent); }
+.pathtr-instruction { font-size: 15px; font-weight: 600; color: var(--fg); margin-bottom: 12px; }
+.pathtr-grid { display: inline-grid; gap: 6px; }
+.pathtr-cell {
+  background: var(--bg3); border-radius: 50%; cursor: pointer;
+  transition: all 0.2s; border: 2px solid var(--border);
+}
+.pathtr-cell:hover { border-color: var(--accent); }
+.pathtr-shown {
+  background: var(--accent) !important; border-color: var(--accent) !important;
+  animation: pathPop 0.25s ease;
+}
+.pathtr-head {
+  background: #f59e0b !important; border-color: #d97706 !important;
+  box-shadow: 0 0 10px rgba(245,158,11,0.5);
+}
+.pathtr-traced {
+  background: var(--green) !important; border-color: var(--green) !important;
+  animation: pathPop 0.2s ease;
+}
+@keyframes pathPop { from { transform: scale(0.6); } to { transform: scale(1); } }

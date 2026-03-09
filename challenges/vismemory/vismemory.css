@@ -1,0 +1,27 @@
+/* ===== CHALLENGE: VISUAL MEMORY ===== */
+.vismem-game { text-align: center; padding: 12px; }
+.vismem-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+.vismem-level { color: var(--accent); }
+.vismem-count { color: var(--fg2); }
+.vismem-instruction { font-size: 15px; color: var(--fg); margin-bottom: 12px; font-weight: 600; }
+.vismem-grid { display: inline-grid; gap: 4px; }
+.vismem-cell {
+  background: var(--bg3); border-radius: 8px; cursor: pointer;
+  transition: all 0.2s; border: 2px solid var(--border);
+}
+.vismem-cell:hover { background: var(--bg2); border-color: var(--accent); }
+.vismem-active {
+  background: #3b82f6 !important; border-color: #2563eb !important;
+  animation: vismemFlash 0.3s ease; cursor: default;
+}
+.vismem-found {
+  background: var(--green) !important; border-color: var(--green) !important;
+  cursor: default; animation: vismemPop 0.3s ease;
+}
+.vismem-wrong {
+  background: var(--red) !important; border-color: var(--red) !important;
+  animation: vismemShake 0.4s;
+}
+@keyframes vismemFlash { from { transform: scale(0.8); } to { transform: scale(1); } }
+@keyframes vismemPop { 0% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@keyframes vismemShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
