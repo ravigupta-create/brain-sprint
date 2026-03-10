@@ -1,5 +1,6 @@
 // ==================== AUTOPLAY BOT (secret cheat: "srg2") ====================
 // Session-only. No localStorage. Resets on reload.
+// Designed to look human: gaussian timing, thinking pauses, imperfect play.
 
 const AUTOPLAY = {
   unlocked: false,
@@ -13,29 +14,21 @@ const AUTOPLAY = {
 document.addEventListener('keydown', function(e) {
   const tag = (e.target.tagName || '').toLowerCase();
   const isText = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
-
-  // Buffer cheat code detection (always, even in text fields)
   if (e.key.length === 1) {
     AUTOPLAY._buf += e.key.toLowerCase();
     if (AUTOPLAY._buf.length > 20) AUTOPLAY._buf = AUTOPLAY._buf.slice(-20);
     if (AUTOPLAY._buf.endsWith('srg2') && !AUTOPLAY.unlocked) {
       AUTOPLAY.unlocked = true;
-      showToast('🤖 Autoplay unlocked! Press Space to toggle.');
+      showToast('\u{1F916} Autoplay unlocked! Press Space to toggle.');
       return;
     }
   }
-
-  // Spacebar toggle (only outside text inputs)
   if (e.key === ' ' && AUTOPLAY.unlocked && !isText) {
     e.preventDefault();
     e.stopPropagation();
-    if (AUTOPLAY.active) {
-      stopAutoplay();
-    } else {
-      startAutoplay();
-    }
+    if (AUTOPLAY.active) stopAutoplay(); else startAutoplay();
   }
-}, true); // capture phase so we intercept before game handlers
+}, true);
 
 function startAutoplay() {
   AUTOPLAY.active = true;
@@ -43,7 +36,7 @@ function startAutoplay() {
   showBotBadge(true);
   if (AUTOPLAY.interval) clearInterval(AUTOPLAY.interval);
   AUTOPLAY.interval = setInterval(autoplayTick, 600);
-  autoplayTick(); // immediate first tick
+  autoplayTick();
 }
 
 function stopAutoplay() {
@@ -61,98 +54,102 @@ function showBotBadge(on) {
     badge.className = 'autoplay-badge';
     document.body.appendChild(badge);
   }
-  if (on) {
-    badge.textContent = 'BOT ON';
-    badge.style.display = 'block';
-  } else {
-    badge.style.display = 'none';
-  }
+  badge.textContent = 'BOT ON';
+  badge.style.display = on ? 'block' : 'none';
 }
 
-// --- Human-like delays ---
-function humanDelay(min, max) {
-  return min + Math.random() * (max - min);
+// ===================== HUMAN-LIKE TIMING =====================
+// Gaussian-distributed delays (Box-Muller) — right-skewed, realistic
+function gaussRand() {
+  const u1 = Math.random(), u2 = Math.random();
+  return Math.sqrt(-2 * Math.log(u1 || 0.0001)) * Math.cos(2 * Math.PI * u2);
 }
 
-function scheduleAction(fn, minMs, maxMs) {
-  setTimeout(() => { if (AUTOPLAY.active) fn(); }, humanDelay(minMs, maxMs));
+function gDelay(mean, sd) {
+  return Math.max(mean * 0.25, mean + gaussRand() * sd);
 }
 
-function scheduleSequence(actions, minGap, maxGap, onDone) {
-  let delay = 0;
-  actions.forEach((fn, i) => {
-    delay += humanDelay(minGap, maxGap);
-    setTimeout(() => { if (AUTOPLAY.active) fn(); }, delay);
-  });
-  if (onDone) setTimeout(() => { if (AUTOPLAY.active) onDone(); }, delay + humanDelay(minGap, maxGap));
-}
+// Per-challenge "reading/thinking" time before first action (ms)
+const BOT_THINK = {
+  paradox:2200, blocks:1600, economy:2200, escape:2800, wordsearch:1800,
+  wordro:1200, numgrid:2000, wordhive:1400, pulse:800, deduction:2000,
+  memory:1200, maze:1000, mosaic:1800, numcrunch:1500, colorcode:1500,
+  quickmath:400, pattern:1200, oddoneout:1000, estimation:1800, hanoi:1400,
+  simon:600, chainword:1200, typing:600, reaction:400, nummemory:400,
+  stroop:400, sliding:1200, spotdiff:1000, scramble:1400, math24:2000,
+  aim:400, vismemory:400, chimp:500, rotation:1400, pathtracer:400,
+  association:800, sortrace:1000, rhythm:400
+};
 
-// --- Main tick ---
+// Common 5-letter words for Wordro intermediate guesses
+const BOT_OPENERS = [
+  'CRANE','SLATE','TRACE','AUDIO','RAISE','STARE','ADIEU','ROAST','CRATE',
+  'TEARS','SNARE','IRATE','STONE','HEART','LEARN','MONEY','WATER','HOUSE',
+  'LIGHT','DREAM','PLANT','EARTH','WORLD','BRAIN','TRAIN','SUGAR','OCEAN',
+  'CLOUD','NIGHT','DANCE','SMILE','BRAVE','QUIET','FRESH','FROST','GHOST',
+  'PRIDE','STEAM','WHEAT','BLEND','CLIMB','SWIRL'
+];
+
+// ===================== MAIN TICK =====================
 function autoplayTick() {
   if (!AUTOPLAY.active || AUTOPLAY.busy) return;
 
-  // 1. Intro screen? Click "Start Game"
+  // UI buttons: intro, summary, feedback, results
   const introBtn = document.querySelector('.intro-screen .btn-primary');
-  if (introBtn && introBtn.textContent.includes('Start Game')) {
+  if (introBtn) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { introBtn.click(); AUTOPLAY.busy = false; }, 300, 600);
+    setTimeout(() => { if (AUTOPLAY.active) introBtn.click(); AUTOPLAY.busy = false; }, gDelay(900, 250));
     return;
   }
-
-  // 2. Challenge summary? Click "Continue →"
   const continueBtn = document.querySelector('.cs-panel .btn-primary');
   if (continueBtn && continueBtn.textContent.includes('Continue')) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { continueBtn.click(); AUTOPLAY.busy = false; }, 400, 800);
+    setTimeout(() => { if (AUTOPLAY.active) continueBtn.click(); AUTOPLAY.busy = false; }, gDelay(700, 200));
     return;
   }
-
-  // 3. Feedback screens with buttons (nummemory, etc.)
-  const feedbackBtns = ['continueNumMemory', 'retryNumMemory', 'finishNumMemory'];
-  for (const fnName of feedbackBtns) {
-    const btn = document.querySelector(`[onclick="${fnName}()"]`);
+  for (const fn of ['continueNumMemory','retryNumMemory','finishNumMemory']) {
+    const btn = document.querySelector(`[onclick="${fn}()"]`);
     if (btn) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => { btn.click(); AUTOPLAY.busy = false; }, 300, 600);
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(500, 150));
       return;
     }
   }
-
-  // 4. "See Score" or "Next Level" type buttons in game container
   const gcBtns = document.querySelectorAll('#game-container .btn');
   for (const btn of gcBtns) {
     const t = btn.textContent;
     if (t.includes('See Score') || t.includes('Next Level') || t.includes('Try Again')) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => { btn.click(); AUTOPLAY.busy = false; }, 300, 500);
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(500, 150));
       return;
     }
   }
-
-  // 5. Results screen? Click "Play Again"
   const resultsScreen = document.getElementById('screen-results');
-  if (resultsScreen && resultsScreen.classList.contains('active')) {
-    return; // Stop at results
-  }
-
-  // 6. Not in game screen? Skip
+  if (resultsScreen && resultsScreen.classList.contains('active')) return;
   const gameScreen = document.getElementById('screen-game');
   if (!gameScreen || !gameScreen.classList.contains('active')) return;
 
-  // 7. Dispatch to per-challenge bot
+  // Dispatch to challenge bot
   const ch = GS.selectedChallenges[GS.currentChallengeIdx];
   if (!ch) return;
-  const st = GS.challengeState[ch];
+  let st = GS.challengeState[ch];
+  if (!st && (ch === 'numgrid' || ch === 'wordhive')) st = GS.challengeState;
   if (!st) return;
 
-  try {
-    botDispatch(ch, st);
-  } catch(e) {
-    // Silently continue
+  // Initial thinking delay — simulates reading the challenge
+  if (!st._botReady) {
+    if (!st._botThinkStart) {
+      st._botThinkStart = Date.now();
+      st._botThinkDur = gDelay(BOT_THINK[ch] || 1500, (BOT_THINK[ch] || 1500) * 0.3);
+    }
+    if (Date.now() - st._botThinkStart < st._botThinkDur) return;
+    st._botReady = true;
   }
+
+  try { botDispatch(ch, st); } catch(e) { /* continue */ }
 }
 
-// --- Per-challenge dispatchers ---
+// ===================== DISPATCH =====================
 function botDispatch(ch, st) {
   switch(ch) {
     case 'paradox': return botParadox(st);
@@ -198,472 +195,503 @@ function botDispatch(ch, st) {
 
 // ===================== BOT HANDLERS =====================
 
-// --- PARADOX: click correct option ---
+// --- PARADOX ---
 function botParadox(st) {
   if (st.answered) return;
   AUTOPLAY.busy = true;
-  const idx = st.puzzle.correct;
-  scheduleAction(() => { selectParadoxOption(idx); AUTOPLAY.busy = false; }, 400, 800);
+  setTimeout(() => { if (AUTOPLAY.active) selectParadoxOption(st.puzzle.correct); AUTOPLAY.busy = false; }, gDelay(800, 250));
 }
 
-// --- BLOCKS: sort into correct order ---
+// --- BLOCKS ---
 function botBlocks(st) {
   if (st.submitted) return;
-  // Find first mismatch between currentOrder and correctOrder
   const correct = st.puzzle.correctOrder;
   const current = st.currentOrder;
-  // Find first wrong position (ignoring distractors)
   for (let i = 0; i < current.length; i++) {
     if (i < correct.length && current[i] !== correct[i]) {
-      // Find correct block and swap
-      const targetIdx = current.indexOf(correct[i]);
-      if (targetIdx >= 0 && targetIdx !== i) {
+      const ti = current.indexOf(correct[i]);
+      if (ti >= 0 && ti !== i) {
         AUTOPLAY.busy = true;
-        scheduleAction(() => {
+        setTimeout(() => {
+          if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
           tapBlock(i);
-          scheduleAction(() => {
-            tapBlock(targetIdx);
-            AUTOPLAY.busy = false;
-          }, 200, 400);
-        }, 200, 400);
+          setTimeout(() => { if (AUTOPLAY.active) tapBlock(ti); AUTOPLAY.busy = false; }, gDelay(350, 80));
+        }, gDelay(400, 100));
         return;
       }
     }
   }
-  // If all match, submit
   AUTOPLAY.busy = true;
-  scheduleAction(() => { submitBlocks(); AUTOPLAY.busy = false; }, 300, 600);
+  setTimeout(() => { if (AUTOPLAY.active) submitBlocks(); AUTOPLAY.busy = false; }, gDelay(500, 120));
 }
 
-// --- ECONOMY: brute-force optimal slider values ---
+// --- ECONOMY ---
 function botEconomy(st) {
   if (st.submitted) return;
   const puzzle = st.puzzle;
-  // Try to find optimal values by testing
   const vars = puzzle.activeVars;
-  let bestOutput = -Infinity;
-  let bestVals = {};
-
-  // Brute force each variable in steps
-  function tryVals(vidx, current) {
-    if (vidx >= vars.length) {
-      const allVals = {};
-      puzzle.variables.forEach(v => { allVals[v.key] = v.default; });
-      Object.assign(allVals, current);
-      const ok = puzzle.constraints.every(c => c.check(allVals));
-      if (ok) {
-        const out = puzzle.output(allVals);
-        if (out > bestOutput) { bestOutput = out; bestVals = {...current}; }
+  let bestOutput = -Infinity, bestVals = {};
+  function tryVals(vi, cur) {
+    if (vi >= vars.length) {
+      const all = {};
+      puzzle.variables.forEach(v => { all[v.key] = v.default; });
+      Object.assign(all, cur);
+      if (puzzle.constraints.every(c => c.check(all))) {
+        const out = puzzle.output(all);
+        if (out > bestOutput) { bestOutput = out; bestVals = {...cur}; }
       }
       return;
     }
-    const v = vars[vidx];
-    const step = (v.max - v.min) / 10;
-    for (let val = v.min; val <= v.max; val += Math.max(step, 1)) {
-      current[v.key] = Math.round(val * 10) / 10;
-      tryVals(vidx + 1, current);
+    const v = vars[vi], step = Math.max((v.max - v.min) / 10, 1);
+    for (let val = v.min; val <= v.max; val += step) {
+      cur[v.key] = Math.round(val * 10) / 10;
+      tryVals(vi + 1, cur);
     }
-    // Also try max
-    current[v.key] = v.max;
-    tryVals(vidx + 1, current);
+    cur[v.key] = v.max;
+    tryVals(vi + 1, cur);
   }
   tryVals(0, {});
-
-  // Set sliders to best values
   AUTOPLAY.busy = true;
-  const keys = Object.keys(bestVals);
   let delay = 0;
-  keys.forEach(key => {
-    delay += humanDelay(150, 300);
+  Object.keys(bestVals).forEach(key => {
+    delay += gDelay(350, 80);
     setTimeout(() => {
       if (!AUTOPLAY.active) return;
-      const slider = document.getElementById('slider-' + key);
-      if (slider) {
-        slider.value = bestVals[key];
-        updateEconomySlider(key, bestVals[key]);
-      }
+      const s = document.getElementById('slider-' + key);
+      if (s) { s.value = bestVals[key]; updateEconomySlider(key, bestVals[key]); }
     }, delay);
   });
-  delay += humanDelay(400, 700);
-  setTimeout(() => {
-    if (!AUTOPLAY.active) return;
-    submitEconomy();
-    AUTOPLAY.busy = false;
-  }, delay);
+  delay += gDelay(600, 150);
+  setTimeout(() => { if (AUTOPLAY.active) submitEconomy(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- ESCAPE: click optimal choice ---
+// --- ESCAPE ---
 function botEscape(st) {
   if (st.screenIdx >= 5) return;
   const screen = st.puzzle.screens[st.screenIdx];
   if (!screen) return;
-  // Check if "Next Scene" button is visible
   const nextBtn = document.getElementById('btn-escape-next');
   if (nextBtn && nextBtn.style.display !== 'none') {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { advanceEscape(); AUTOPLAY.busy = false; }, 300, 600);
+    setTimeout(() => { if (AUTOPLAY.active) advanceEscape(); AUTOPLAY.busy = false; }, gDelay(1200, 300));
     return;
   }
-  // Check if choices are disabled (already chosen)
   const btns = document.querySelectorAll('.escape-choice');
   if (btns.length > 0 && btns[0].disabled) return;
-  // Find optimal
   const optIdx = screen.choices.findIndex(c => c.optimal);
   if (optIdx >= 0) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { selectEscapeChoice(optIdx); AUTOPLAY.busy = false; }, 400, 800);
+    setTimeout(() => { if (AUTOPLAY.active) selectEscapeChoice(optIdx); AUTOPLAY.busy = false; }, gDelay(1800, 500));
   }
 }
 
-// --- WORDSEARCH: tap cells for each word ---
+// --- WORDSEARCH ---
 function botWordsearch(st) {
   const puzzle = st.puzzle;
-  // Find next unfound word
-  const nextPlacement = puzzle.placements.find(p => !st.foundWords.includes(p.word));
-  if (!nextPlacement) {
-    // All found, submit
+  const next = puzzle.placements.find(p => !st.foundWords.includes(p.word));
+  if (!next) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { submitWordsearch(); AUTOPLAY.busy = false; }, 300, 600);
+    setTimeout(() => { if (AUTOPLAY.active) submitWordsearch(); AUTOPLAY.busy = false; }, gDelay(500, 120));
     return;
   }
-  // Clear current selection first
-  if (st.selectedCells.length > 0) {
-    st.selectedCells.length = 0;
-  }
-  // Tap each cell in the word
+  if (st.selectedCells.length > 0) st.selectedCells.length = 0;
   AUTOPLAY.busy = true;
-  const cells = nextPlacement.cells;
-  let delay = 0;
-  cells.forEach((cell, i) => {
-    delay += humanDelay(100, 250);
-    setTimeout(() => { if (AUTOPLAY.active) tapWsCell(cell.r, cell.c); }, delay);
+  const wordIdx = st.foundWords.length;
+  let delay = gDelay(900 + wordIdx * 350, 200); // scanning time grows for later words
+  next.cells.forEach(cell => {
+    delay += gDelay(130, 30);
+    ((r, c, d) => { setTimeout(() => { if (AUTOPLAY.active) tapWsCell(r, c); }, d); })(cell.r, cell.c, delay);
   });
-  delay += humanDelay(200, 400);
+  delay += gDelay(250, 60);
   setTimeout(() => { AUTOPLAY.busy = false; }, delay);
 }
 
-// --- WORDRO: type the correct word ---
+// --- WORDRO (Wordle) — multi-guess for realism ---
 function botWordro(st) {
   if (st.gameOver || st.won) return;
   if (st.revealInProgress) return;
-  if (st.currentGuess.length > 0) return; // already typing
-  AUTOPLAY.busy = true;
-  const word = st.puzzle.word;
-  let delay = 0;
-  for (const ch of word) {
-    delay += humanDelay(100, 250);
-    setTimeout(() => { if (AUTOPLAY.active) wordroKeyPress(ch); }, delay);
+  if (st.currentGuess.length > 0) return;
+
+  // Decide which row to solve on (once per game)
+  if (st._botSolveRow === undefined) {
+    const r = Math.random();
+    st._botSolveRow = r < 0.12 ? 1 : r < 0.55 ? 2 : r < 0.88 ? 3 : 4;
+    st._botSolveRow = Math.min(st._botSolveRow, st.puzzle.maxGuesses - 1);
   }
-  delay += humanDelay(200, 400);
+
+  let word;
+  if (st.currentRow >= st._botSolveRow) {
+    word = st.puzzle.word;
+  } else {
+    word = botWordroIntermediate(st);
+    if (!word) word = st.puzzle.word; // fallback
+  }
+
+  AUTOPLAY.busy = true;
+  let delay = gDelay(600, 150);
+  for (const ch of word) {
+    delay += gDelay(160, 40);
+    ((c, d) => { setTimeout(() => { if (AUTOPLAY.active) wordroKeyPress(c); }, d); })(ch.toUpperCase(), delay);
+  }
+  delay += gDelay(350, 80);
   setTimeout(() => { if (AUTOPLAY.active) wordroKeyPress('ENTER'); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- NUMGRID: fill in solution ---
+function botWordroIntermediate(st) {
+  const answer = st.puzzle.word.toUpperCase();
+  const used = new Set(st.guesses.map(g => g.word));
+
+  // First guess: pick a known opener
+  if (st.currentRow === 0) {
+    const shuffled = BOT_OPENERS.slice().sort(() => Math.random() - 0.5);
+    for (const w of shuffled) {
+      if (w === answer) continue;
+      if (used.has(w)) continue;
+      if (typeof WORDRO_BANK_SET !== 'undefined' && !WORDRO_BANK_SET.has(w.toLowerCase())) continue;
+      return w;
+    }
+  }
+
+  // Later guesses: pick word from bank with partial letter overlap
+  if (typeof WORDRO_BANK_SET !== 'undefined') {
+    const ansLetters = new Set(answer.toLowerCase().split(''));
+    const skip = Math.floor(Math.random() * 800);
+    let count = 0, best = null, bestScore = -1;
+    for (const w of WORDRO_BANK_SET) {
+      if (w.length !== 5) continue;
+      if (w.toUpperCase() === answer || used.has(w.toUpperCase())) continue;
+      if (++count < skip) continue;
+      const shared = w.split('').filter(c => ansLetters.has(c)).length;
+      if (shared >= 1 && shared <= 4 && shared > bestScore) { bestScore = shared; best = w.toUpperCase(); }
+      if (count > skip + 60) break;
+    }
+    if (best) return best;
+  }
+  return null;
+}
+
+// --- NUMGRID ---
 function botNumgrid(st) {
-  // numgrid replaces GS.challengeState entirely
   const gs = GS.challengeState;
   if (!gs || !gs.solution) return;
-  const solution = gs.solution;
-  const grid = gs.grid;
-  const puzzle = gs.puzzle;
-  // Find first empty/wrong cell
+  const solution = gs.solution, grid = gs.grid, puzzle = gs.puzzle;
   for (let r = 0; r < solution.length; r++) {
     for (let c = 0; c < solution[r].length; c++) {
-      if (puzzle[r][c] !== 0) continue; // given cell
+      if (puzzle[r][c] !== 0) continue;
       if (grid[r][c] !== solution[r][c]) {
         AUTOPLAY.busy = true;
-        scheduleAction(() => {
+        setTimeout(() => {
+          if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
           tapNumgridCell(r, c);
-          scheduleAction(() => {
-            numgridInput(solution[r][c]);
-            AUTOPLAY.busy = false;
-          }, 100, 200);
-        }, 100, 250);
+          setTimeout(() => { if (AUTOPLAY.active) numgridInput(solution[r][c]); AUTOPLAY.busy = false; }, gDelay(180, 40));
+        }, gDelay(250, 60));
         return;
       }
     }
   }
-  // All filled, submit
   AUTOPLAY.busy = true;
-  scheduleAction(() => { submitNumgrid(); AUTOPLAY.busy = false; }, 300, 500);
+  setTimeout(() => { if (AUTOPLAY.active) submitNumgrid(); AUTOPLAY.busy = false; }, gDelay(500, 120));
 }
 
-// --- WORDHIVE: type valid words ---
+// --- WORDHIVE ---
 function botWordhive(st) {
-  // wordhive replaces GS.challengeState entirely
   const gs = GS.challengeState;
   if (!gs || !gs.validWords) return;
   const found = gs.found || [];
   if (found.length >= (gs.target || gs.validWords.length)) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { submitWordhive(); AUTOPLAY.busy = false; }, 300, 500);
+    setTimeout(() => { if (AUTOPLAY.active) submitWordhive(); AUTOPLAY.busy = false; }, gDelay(500, 120));
     return;
   }
-  // Find next unfound word
   const nextWord = gs.validWords.find(w => !found.includes(w));
   if (!nextWord) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { submitWordhive(); AUTOPLAY.busy = false; }, 300, 500);
+    setTimeout(() => { if (AUTOPLAY.active) submitWordhive(); AUTOPLAY.busy = false; }, gDelay(500, 120));
     return;
   }
-  if (gs.input && gs.input.length > 0) return; // already typing
+  if (gs.input && gs.input.length > 0) return;
   AUTOPLAY.busy = true;
-  let delay = 0;
+  let delay = gDelay(500, 120);
   for (const ch of nextWord) {
-    delay += humanDelay(80, 200);
-    setTimeout(() => { if (AUTOPLAY.active) wordhiveTap(ch); }, delay);
+    delay += gDelay(130, 35);
+    ((c, d) => { setTimeout(() => { if (AUTOPLAY.active) wordhiveTap(c); }, d); })(ch, delay);
   }
-  delay += humanDelay(150, 300);
+  delay += gDelay(220, 50);
   setTimeout(() => { if (AUTOPLAY.active) wordhiveEnter(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- PULSE: hit when cursor is in zone ---
+// --- PULSE — only click near center of zone for safety ---
 function botPulse(st) {
   if (st.gameOver || st.waiting) return;
-  const pos = st.position;
-  const zoneStart = st.zoneStart;
-  const zoneSize = st.zoneSize;
-  // Check if in zone (with slight imperfection)
-  if (pos >= zoneStart && pos <= zoneStart + zoneSize) {
+  const pos = st.position, start = st.zoneStart, end = start + st.zoneSize;
+  const margin = st.zoneSize * 0.18;
+  if (pos >= start + margin && pos <= end - margin) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { hitPulse(); AUTOPLAY.busy = false; }, 30, 80);
+    setTimeout(() => { if (AUTOPLAY.active && !st.gameOver) hitPulse(); AUTOPLAY.busy = false; }, gDelay(45, 15));
   }
 }
 
-// --- DEDUCTION: ask questions then eliminate non-saboteurs ---
+// --- DEDUCTION ---
 function botDeduction(st) {
   const p = st.puzzle;
   if (st.phase === 'question') {
-    // Pick first available question
     const qBtns = document.querySelectorAll('.deduction-q-btn:not(:disabled)');
     if (qBtns.length > 0) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => { qBtns[0].click(); AUTOPLAY.busy = false; }, 300, 600);
+      setTimeout(() => { if (AUTOPLAY.active) qBtns[0].click(); AUTOPLAY.busy = false; }, gDelay(800, 200));
     }
     return;
   }
   if (st.phase === 'responses') {
-    // Click "Proceed to Eliminate"
     const proceedBtn = document.querySelector('[onclick="goToDeductionEliminate()"]');
     if (proceedBtn) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => { proceedBtn.click(); AUTOPLAY.busy = false; }, 400, 700);
+      setTimeout(() => { if (AUTOPLAY.active) proceedBtn.click(); AUTOPLAY.busy = false; }, gDelay(1200, 300));
     }
     return;
   }
   if (st.phase === 'eliminate') {
-    // Eliminate a non-saboteur (to WIN - the goal is to keep saboteur alive)
-    const sabIdx = p.saboteurIdx;
-    const chars = p.characters;
-    for (let i = 0; i < chars.length; i++) {
-      if (i !== sabIdx && !chars[i].eliminated) {
+    for (let i = 0; i < p.characters.length; i++) {
+      if (i !== p.saboteurIdx && !p.characters[i].eliminated) {
         AUTOPLAY.busy = true;
-        scheduleAction(() => { selectDeductionEliminate(i); AUTOPLAY.busy = false; }, 300, 600);
+        setTimeout(() => { if (AUTOPLAY.active) selectDeductionEliminate(i); AUTOPLAY.busy = false; }, gDelay(900, 250));
         return;
       }
     }
   }
 }
 
-// --- MEMORY: flip matching pairs ---
+// --- MEMORY — exploration phase, simulates discovering card positions ---
 function botMemory(st) {
   if (st.locked) return;
-  const grid = st.puzzle.grid;
-  // Build symbol map
-  const symbolMap = {};
-  for (let r = 0; r < st.puzzle.rows; r++) {
-    for (let c = 0; c < st.puzzle.cols; c++) {
-      if (grid[r][c].matched) continue;
-      const sym = grid[r][c].symbol;
-      if (!symbolMap[sym]) symbolMap[sym] = [];
-      symbolMap[sym].push({r, c});
-    }
-  }
-  // Find a pair
-  for (const sym in symbolMap) {
-    if (symbolMap[sym].length >= 2) {
-      const [a, b] = symbolMap[sym];
+  const grid = st.puzzle.grid, rows = st.puzzle.rows, cols = st.puzzle.cols;
+
+  // Init bot's "discovered" memory
+  if (!st._botSeen) { st._botSeen = {}; st._botFlips = 0; }
+
+  // Build list of unmatched cards
+  const unmatched = [];
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      if (!grid[r][c].matched) unmatched.push({r, c, sym: grid[r][c].symbol});
+
+  if (unmatched.length < 2) return;
+
+  // Check if we know any pair from previous exploration
+  for (const sym in st._botSeen) {
+    const locs = st._botSeen[sym].filter(p => !grid[p.r][p.c].matched);
+    if (locs.length >= 2) {
+      // 8% chance to "forget" for realism (skip this pair once) — but not early game
+      if (st._botFlips > 6 && Math.random() < 0.08) continue;
+      const [a, b] = locs;
       AUTOPLAY.busy = true;
-      scheduleAction(() => {
+      setTimeout(() => {
+        if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
         flipMemoryCard(a.r, a.c);
-        scheduleAction(() => {
-          flipMemoryCard(b.r, b.c);
-          AUTOPLAY.busy = false;
-        }, 300, 500);
-      }, 200, 400);
+        setTimeout(() => { if (AUTOPLAY.active) flipMemoryCard(b.r, b.c); AUTOPLAY.busy = false; }, gDelay(450, 100));
+      }, gDelay(400, 90));
       return;
     }
   }
+
+  // Exploration: flip two random unmatched cards to discover them
+  const shuffled = unmatched.sort(() => Math.random() - 0.5);
+  // Prefer cards we haven't seen yet
+  const unseen = shuffled.filter(c => {
+    const seen = st._botSeen[c.sym];
+    return !seen || !seen.some(p => p.r === c.r && p.c === c.c);
+  });
+  const pool = unseen.length >= 2 ? unseen : shuffled;
+  const c1 = pool[0], c2 = pool[1] || pool[0];
+  if (c1.r === c2.r && c1.c === c2.c) return; // same card, skip
+
+  AUTOPLAY.busy = true;
+  setTimeout(() => {
+    if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+    flipMemoryCard(c1.r, c1.c);
+    // Record what we "see"
+    const s1 = grid[c1.r][c1.c].symbol;
+    if (!st._botSeen[s1]) st._botSeen[s1] = [];
+    if (!st._botSeen[s1].some(p => p.r === c1.r && p.c === c1.c)) st._botSeen[s1].push({r: c1.r, c: c1.c});
+    st._botFlips++;
+
+    setTimeout(() => {
+      if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+      flipMemoryCard(c2.r, c2.c);
+      const s2 = grid[c2.r][c2.c].symbol;
+      if (!st._botSeen[s2]) st._botSeen[s2] = [];
+      if (!st._botSeen[s2].some(p => p.r === c2.r && p.c === c2.c)) st._botSeen[s2].push({r: c2.r, c: c2.c});
+      st._botFlips++;
+      AUTOPLAY.busy = false;
+    }, gDelay(500, 120));
+  }, gDelay(450, 100));
 }
 
-// --- MAZE: follow optimal path ---
+// --- MAZE ---
 function botMaze(st) {
   if (st.finished) return;
   const path = st.puzzle.optimalPath;
-  if (!path || path.length === 0) return;
-  // Find current position in optimal path or compute next move
+  if (!path || path.length === 0) { botMazeBFS(st); return; }
   const pr = st.playerR, pc = st.playerC;
-  // Find where we are in optimal path
   let pathIdx = -1;
   for (let i = 0; i < path.length; i++) {
     if (path[i].r === pr && path[i].c === pc) { pathIdx = i; break; }
   }
   if (pathIdx >= 0 && pathIdx < path.length - 1) {
     const next = path[pathIdx + 1];
-    const dr = next.r - pr;
-    const dc = next.c - pc;
     AUTOPLAY.busy = true;
-    scheduleAction(() => { moveMazePlayer(dr, dc); AUTOPLAY.busy = false; }, 80, 180);
+    setTimeout(() => { if (AUTOPLAY.active) moveMazePlayer(next.r - pr, next.c - pc); AUTOPLAY.busy = false; }, gDelay(140, 35));
   } else {
-    // Not on optimal path - use BFS to get to exit
     botMazeBFS(st);
   }
 }
 
 function botMazeBFS(st) {
-  const p = st.puzzle;
-  const rows = p.rows, cols = p.cols;
-  const goalR = rows - 1, goalC = cols - 1;
+  const p = st.puzzle, rows = p.rows, cols = p.cols;
   const visited = Array.from({length: rows}, () => Array(cols).fill(false));
   const queue = [{r: st.playerR, c: st.playerC, path: []}];
   visited[st.playerR][st.playerC] = true;
   const dirs = [{dr:-1,dc:0,wall:'top'},{dr:1,dc:0,wall:'bottom'},{dr:0,dc:-1,wall:'left'},{dr:0,dc:1,wall:'right'}];
   while (queue.length > 0) {
     const {r,c,path} = queue.shift();
-    if (r === goalR && c === goalC) {
-      if (path.length > 0) {
-        AUTOPLAY.busy = true;
-        scheduleAction(() => { moveMazePlayer(path[0].dr, path[0].dc); AUTOPLAY.busy = false; }, 80, 180);
-      }
+    if (r === rows - 1 && c === cols - 1 && path.length > 0) {
+      AUTOPLAY.busy = true;
+      setTimeout(() => { if (AUTOPLAY.active) moveMazePlayer(path[0].dr, path[0].dc); AUTOPLAY.busy = false; }, gDelay(140, 35));
       return;
     }
     for (const d of dirs) {
       const nr = r + d.dr, nc = c + d.dc;
-      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
-      if (visited[nr][nc]) continue;
-      if (p.walls[r][c][d.wall]) continue;
+      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || visited[nr][nc] || p.walls[r][c][d.wall]) continue;
       visited[nr][nc] = true;
       queue.push({r: nr, c: nc, path: [...path, {dr: d.dr, dc: d.dc}]});
     }
   }
 }
 
-// --- MOSAIC: place tokens using trial ---
+// --- MOSAIC ---
 function botMosaic(st) {
-  // Check if there's a check button
   const checkBtn = document.querySelector('[onclick="checkMosaicSolution()"]');
-  // Find empty cells and try to place tokens
   const tokenBtns = document.querySelectorAll('.mosaic-token:not(.placed)');
   if (tokenBtns.length === 0 && checkBtn) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { checkMosaicSolution(); AUTOPLAY.busy = false; }, 400, 700);
+    setTimeout(() => { if (AUTOPLAY.active) checkMosaicSolution(); AUTOPLAY.busy = false; }, gDelay(600, 150));
     return;
   }
-  // Select first available token
   if (tokenBtns.length > 0) {
     const emptyCells = document.querySelectorAll('.mosaic-cell:not(.filled)');
     if (emptyCells.length > 0) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => {
+      setTimeout(() => {
+        if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
         tokenBtns[0].click();
-        scheduleAction(() => {
-          emptyCells[0].click();
-          AUTOPLAY.busy = false;
-        }, 200, 400);
-      }, 200, 400);
+        setTimeout(() => { if (AUTOPLAY.active) emptyCells[0].click(); AUTOPLAY.busy = false; }, gDelay(350, 80));
+      }, gDelay(400, 100));
     }
   }
 }
 
-// --- NUMCRUNCH: type the equation ---
+// --- NUMCRUNCH — thinking delay then type ---
 function botNumcrunch(st) {
   if (st.gameOver || st.won) return;
   if (st.revealInProgress) return;
   if (st.currentGuess.length > 0) return;
   AUTOPLAY.busy = true;
   const eq = st.puzzle.equation;
-  let delay = 0;
+  let delay = gDelay(2200, 600); // significant thinking time
   for (const ch of eq) {
-    delay += humanDelay(100, 250);
-    const key = ch === '×' ? '*' : ch === '÷' ? '/' : ch;
-    setTimeout(() => { if (AUTOPLAY.active) numcrunchKeyPress(key); }, delay);
+    delay += gDelay(170, 45);
+    const key = ch === '\u00d7' ? '*' : ch === '\u00f7' ? '/' : ch;
+    ((k, d) => { setTimeout(() => { if (AUTOPLAY.active) numcrunchKeyPress(k); }, d); })(key, delay);
   }
-  delay += humanDelay(200, 400);
+  delay += gDelay(350, 80);
   setTimeout(() => { if (AUTOPLAY.active) numcrunchKeyPress('ENTER'); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- COLORCODE: place correct colors ---
+// --- COLORCODE (Mastermind) — multi-guess for realism ---
 function botColorcode(st) {
   if (st.gameOver) return;
-  const code = st.puzzle.code;
-  const row = st.currentRow;
-  const guess = st.guesses ? st.guesses[row] : st.currentGuess;
-  // Check if current row needs filling
-  if (!st.currentGuess || st.currentGuess.some(c => c === null || c === undefined)) {
-    AUTOPLAY.busy = true;
-    let delay = 0;
-    for (let slot = 0; slot < code.length; slot++) {
-      delay += humanDelay(150, 300);
-      const colorIdx = st.puzzle.colors.indexOf(code[slot]);
-      ((s, ci) => {
-        setTimeout(() => {
-          if (!AUTOPLAY.active) return;
-          selectColorSlot(row, s);
-          scheduleAction(() => { pickColor(ci); }, 100, 200);
-        }, delay);
-      })(slot, colorIdx);
-    }
-    delay += humanDelay(400, 600);
-    setTimeout(() => { if (AUTOPLAY.active) { submitColorCode(); } AUTOPLAY.busy = false; }, delay);
+  if (!st.currentGuess || !st.currentGuess.some(c => c === null || c === undefined)) return;
+
+  // Decide when to guess correctly
+  if (st._botSolveRow === undefined) {
+    st._botSolveRow = 2 + Math.floor(Math.random() * 2); // row 2-3
+    st._botSolveRow = Math.min(st._botSolveRow, st.puzzle.maxGuesses - 1);
   }
+
+  const code = st.puzzle.code, colors = st.puzzle.colors, row = st.currentRow;
+  let target;
+  if (row >= st._botSolveRow) {
+    target = code;
+  } else {
+    // Random plausible guess (but use some correct colors for partial matches)
+    target = code.map((c, i) => {
+      if (Math.random() < 0.3) return c; // 30% chance each slot is correct — creates partial feedback
+      return colors[Math.floor(Math.random() * colors.length)];
+    });
+  }
+
+  AUTOPLAY.busy = true;
+  let delay = gDelay(600, 150);
+  for (let slot = 0; slot < target.length; slot++) {
+    delay += gDelay(250, 60);
+    const ci = colors.indexOf(target[slot]);
+    ((s, c, d) => {
+      setTimeout(() => {
+        if (!AUTOPLAY.active) return;
+        selectColorSlot(row, s);
+        setTimeout(() => { if (AUTOPLAY.active) pickColor(c); }, gDelay(140, 35));
+      }, d);
+    })(slot, ci, delay);
+  }
+  delay += gDelay(550, 120);
+  setTimeout(() => { if (AUTOPLAY.active) submitColorCode(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- QUICKMATH: calculate and type answer ---
+// --- QUICKMATH — thinking time proportional to difficulty ---
 function botQuickmath(st) {
   if (st.gameOver || !st.currentProblem) return;
   const answer = st.currentProblem.answer;
   if (answer === undefined || answer === null) return;
   const ansStr = String(answer);
   AUTOPLAY.busy = true;
-  // Clear existing input
+  // Thinking time scales with answer magnitude
+  let delay = gDelay(500 + Math.min(Math.abs(answer), 100) * 4, 120);
   const input = document.getElementById('qm-input');
   if (input) input.value = '';
   st.userAnswer = '';
-  let delay = 0;
   for (const ch of ansStr) {
-    delay += humanDelay(60, 150);
-    const key = ch === '-' ? '-' : ch;
-    setTimeout(() => { if (AUTOPLAY.active) qmNumPress(key); }, delay);
+    delay += gDelay(110, 30);
+    ((k, d) => { setTimeout(() => { if (AUTOPLAY.active) qmNumPress(k); }, d); })(ch, delay);
   }
-  delay += humanDelay(100, 250);
+  delay += gDelay(180, 40);
   setTimeout(() => { if (AUTOPLAY.active) qmSubmitAnswer(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- PATTERN: click correct answer ---
+// --- PATTERN ---
 function botPattern(st) {
   if (st.gameOver) return;
   const round = st.puzzle.rounds[st.currentRound];
   if (!round) return;
-  const correctIdx = round.choices.indexOf(round.answer);
-  if (correctIdx >= 0) {
+  const idx = round.choices.indexOf(round.answer);
+  if (idx >= 0) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { selectPatternAnswer(correctIdx); AUTOPLAY.busy = false; }, 300, 600);
+    setTimeout(() => { if (AUTOPLAY.active) selectPatternAnswer(idx); AUTOPLAY.busy = false; }, gDelay(900, 250));
   }
 }
 
-// --- ODDONEOUT: click the odd item ---
+// --- ODDONEOUT ---
 function botOddoneout(st) {
   if (st.gameOver) return;
   const round = st.puzzle.rounds[st.currentRound];
   if (!round) return;
-  const oddIdx = round.items.indexOf(round.oddItem);
-  if (oddIdx >= 0) {
+  const idx = round.items.indexOf(round.oddItem);
+  if (idx >= 0) {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { selectOddItem(oddIdx); AUTOPLAY.busy = false; }, 300, 600);
+    setTimeout(() => { if (AUTOPLAY.active) selectOddItem(idx); AUTOPLAY.busy = false; }, gDelay(800, 200));
   }
 }
 
-// --- ESTIMATION: type exact answer ---
+// --- ESTIMATION — fuzzy answer (±3-10% error) for realism ---
 function botEstimation(st) {
   if (st.gameOver) return;
   const round = st.puzzle.rounds ? st.puzzle.rounds[st.currentRound] : null;
@@ -671,17 +699,18 @@ function botEstimation(st) {
   const answer = round.answer;
   const input = document.getElementById('est-input');
   if (!input) return;
+  // Human-like error: small random offset
+  const errorPct = (Math.random() * 0.08 + 0.02) * (Math.random() < 0.5 ? 1 : -1);
+  const guess = Math.round(answer * (1 + errorPct));
   AUTOPLAY.busy = true;
-  input.value = answer;
-  // Trigger input event
+  input.value = guess;
   input.dispatchEvent(new Event('input', {bubbles: true}));
-  scheduleAction(() => { submitEstimation(); AUTOPLAY.busy = false; }, 300, 500);
+  setTimeout(() => { if (AUTOPLAY.active) submitEstimation(); AUTOPLAY.busy = false; }, gDelay(600, 150));
 }
 
-// --- HANOI: solve optimally using recursive algorithm ---
+// --- HANOI ---
 function botHanoi(st) {
   if (st.gameOver) return;
-  // Compute optimal move sequence
   if (!st._botMoves) {
     st._botMoves = [];
     st._botMoveIdx = 0;
@@ -690,14 +719,11 @@ function botHanoi(st) {
   if (st._botMoveIdx >= st._botMoves.length) return;
   const move = st._botMoves[st._botMoveIdx];
   AUTOPLAY.busy = true;
-  scheduleAction(() => {
+  setTimeout(() => {
+    if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
     hanoiTapPeg(move.from);
-    scheduleAction(() => {
-      hanoiTapPeg(move.to);
-      st._botMoveIdx++;
-      AUTOPLAY.busy = false;
-    }, 150, 300);
-  }, 150, 300);
+    setTimeout(() => { if (AUTOPLAY.active) hanoiTapPeg(move.to); st._botMoveIdx++; AUTOPLAY.busy = false; }, gDelay(250, 60));
+  }, gDelay(300, 70));
 }
 
 function solveHanoi(n, from, to, aux, moves) {
@@ -707,249 +733,220 @@ function solveHanoi(n, from, to, aux, moves) {
   solveHanoi(n - 1, aux, to, from, moves);
 }
 
-// --- SIMON: replay the sequence ---
+// --- SIMON — delay increases with sequence length ---
 function botSimon(st) {
   if (st.gameOver || st.playing || !st.inputEnabled) return;
-  const expected = st.sequence[st.playerInput.length];
+  const pos = st.playerInput.length;
+  const expected = st.sequence[pos];
   if (expected === undefined) return;
+  const delay = gDelay(280 + pos * 45, 60 + pos * 12);
   AUTOPLAY.busy = true;
-  scheduleAction(() => { simonPlayerTap(expected); AUTOPLAY.busy = false; }, 200, 450);
+  setTimeout(() => { if (AUTOPLAY.active) simonPlayerTap(expected); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- CHAINWORD: find valid word starting with last letter ---
+// --- CHAINWORD ---
 function botChainword(st) {
   if (st.gameOver) return;
   const chain = st.chain;
-  const lastWord = chain[chain.length - 1];
-  const lastLetter = lastWord[lastWord.length - 1].toLowerCase();
+  const lastLetter = chain[chain.length - 1].slice(-1).toLowerCase();
   const minLen = st.puzzle.minLen || 3;
-
-  // Try to find a word from the global word list
   const used = new Set(chain.map(w => w.toLowerCase()));
   let word = null;
-
-  // Check if there's a WORD_LIST or similar global
-  const wordList = (typeof TYPING_WORDS !== 'undefined')
-    ? [].concat(...Object.values(TYPING_WORDS))
-    : [];
-
-  // Also try BS_WORD_SET if available
-  if (typeof BS_WORD_SET !== 'undefined') {
-    for (const w of BS_WORD_SET) {
-      if (w.length >= minLen && w[0].toLowerCase() === lastLetter && !used.has(w.toLowerCase())) {
-        word = w;
-        break;
-      }
+  if (typeof WORDRO_BANK_SET !== 'undefined') {
+    for (const w of WORDRO_BANK_SET) {
+      if (w.length >= minLen && w[0] === lastLetter && !used.has(w)) { word = w; break; }
     }
   }
-
-  if (!word) {
-    for (const w of wordList) {
-      if (w.length >= minLen && w[0].toLowerCase() === lastLetter && !used.has(w.toLowerCase())) {
-        word = w;
-        break;
+  if (!word && typeof TYPING_WORDS !== 'undefined') {
+    for (const ws of Object.values(TYPING_WORDS)) {
+      for (const w of ws) {
+        if (w.length >= minLen && w[0].toLowerCase() === lastLetter && !used.has(w.toLowerCase())) { word = w; break; }
       }
+      if (word) break;
     }
   }
-
   if (!word) {
-    // Generate a common word starting with the letter
-    const commonWords = {
-      a:'apple',b:'banana',c:'cherry',d:'dance',e:'eagle',f:'flower',g:'grape',
-      h:'house',i:'island',j:'jungle',k:'knight',l:'lemon',m:'mango',n:'night',
-      o:'orange',p:'peace',q:'queen',r:'river',s:'stone',t:'tiger',u:'uncle',
-      v:'violet',w:'water',x:'xenon',y:'youth',z:'zebra'
-    };
-    word = commonWords[lastLetter] || lastLetter + 'ight';
+    const cw = {a:'apple',b:'banana',c:'cherry',d:'dance',e:'eagle',f:'flower',g:'grape',h:'house',i:'island',j:'jungle',k:'knight',l:'lemon',m:'mango',n:'night',o:'orange',p:'peace',q:'queen',r:'river',s:'stone',t:'tiger',u:'uncle',v:'violet',w:'water',x:'xenon',y:'youth',z:'zebra'};
+    word = cw[lastLetter] || lastLetter + 'ight';
   }
-
   const input = document.getElementById('chain-input');
-  if (input) {
-    AUTOPLAY.busy = true;
-    input.value = word;
-    input.dispatchEvent(new Event('input', {bubbles: true}));
-    scheduleAction(() => { submitChainword(); AUTOPLAY.busy = false; }, 200, 400);
-  }
+  if (!input) return;
+  AUTOPLAY.busy = true;
+  input.value = word;
+  input.dispatchEvent(new Event('input', {bubbles: true}));
+  setTimeout(() => { if (AUTOPLAY.active) submitChainword(); AUTOPLAY.busy = false; }, gDelay(400, 100));
 }
 
-// --- TYPING: type the current word ---
+// --- TYPING — realistic WPM (60-130ms/char with micro-pauses) ---
 function botTyping(st) {
-  if (st.done) return;
-  if (st.currentWordIdx >= st.words.length) return;
+  if (st.done || st.currentWordIdx >= st.words.length) return;
   const word = st.words[st.currentWordIdx];
   const input = document.getElementById('typing-input');
   if (!input) return;
-  // Start timer if not started
-  if (!st.startTime) {
-    input.dispatchEvent(new Event('input', {bubbles: true}));
-  }
+  if (!st.startTime) input.dispatchEvent(new Event('input', {bubbles: true}));
   AUTOPLAY.busy = true;
   input.value = '';
   let delay = 0;
-  for (const ch of word) {
-    delay += humanDelay(30, 80);
-    ((character) => {
+  for (let i = 0; i < word.length; i++) {
+    const isPause = i > 0 && Math.random() < 0.07;
+    delay += isPause ? gDelay(260, 60) : gDelay(90, 25);
+    ((ch, d) => {
       setTimeout(() => {
         if (!AUTOPLAY.active) return;
-        input.value += character;
+        input.value += ch;
         st.typed = input.value;
         input.dispatchEvent(new Event('input', {bubbles: true}));
-      }, delay);
-    })(ch);
+      }, d);
+    })(word[i], delay);
   }
-  delay += humanDelay(50, 120);
-  setTimeout(() => {
-    if (!AUTOPLAY.active) return;
-    submitTypingWord(st);
-    AUTOPLAY.busy = false;
-  }, delay);
+  delay += gDelay(100, 25);
+  setTimeout(() => { if (AUTOPLAY.active) submitTypingWord(st); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- REACTION: click at the right time ---
+// --- REACTION — gaussian variability, realistic timing ---
 function botReaction(st) {
   if (st.done) return;
   if (st.phase === 'waiting' || st.phase === 'result') {
     AUTOPLAY.busy = true;
-    scheduleAction(() => { handleReactionClick(); AUTOPLAY.busy = false; }, 300, 600);
+    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(600, 180));
     return;
   }
   if (st.phase === 'green') {
-    // React with slight human delay
     AUTOPLAY.busy = true;
-    scheduleAction(() => { handleReactionClick(); AUTOPLAY.busy = false; }, 180, 280);
+    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(250, 50));
     return;
   }
-  // If red, do nothing - wait for green
+  // Red phase: do nothing
 }
 
-// --- NUMMEMORY: type the memorized number ---
+// --- NUMMEMORY — type digit by digit ---
 function botNummemory(st) {
   if (st.done) return;
-  if (st.phase === 'show') return; // still showing
-  if (st.phase === 'feedback') {
-    // Click continue/retry/finish button
-    return; // handled by main tick's button scanner
-  }
+  if (st.phase === 'show' || st.phase === 'feedback') return;
   if (st.phase === 'input') {
     const input = document.getElementById('nummem-input');
-    if (!input) return;
+    if (!input || input.value.length > 0) return;
     AUTOPLAY.busy = true;
-    const num = st.currentNumber;
-    input.value = num;
-    input.dispatchEvent(new Event('input', {bubbles: true}));
-    scheduleAction(() => { submitNumMemory(); AUTOPLAY.busy = false; }, 200, 400);
+    const num = String(st.currentNumber);
+    let delay = gDelay(500, 120); // recall pause
+    for (let i = 0; i < num.length; i++) {
+      delay += gDelay(200, 50);
+      ((digit, d) => {
+        setTimeout(() => {
+          if (!AUTOPLAY.active) return;
+          input.value += digit;
+          input.dispatchEvent(new Event('input', {bubbles: true}));
+        }, d);
+      })(num[i], delay);
+    }
+    delay += gDelay(350, 80);
+    setTimeout(() => { if (AUTOPLAY.active) submitNumMemory(); AUTOPLAY.busy = false; }, delay);
   }
 }
 
-// --- STROOP: pick the display color ---
+// --- STROOP — cognitive interference delay ---
 function botStroop(st) {
-  if (st.done) return;
-  if (!st.currentColor) return;
+  if (st.done || !st.currentColor) return;
+  // Stroop effect: incongruent = slower
+  const wordEl = document.querySelector('.stroop-word');
+  const congruent = wordEl && wordEl.textContent.trim().toUpperCase() === st.currentColor.name.toUpperCase();
+  const delay = congruent ? gDelay(380, 80) : gDelay(750, 180);
   AUTOPLAY.busy = true;
-  scheduleAction(() => { pickStroop(st.currentColor.name); AUTOPLAY.busy = false; }, 200, 500);
+  setTimeout(() => { if (AUTOPLAY.active) pickStroop(st.currentColor.name); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- SLIDING: solve step by step ---
+// --- SLIDING — Manhattan distance heuristic + anti-cycling ---
 function botSliding(st) {
   if (st.done) return;
-  // Find a tile adjacent to empty that should be moved
+  if (!st._botHistory) st._botHistory = [];
   const neighbors = getSlidingNeighbors(st.emptyIdx, st.size);
-  // Use simple strategy: try each neighbor and pick the one that improves state
-  let bestIdx = -1;
-  let bestScore = countCorrectTiles(st.tiles, st.solved);
-
+  let bestIdx = -1, bestScore = Infinity;
   for (const idx of neighbors) {
-    // Simulate swap
+    if (st._botHistory.length > 0 && idx === st._botHistory[st._botHistory.length - 1]) continue;
     const test = [...st.tiles];
     test[st.emptyIdx] = test[idx];
     test[idx] = 0;
-    const score = countCorrectTiles(test, st.solved);
-    if (score > bestScore) {
-      bestScore = score;
-      bestIdx = idx;
-    }
+    const score = manhattanDist(test, st.size);
+    if (score < bestScore) { bestScore = score; bestIdx = idx; }
   }
-
-  // If no improvement, just pick a random neighbor
-  if (bestIdx === -1) {
-    bestIdx = neighbors[Math.floor(Math.random() * neighbors.length)];
-  }
-
+  if (bestIdx === -1) bestIdx = neighbors[Math.floor(Math.random() * neighbors.length)];
+  st._botHistory.push(st.emptyIdx);
+  if (st._botHistory.length > 8) st._botHistory.shift();
   AUTOPLAY.busy = true;
-  scheduleAction(() => { clickSlidingTile(bestIdx); AUTOPLAY.busy = false; }, 80, 180);
+  setTimeout(() => { if (AUTOPLAY.active) clickSlidingTile(bestIdx); AUTOPLAY.busy = false; }, gDelay(160, 40));
 }
 
-function countCorrectTiles(tiles, solved) {
-  let count = 0;
+function manhattanDist(tiles, size) {
+  let d = 0;
   for (let i = 0; i < tiles.length; i++) {
-    if (tiles[i] === solved[i]) count++;
+    if (tiles[i] === 0) continue;
+    const t = tiles[i] - 1;
+    d += Math.abs(Math.floor(i / size) - Math.floor(t / size)) + Math.abs(i % size - t % size);
   }
-  return count;
+  return d;
 }
 
-// --- SPOTDIFF: click all differences ---
+// --- SPOTDIFF — scanning time increases ---
 function botSpotdiff(st) {
   if (st.done) return;
-  // Find first unfound diff
   for (const idx of st.diffIndices) {
     if (!st.found.has(idx)) {
+      const scanDelay = gDelay(900 + st.found.size * 500, 200);
       AUTOPLAY.busy = true;
-      scheduleAction(() => { clickSpotDiff(idx); AUTOPLAY.busy = false; }, 200, 500);
+      setTimeout(() => { if (AUTOPLAY.active) clickSpotDiff(idx); AUTOPLAY.busy = false; }, scanDelay);
       return;
     }
   }
 }
 
-// --- SCRAMBLE: type unscrambled word ---
+// --- SCRAMBLE — thinking time ---
 function botScramble(st) {
-  if (st.done || st.gameOver) return;
-  if (!st.currentWord) return;
+  if (st.done || st.gameOver || !st.currentWord) return;
   const input = document.getElementById('scr-input');
-  if (!input) return;
+  if (!input || input.value.length > 0) return;
   AUTOPLAY.busy = true;
-  input.value = st.currentWord;
-  input.dispatchEvent(new Event('input', {bubbles: true}));
-  scheduleAction(() => { submitScrambleWord(); AUTOPLAY.busy = false; }, 200, 400);
+  const thinkDelay = gDelay(1100 + st.currentWord.length * 120, 300);
+  setTimeout(() => {
+    if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+    input.value = st.currentWord;
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+    setTimeout(() => { if (AUTOPLAY.active) submitScrambleWord(); AUTOPLAY.busy = false; }, gDelay(350, 80));
+  }, thinkDelay);
 }
 
-// --- MATH24: find and type a solution ---
+// --- MATH24 — significant thinking time ---
 function botMath24(st) {
-  if (st.done || st.gameOver) return;
-  if (!st.puzzle || !st.puzzle.puzzles) return;
+  if (st.done || st.gameOver || !st.puzzle || !st.puzzle.puzzles) return;
   const nums = st.puzzle.puzzles[st.round];
-  const solution = findSolution24(nums);
+  if (!nums) return;
+  if (!st._botSolution) st._botSolution = findSolution24(nums);
+  if (!st._botSolution) return;
   const input = document.getElementById('m24-input');
-  if (!input || !solution) return;
+  if (!input || input.value.length > 0) return;
   AUTOPLAY.busy = true;
-  input.value = solution;
-  input.dispatchEvent(new Event('input', {bubbles: true}));
-  scheduleAction(() => { submitMath24(); AUTOPLAY.busy = false; }, 300, 500);
+  setTimeout(() => {
+    if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+    input.value = st._botSolution;
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+    st._botSolution = null;
+    setTimeout(() => { if (AUTOPLAY.active) submitMath24(); AUTOPLAY.busy = false; }, gDelay(400, 100));
+  }, gDelay(3500, 900));
 }
 
 function findSolution24(nums) {
   const ops = ['+','-','*','/'];
-  // Try all permutations of 4 numbers
   const perms = permutations(nums);
   for (const p of perms) {
-    for (const o1 of ops) {
-      for (const o2 of ops) {
-        for (const o3 of ops) {
-          // Try different bracket patterns
-          const exprs = [
-            `((${p[0]}${o1}${p[1]})${o2}${p[2]})${o3}${p[3]}`,
-            `(${p[0]}${o1}(${p[1]}${o2}${p[2]}))${o3}${p[3]}`,
-            `(${p[0]}${o1}${p[1]})${o2}(${p[2]}${o3}${p[3]})`,
-            `${p[0]}${o1}((${p[1]}${o2}${p[2]})${o3}${p[3]})`,
-            `${p[0]}${o1}(${p[1]}${o2}(${p[2]}${o3}${p[3]}))`
-          ];
-          for (const expr of exprs) {
-            try {
-              if (Math.abs(Function('"use strict";return(' + expr + ')')() - 24) < 0.001) {
-                return expr;
-              }
-            } catch(e) {}
-          }
-        }
+    for (const o1 of ops) for (const o2 of ops) for (const o3 of ops) {
+      const exprs = [
+        `((${p[0]}${o1}${p[1]})${o2}${p[2]})${o3}${p[3]}`,
+        `(${p[0]}${o1}(${p[1]}${o2}${p[2]}))${o3}${p[3]}`,
+        `(${p[0]}${o1}${p[1]})${o2}(${p[2]}${o3}${p[3]})`,
+        `${p[0]}${o1}((${p[1]}${o2}${p[2]})${o3}${p[3]})`,
+        `${p[0]}${o1}(${p[1]}${o2}(${p[2]}${o3}${p[3]}))`
+      ];
+      for (const expr of exprs) {
+        try { if (Math.abs(Function('"use strict";return(' + expr + ')')() - 24) < 0.001) return expr; } catch(e) {}
       }
     }
   }
@@ -958,156 +955,134 @@ function findSolution24(nums) {
 
 function permutations(arr) {
   if (arr.length <= 1) return [arr];
-  const result = [];
+  const res = [];
   for (let i = 0; i < arr.length; i++) {
     const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
-    for (const perm of permutations(rest)) {
-      result.push([arr[i], ...perm]);
-    }
+    for (const p of permutations(rest)) res.push([arr[i], ...p]);
   }
-  return result;
+  return res;
 }
 
-// --- AIM: click target elements ---
+// --- AIM — variability based on target size ---
 function botAim(st) {
   if (st.done) return;
   const target = document.querySelector('.aim-target');
   if (target) {
+    const size = target.offsetWidth || 40;
+    const delay = gDelay(320 + (60 - Math.min(size, 60)) * 4, 60);
     AUTOPLAY.busy = true;
-    scheduleAction(() => { target.click(); AUTOPLAY.busy = false; }, 150, 350);
+    setTimeout(() => { if (AUTOPLAY.active) target.click(); AUTOPLAY.busy = false; }, delay);
   }
 }
 
-// --- VISMEMORY: click memorized tiles ---
+// --- VISMEMORY ---
 function botVismemory(st) {
-  if (st.done) return;
-  if (st.phase === 'show') return; // still showing
+  if (st.done || st.phase === 'show') return;
   if (st.phase === 'input') {
-    // Click a highlighted tile that hasn't been found
     for (const idx of st.highlighted) {
       if (!st.found.has(idx)) {
         AUTOPLAY.busy = true;
-        scheduleAction(() => { clickVisMemCell(idx); AUTOPLAY.busy = false; }, 200, 400);
+        setTimeout(() => { if (AUTOPLAY.active) clickVisMemCell(idx); AUTOPLAY.busy = false; }, gDelay(350, 80));
         return;
       }
     }
   }
 }
 
-// --- CHIMP: click numbers in order ---
+// --- CHIMP — delay increases with number value ---
 function botChimp(st) {
   if (st.done) return;
   if (st.phase === 'show') {
-    // Click number 1 to start
     AUTOPLAY.busy = true;
-    scheduleAction(() => { clickChimpCell(1); AUTOPLAY.busy = false; }, 400, 700);
+    setTimeout(() => { if (AUTOPLAY.active) clickChimpCell(1); AUTOPLAY.busy = false; }, gDelay(700, 180));
     return;
   }
   if (st.phase === 'input') {
     const next = st.nextExpected;
+    const delay = gDelay(220 + next * 45, 40 + next * 10);
     AUTOPLAY.busy = true;
-    scheduleAction(() => { clickChimpCell(next); AUTOPLAY.busy = false; }, 150, 350);
+    setTimeout(() => { if (AUTOPLAY.active) clickChimpCell(next); AUTOPLAY.busy = false; }, delay);
   }
 }
 
-// --- ROTATION: pick correct option ---
+// --- ROTATION ---
 function botRotation(st) {
   if (st.done) return;
-  // Find the correct option
   const options = document.querySelectorAll('.rotation-option');
-  for (let i = 0; i < options.length; i++) {
-    // The correct option has data-correct="true" or similar
-    const opt = options[i];
-    if (opt.dataset.correct === 'true' || opt.getAttribute('onclick')?.includes('true')) {
+  for (const opt of options) {
+    if (opt.getAttribute('onclick')?.includes('true')) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => { opt.click(); AUTOPLAY.busy = false; }, 300, 600);
+      setTimeout(() => { if (AUTOPLAY.active) opt.click(); AUTOPLAY.busy = false; }, gDelay(900, 250));
       return;
     }
   }
 }
 
-// --- PATHTRACER: click dots in order ---
+// --- PATHTRACER — delay increases with path position ---
 function botPathtracer(st) {
-  if (st.done) return;
-  if (st.phase === 'show') return; // still showing
+  if (st.done || st.phase === 'show') return;
   if (st.phase === 'input') {
     const nextIdx = st.playerPath.length;
     if (nextIdx < st.path.length) {
-      const cellIdx = st.path[nextIdx];
+      const delay = gDelay(350 + nextIdx * 55, 60 + nextIdx * 12);
       AUTOPLAY.busy = true;
-      scheduleAction(() => { clickPathCell(cellIdx); AUTOPLAY.busy = false; }, 200, 450);
+      setTimeout(() => { if (AUTOPLAY.active) clickPathCell(st.path[nextIdx]); AUTOPLAY.busy = false; }, delay);
     }
   }
 }
 
-// --- ASSOCIATION: pick correct word ---
+// --- ASSOCIATION ---
 function botAssociation(st) {
   if (st.done) return;
-  // Find button where picked === correct (both args in onclick match)
   const btns = document.querySelectorAll('.assoc-btn');
   for (const btn of btns) {
     const onclick = btn.getAttribute('onclick') || '';
-    // onclick format: pickAssociation('Word','CorrectWord')
     const m = onclick.match(/pickAssociation\('([^']*)','([^']*)'\)/);
     if (m && m[1] === m[2]) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => { btn.click(); AUTOPLAY.busy = false; }, 300, 600);
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(700, 180));
       return;
     }
   }
 }
 
-// --- SORTRACE: arrange items in correct order ---
+// --- SORTRACE ---
 function botSortrace(st) {
-  if (st.done || st.gameOver) return;
-  if (!st.correctOrder || !st.currentItems) return;
-  // Find first item out of place and move it
+  if (st.done || st.gameOver || !st.correctOrder || !st.currentItems) return;
   for (let i = 0; i < st.currentItems.length; i++) {
     if (st.currentItems[i] !== st.correctOrder[i]) {
-      // Find where the correct item is
-      const correctItem = st.correctOrder[i];
-      const currentIdx = st.currentItems.indexOf(correctItem);
-      if (currentIdx > i) {
-        // Move it up
+      const ci = st.currentItems.indexOf(st.correctOrder[i]);
+      if (ci > i) {
         AUTOPLAY.busy = true;
-        scheduleAction(() => { moveSortItem(currentIdx, -1); AUTOPLAY.busy = false; }, 100, 250);
+        setTimeout(() => { if (AUTOPLAY.active) moveSortItem(ci, -1); AUTOPLAY.busy = false; }, gDelay(200, 50));
         return;
       }
     }
   }
-  // All correct, submit
   AUTOPLAY.busy = true;
-  scheduleAction(() => { submitSortRound(); AUTOPLAY.busy = false; }, 300, 500);
+  setTimeout(() => { if (AUTOPLAY.active) submitSortRound(); AUTOPLAY.busy = false; }, gDelay(500, 120));
 }
 
-// --- RHYTHM: tap with correct timing ---
+// --- RHYTHM ---
 function botRhythm(st) {
-  if (st.done) return;
-  if (st.phase === 'listen') return; // still listening
+  if (st.done || st.phase === 'listen') return;
   if (st.phase === 'tap') {
     if (st.playerTaps.length >= st.beatCount) return;
-    // For first tap, just tap immediately
     if (st.playerTaps.length === 0) {
       AUTOPLAY.busy = true;
-      scheduleAction(() => { tapRhythm(); AUTOPLAY.busy = false; }, 100, 200);
+      setTimeout(() => { if (AUTOPLAY.active && st.phase === 'tap') tapRhythm(); AUTOPLAY.busy = false; }, gDelay(150, 40));
       return;
     }
-    // For subsequent taps, match the gap from the pattern
     const tapIdx = st.playerTaps.length;
     if (tapIdx < st.pattern.length) {
       const expectedGap = st.pattern[tapIdx] - st.pattern[tapIdx - 1];
       const elapsed = performance.now() - st.startTime - st.playerTaps[st.playerTaps.length - 1];
       const remaining = expectedGap - elapsed;
       if (remaining <= 30) {
-        // Time to tap (with slight imperfection ±20ms)
-        const jitter = (Math.random() - 0.5) * 40;
+        const jitter = (Math.random() - 0.5) * 50;
         AUTOPLAY.busy = true;
-        setTimeout(() => {
-          if (AUTOPLAY.active && st.phase === 'tap') tapRhythm();
-          AUTOPLAY.busy = false;
-        }, Math.max(0, jitter));
+        setTimeout(() => { if (AUTOPLAY.active && st.phase === 'tap') tapRhythm(); AUTOPLAY.busy = false; }, Math.max(0, jitter));
       }
-      // Otherwise wait for next tick
     }
   }
 }
