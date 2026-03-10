@@ -54,7 +54,7 @@ function showBotBadge(on) {
     badge.className = 'autoplay-badge';
     document.body.appendChild(badge);
   }
-  badge.textContent = 'BOT ON';
+  badge.textContent = 'AUTO';
   badge.style.display = on ? 'block' : 'none';
 }
 
