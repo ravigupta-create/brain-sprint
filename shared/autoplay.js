@@ -1,20 +1,23 @@
 // ==================== AUTOPLAY BOT (secret cheat: "srg2") ====================
 // Session-only. No localStorage. Resets on reload.
-// Designed to look human: gaussian timing, thinking pauses, imperfect play.
+// 100/100 performance. Bot has total control when active.
 
 const AUTOPLAY = {
   unlocked: false,
   active: false,
   interval: null,
   busy: false,
-  _buf: ''
+  _buf: '',
+  _pulseRAF: null,
+  _botClicking: false
 };
 
-// --- Keystroke detection ---
+// --- Keystroke detection + input blocking ---
 document.addEventListener('keydown', function(e) {
-  const tag = (e.target.tagName || '').toLowerCase();
-  const isText = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
-  if (e.key.length === 1) {
+  // Cheat code detection (only when bot is off)
+  if (e.key.length === 1 && !AUTOPLAY.active) {
+    const tag = (e.target.tagName || '').toLowerCase();
+    const isText = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
     AUTOPLAY._buf += e.key.toLowerCase();
     if (AUTOPLAY._buf.length > 20) AUTOPLAY._buf = AUTOPLAY._buf.slice(-20);
     if (AUTOPLAY._buf.endsWith('srg2') && !AUTOPLAY.unlocked) {
@@ -23,26 +26,49 @@ document.addEventListener('keydown', function(e) {
       return;
     }
   }
+  // Shift toggle (always works when unlocked)
   if (e.key === 'Shift' && AUTOPLAY.unlocked) {
     e.preventDefault();
     e.stopPropagation();
     if (AUTOPLAY.active) stopAutoplay(); else startAutoplay();
+    return;
+  }
+  // Block ALL other keyboard input while bot is active
+  if (AUTOPLAY.active) {
+    e.stopPropagation();
+    e.preventDefault();
   }
 }, true);
+
+// Block mouse events while bot is active (overlay catches them)
+function showBotOverlay(on) {
+  let ov = document.getElementById('autoplay-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'autoplay-overlay';
+    ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9997;background:transparent;cursor:default;';
+    document.body.appendChild(ov);
+  }
+  ov.style.display = on ? 'block' : 'none';
+}
 
 function startAutoplay() {
   AUTOPLAY.active = true;
   AUTOPLAY.busy = false;
   showBotBadge(true);
+  showBotOverlay(true);
   if (AUTOPLAY.interval) clearInterval(AUTOPLAY.interval);
-  AUTOPLAY.interval = setInterval(autoplayTick, 600);
+  AUTOPLAY.interval = setInterval(autoplayTick, 400);
+  AUTOPLAY._pulseRAF = requestAnimationFrame(pulseFastLoop);
   autoplayTick();
 }
 
 function stopAutoplay() {
   AUTOPLAY.active = false;
   if (AUTOPLAY.interval) { clearInterval(AUTOPLAY.interval); AUTOPLAY.interval = null; }
+  if (AUTOPLAY._pulseRAF) { cancelAnimationFrame(AUTOPLAY._pulseRAF); AUTOPLAY._pulseRAF = null; }
   showBotBadge(false);
+  showBotOverlay(false);
 }
 
 // --- Badge ---
@@ -58,60 +84,67 @@ function showBotBadge(on) {
   badge.style.display = on ? 'block' : 'none';
 }
 
-// ===================== HUMAN-LIKE TIMING =====================
-// Gaussian-distributed delays (Box-Muller) — right-skewed, realistic
+// ===================== TIMING =====================
 function gaussRand() {
   const u1 = Math.random(), u2 = Math.random();
   return Math.sqrt(-2 * Math.log(u1 || 0.0001)) * Math.cos(2 * Math.PI * u2);
 }
-
 function gDelay(mean, sd) {
   return Math.max(mean * 0.25, mean + gaussRand() * sd);
 }
 
-// Per-challenge "reading/thinking" time before first action (ms)
+// Per-challenge thinking time (shorter for max score)
 const BOT_THINK = {
-  paradox:2200, blocks:1600, economy:2200, escape:2800, wordsearch:1800,
-  wordro:1200, numgrid:2000, wordhive:1400, pulse:800, deduction:2000,
-  memory:1200, maze:1000, mosaic:1800, numcrunch:1500, colorcode:1500,
-  quickmath:400, pattern:1200, oddoneout:1000, estimation:1800, hanoi:1400,
-  simon:600, chainword:1200, typing:600, reaction:400, nummemory:400,
-  stroop:400, sliding:1200, spotdiff:1000, scramble:1400, math24:2000,
-  aim:400, vismemory:400, chimp:500, rotation:1400, pathtracer:400,
-  association:800, sortrace:1000, rhythm:400
+  paradox:1200, blocks:800, economy:1200, escape:1400, wordsearch:800,
+  wordro:600, numgrid:800, wordhive:600, pulse:300, deduction:800,
+  memory:500, maze:400, mosaic:800, numcrunch:800, colorcode:600,
+  quickmath:200, pattern:600, oddoneout:500, estimation:800, hanoi:600,
+  simon:300, chainword:600, typing:200, reaction:200, nummemory:200,
+  stroop:200, sliding:600, spotdiff:500, scramble:600, math24:1000,
+  aim:200, vismemory:200, chimp:300, rotation:600, pathtracer:200,
+  association:400, sortrace:500, rhythm:200
 };
 
-// Common 5-letter words for Wordro intermediate guesses
-const BOT_OPENERS = [
-  'CRANE','SLATE','TRACE','AUDIO','RAISE','STARE','ADIEU','ROAST','CRATE',
-  'TEARS','SNARE','IRATE','STONE','HEART','LEARN','MONEY','WATER','HOUSE',
-  'LIGHT','DREAM','PLANT','EARTH','WORLD','BRAIN','TRAIN','SUGAR','OCEAN',
-  'CLOUD','NIGHT','DANCE','SMILE','BRAVE','QUIET','FRESH','FROST','GHOST',
-  'PRIDE','STEAM','WHEAT','BLEND','CLIMB','SWIRL'
-];
+// ===================== PULSE — requestAnimationFrame for frame-perfect precision =====================
+function pulseFastLoop() {
+  if (!AUTOPLAY.active) return;
+  AUTOPLAY._pulseRAF = requestAnimationFrame(pulseFastLoop);
+  const ch = GS.selectedChallenges && GS.selectedChallenges[GS.currentChallengeIdx];
+  if (ch !== 'pulse') return;
+  const st = GS.challengeState && GS.challengeState[ch];
+  if (!st || st.gameOver || st.waiting || AUTOPLAY.busy) return;
+  if (!st._botReady) return; // wait for think time
+  const pos = st.position, start = st.zoneStart, end = start + st.zoneSize;
+  const center = (start + end) / 2, margin = st.zoneSize * 0.35;
+  if (pos >= center - margin && pos <= center + margin) {
+    AUTOPLAY.busy = true;
+    hitPulse();
+    setTimeout(() => { AUTOPLAY.busy = false; }, 40);
+  }
+}
 
 // ===================== MAIN TICK =====================
 function autoplayTick() {
   if (!AUTOPLAY.active || AUTOPLAY.busy) return;
 
-  // UI buttons: intro, summary, feedback, results
+  // UI buttons
   const introBtn = document.querySelector('.intro-screen .btn-primary');
   if (introBtn) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) introBtn.click(); AUTOPLAY.busy = false; }, gDelay(900, 250));
+    setTimeout(() => { if (AUTOPLAY.active) introBtn.click(); AUTOPLAY.busy = false; }, gDelay(500, 120));
     return;
   }
   const continueBtn = document.querySelector('.cs-panel .btn-primary');
   if (continueBtn && continueBtn.textContent.includes('Continue')) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) continueBtn.click(); AUTOPLAY.busy = false; }, gDelay(700, 200));
+    setTimeout(() => { if (AUTOPLAY.active) continueBtn.click(); AUTOPLAY.busy = false; }, gDelay(400, 100));
     return;
   }
   for (const fn of ['continueNumMemory','retryNumMemory','finishNumMemory']) {
     const btn = document.querySelector(`[onclick="${fn}()"]`);
     if (btn) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(500, 150));
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(350, 80));
       return;
     }
   }
@@ -120,12 +153,18 @@ function autoplayTick() {
     const t = btn.textContent;
     if (t.includes('See Score') || t.includes('Next Level')) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(500, 150));
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(350, 80));
       return;
     }
   }
+
+  // Results screen → auto-stop, give user full control
   const resultsScreen = document.getElementById('screen-results');
-  if (resultsScreen && resultsScreen.classList.contains('active')) return;
+  if (resultsScreen && resultsScreen.classList.contains('active')) {
+    stopAutoplay();
+    return;
+  }
+
   const gameScreen = document.getElementById('screen-game');
   if (!gameScreen || !gameScreen.classList.contains('active')) return;
 
@@ -136,17 +175,17 @@ function autoplayTick() {
   if (!st && (ch === 'numgrid' || ch === 'wordhive')) st = GS.challengeState;
   if (!st) return;
 
-  // Initial thinking delay — simulates reading the challenge
+  // Thinking delay
   if (!st._botReady) {
     if (!st._botThinkStart) {
       st._botThinkStart = Date.now();
-      st._botThinkDur = gDelay(BOT_THINK[ch] || 1500, (BOT_THINK[ch] || 1500) * 0.3);
+      st._botThinkDur = gDelay(BOT_THINK[ch] || 800, (BOT_THINK[ch] || 800) * 0.25);
     }
     if (Date.now() - st._botThinkStart < st._botThinkDur) return;
     st._botReady = true;
   }
 
-  try { botDispatch(ch, st); } catch(e) { /* continue */ }
+  try { botDispatch(ch, st); } catch(e) {}
 }
 
 // ===================== DISPATCH =====================
@@ -160,7 +199,7 @@ function botDispatch(ch, st) {
     case 'wordro': return botWordro(st);
     case 'numgrid': return botNumgrid(st);
     case 'wordhive': return botWordhive(st);
-    case 'pulse': return botPulse(st);
+    case 'pulse': return; // handled by pulseFastLoop RAF
     case 'deduction': return botDeduction(st);
     case 'memory': return botMemory(st);
     case 'maze': return botMaze(st);
@@ -193,20 +232,17 @@ function botDispatch(ch, st) {
   }
 }
 
-// ===================== BOT HANDLERS =====================
+// ===================== BOT HANDLERS (100/100 performance) =====================
 
-// --- PARADOX ---
 function botParadox(st) {
   if (st.answered) return;
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) selectParadoxOption(st.puzzle.correct); AUTOPLAY.busy = false; }, gDelay(800, 250));
+  setTimeout(() => { if (AUTOPLAY.active) selectParadoxOption(st.puzzle.correct); AUTOPLAY.busy = false; }, gDelay(500, 120));
 }
 
-// --- BLOCKS ---
 function botBlocks(st) {
   if (st.submitted) return;
-  const correct = st.puzzle.correctOrder;
-  const current = st.currentOrder;
+  const correct = st.puzzle.correctOrder, current = st.currentOrder;
   for (let i = 0; i < current.length; i++) {
     if (i < correct.length && current[i] !== correct[i]) {
       const ti = current.indexOf(correct[i]);
@@ -215,21 +251,19 @@ function botBlocks(st) {
         setTimeout(() => {
           if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
           tapBlock(i);
-          setTimeout(() => { if (AUTOPLAY.active) tapBlock(ti); AUTOPLAY.busy = false; }, gDelay(350, 80));
-        }, gDelay(400, 100));
+          setTimeout(() => { if (AUTOPLAY.active) tapBlock(ti); AUTOPLAY.busy = false; }, gDelay(200, 50));
+        }, gDelay(250, 60));
         return;
       }
     }
   }
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) submitBlocks(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+  setTimeout(() => { if (AUTOPLAY.active) submitBlocks(); AUTOPLAY.busy = false; }, gDelay(300, 70));
 }
 
-// --- ECONOMY ---
 function botEconomy(st) {
   if (st.submitted) return;
-  const puzzle = st.puzzle;
-  const vars = puzzle.activeVars;
+  const puzzle = st.puzzle, vars = puzzle.activeVars;
   let bestOutput = -Infinity, bestVals = {};
   function tryVals(vi, cur) {
     if (vi >= vars.length) {
@@ -247,25 +281,23 @@ function botEconomy(st) {
       cur[v.key] = Math.round(val * 10) / 10;
       tryVals(vi + 1, cur);
     }
-    cur[v.key] = v.max;
-    tryVals(vi + 1, cur);
+    cur[v.key] = v.max; tryVals(vi + 1, cur);
   }
   tryVals(0, {});
   AUTOPLAY.busy = true;
   let delay = 0;
   Object.keys(bestVals).forEach(key => {
-    delay += gDelay(350, 80);
+    delay += gDelay(200, 50);
     setTimeout(() => {
       if (!AUTOPLAY.active) return;
       const s = document.getElementById('slider-' + key);
       if (s) { s.value = bestVals[key]; updateEconomySlider(key, bestVals[key]); }
     }, delay);
   });
-  delay += gDelay(600, 150);
+  delay += gDelay(350, 80);
   setTimeout(() => { if (AUTOPLAY.active) submitEconomy(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- ESCAPE ---
 function botEscape(st) {
   if (st.screenIdx >= 5) return;
   const screen = st.puzzle.screens[st.screenIdx];
@@ -273,7 +305,7 @@ function botEscape(st) {
   const nextBtn = document.getElementById('btn-escape-next');
   if (nextBtn && nextBtn.style.display !== 'none') {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) advanceEscape(); AUTOPLAY.busy = false; }, gDelay(1200, 300));
+    setTimeout(() => { if (AUTOPLAY.active) advanceEscape(); AUTOPLAY.busy = false; }, gDelay(600, 150));
     return;
   }
   const btns = document.querySelectorAll('.escape-choice');
@@ -281,96 +313,43 @@ function botEscape(st) {
   const optIdx = screen.choices.findIndex(c => c.optimal);
   if (optIdx >= 0) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) selectEscapeChoice(optIdx); AUTOPLAY.busy = false; }, gDelay(1800, 500));
+    setTimeout(() => { if (AUTOPLAY.active) selectEscapeChoice(optIdx); AUTOPLAY.busy = false; }, gDelay(800, 200));
   }
 }
 
-// --- WORDSEARCH ---
 function botWordsearch(st) {
-  const puzzle = st.puzzle;
-  const next = puzzle.placements.find(p => !st.foundWords.includes(p.word));
+  const next = st.puzzle.placements.find(p => !st.foundWords.includes(p.word));
   if (!next) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) submitWordsearch(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+    setTimeout(() => { if (AUTOPLAY.active) submitWordsearch(); AUTOPLAY.busy = false; }, gDelay(300, 70));
     return;
   }
   if (st.selectedCells.length > 0) st.selectedCells.length = 0;
   AUTOPLAY.busy = true;
-  const wordIdx = st.foundWords.length;
-  let delay = gDelay(900 + wordIdx * 350, 200); // scanning time grows for later words
+  let delay = gDelay(400 + st.foundWords.length * 150, 80);
   next.cells.forEach(cell => {
-    delay += gDelay(130, 30);
+    delay += gDelay(80, 20);
     ((r, c, d) => { setTimeout(() => { if (AUTOPLAY.active) tapWsCell(r, c); }, d); })(cell.r, cell.c, delay);
   });
-  delay += gDelay(250, 60);
+  delay += gDelay(150, 30);
   setTimeout(() => { AUTOPLAY.busy = false; }, delay);
 }
 
-// --- WORDRO (Wordle) — multi-guess for realism ---
+// --- WORDRO — solve first guess for 100/100 ---
 function botWordro(st) {
-  if (st.gameOver || st.won) return;
-  if (st.revealInProgress) return;
+  if (st.gameOver || st.won || st.revealInProgress) return;
   if (st.currentGuess.length > 0) return;
-
-  // Decide which row to solve on (once per game)
-  if (st._botSolveRow === undefined) {
-    const r = Math.random();
-    st._botSolveRow = r < 0.12 ? 1 : r < 0.55 ? 2 : r < 0.88 ? 3 : 4;
-    st._botSolveRow = Math.min(st._botSolveRow, st.puzzle.maxGuesses - 1);
-  }
-
-  let word;
-  if (st.currentRow >= st._botSolveRow) {
-    word = st.puzzle.word;
-  } else {
-    word = botWordroIntermediate(st);
-    if (!word) word = st.puzzle.word; // fallback
-  }
-
   AUTOPLAY.busy = true;
-  let delay = gDelay(600, 150);
+  const word = st.puzzle.word;
+  let delay = gDelay(400, 100);
   for (const ch of word) {
-    delay += gDelay(160, 40);
-    ((c, d) => { setTimeout(() => { if (AUTOPLAY.active) wordroKeyPress(c); }, d); })(ch.toUpperCase(), delay);
+    delay += gDelay(120, 30);
+    ((c, d) => { setTimeout(() => { if (AUTOPLAY.active) wordroKeyPress(c.toUpperCase()); }, d); })(ch, delay);
   }
-  delay += gDelay(350, 80);
+  delay += gDelay(250, 60);
   setTimeout(() => { if (AUTOPLAY.active) wordroKeyPress('ENTER'); AUTOPLAY.busy = false; }, delay);
 }
 
-function botWordroIntermediate(st) {
-  const answer = st.puzzle.word.toUpperCase();
-  const used = new Set(st.guesses.map(g => g.word));
-
-  // First guess: pick a known opener
-  if (st.currentRow === 0) {
-    const shuffled = BOT_OPENERS.slice().sort(() => Math.random() - 0.5);
-    for (const w of shuffled) {
-      if (w === answer) continue;
-      if (used.has(w)) continue;
-      if (typeof WORDRO_BANK_SET !== 'undefined' && !WORDRO_BANK_SET.has(w.toLowerCase())) continue;
-      return w;
-    }
-  }
-
-  // Later guesses: pick word from bank with partial letter overlap
-  if (typeof WORDRO_BANK_SET !== 'undefined') {
-    const ansLetters = new Set(answer.toLowerCase().split(''));
-    const skip = Math.floor(Math.random() * 800);
-    let count = 0, best = null, bestScore = -1;
-    for (const w of WORDRO_BANK_SET) {
-      if (w.length !== 5) continue;
-      if (w.toUpperCase() === answer || used.has(w.toUpperCase())) continue;
-      if (++count < skip) continue;
-      const shared = w.split('').filter(c => ansLetters.has(c)).length;
-      if (shared >= 1 && shared <= 4 && shared > bestScore) { bestScore = shared; best = w.toUpperCase(); }
-      if (count > skip + 60) break;
-    }
-    if (best) return best;
-  }
-  return null;
-}
-
-// --- NUMGRID ---
 function botNumgrid(st) {
   const gs = GS.challengeState;
   if (!gs || !gs.solution) return;
@@ -383,64 +362,49 @@ function botNumgrid(st) {
         setTimeout(() => {
           if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
           tapNumgridCell(r, c);
-          setTimeout(() => { if (AUTOPLAY.active) numgridInput(solution[r][c]); AUTOPLAY.busy = false; }, gDelay(180, 40));
-        }, gDelay(250, 60));
+          setTimeout(() => { if (AUTOPLAY.active) numgridInput(solution[r][c]); AUTOPLAY.busy = false; }, gDelay(100, 25));
+        }, gDelay(120, 30));
         return;
       }
     }
   }
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) submitNumgrid(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+  setTimeout(() => { if (AUTOPLAY.active) submitNumgrid(); AUTOPLAY.busy = false; }, gDelay(300, 70));
 }
 
-// --- WORDHIVE ---
 function botWordhive(st) {
   const gs = GS.challengeState;
   if (!gs || !gs.validWords) return;
   const found = gs.found || [];
   if (found.length >= (gs.target || gs.validWords.length)) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) submitWordhive(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+    setTimeout(() => { if (AUTOPLAY.active) submitWordhive(); AUTOPLAY.busy = false; }, gDelay(300, 70));
     return;
   }
   const nextWord = gs.validWords.find(w => !found.includes(w));
   if (!nextWord) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) submitWordhive(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+    setTimeout(() => { if (AUTOPLAY.active) submitWordhive(); AUTOPLAY.busy = false; }, gDelay(300, 70));
     return;
   }
   if (gs.input && gs.input.length > 0) return;
   AUTOPLAY.busy = true;
-  let delay = gDelay(500, 120);
+  let delay = gDelay(300, 70);
   for (const ch of nextWord) {
-    delay += gDelay(130, 35);
+    delay += gDelay(80, 20);
     ((c, d) => { setTimeout(() => { if (AUTOPLAY.active) wordhiveTap(c); }, d); })(ch, delay);
   }
-  delay += gDelay(220, 50);
+  delay += gDelay(150, 35);
   setTimeout(() => { if (AUTOPLAY.active) wordhiveEnter(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- PULSE — only click near center of zone for safety ---
-function botPulse(st) {
-  if (st.gameOver || st.waiting) return;
-  const pos = st.position, start = st.zoneStart, end = start + st.zoneSize;
-  const center = (start + end) / 2;
-  const margin = st.zoneSize * 0.3;
-  // Click when near center of zone — very safe margin to never miss
-  if (pos >= center - margin && pos <= center + margin) {
-    AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active && !st.gameOver) hitPulse(); AUTOPLAY.busy = false; }, Math.max(5, gDelay(20, 8)));
-  }
-}
-
-// --- DEDUCTION ---
 function botDeduction(st) {
   const p = st.puzzle;
   if (st.phase === 'question') {
     const qBtns = document.querySelectorAll('.deduction-q-btn:not(:disabled)');
     if (qBtns.length > 0) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) qBtns[0].click(); AUTOPLAY.busy = false; }, gDelay(800, 200));
+      setTimeout(() => { if (AUTOPLAY.active) qBtns[0].click(); AUTOPLAY.busy = false; }, gDelay(500, 120));
     }
     return;
   }
@@ -448,7 +412,7 @@ function botDeduction(st) {
     const proceedBtn = document.querySelector('[onclick="goToDeductionEliminate()"]');
     if (proceedBtn) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) proceedBtn.click(); AUTOPLAY.busy = false; }, gDelay(1200, 300));
+      setTimeout(() => { if (AUTOPLAY.active) proceedBtn.click(); AUTOPLAY.busy = false; }, gDelay(600, 150));
     }
     return;
   }
@@ -456,80 +420,39 @@ function botDeduction(st) {
     for (let i = 0; i < p.characters.length; i++) {
       if (i !== p.saboteurIdx && !p.characters[i].eliminated) {
         AUTOPLAY.busy = true;
-        setTimeout(() => { if (AUTOPLAY.active) selectDeductionEliminate(i); AUTOPLAY.busy = false; }, gDelay(900, 250));
+        setTimeout(() => { if (AUTOPLAY.active) selectDeductionEliminate(i); AUTOPLAY.busy = false; }, gDelay(500, 120));
         return;
       }
     }
   }
 }
 
-// --- MEMORY — exploration phase, simulates discovering card positions ---
+// --- MEMORY — perfect pair matching for 100/100 ---
 function botMemory(st) {
   if (st.locked) return;
-  const grid = st.puzzle.grid, rows = st.puzzle.rows, cols = st.puzzle.cols;
-
-  // Init bot's "discovered" memory
-  if (!st._botSeen) { st._botSeen = {}; st._botFlips = 0; }
-
-  // Build list of unmatched cards
-  const unmatched = [];
-  for (let r = 0; r < rows; r++)
-    for (let c = 0; c < cols; c++)
-      if (!grid[r][c].matched) unmatched.push({r, c, sym: grid[r][c].symbol});
-
-  if (unmatched.length < 2) return;
-
-  // Check if we know any pair from previous exploration
-  for (const sym in st._botSeen) {
-    const locs = st._botSeen[sym].filter(p => !grid[p.r][p.c].matched);
-    if (locs.length >= 2) {
-      // 8% chance to "forget" for realism (skip this pair once) — but not early game
-      if (st._botFlips > 6 && Math.random() < 0.08) continue;
-      const [a, b] = locs;
+  const grid = st.puzzle.grid;
+  const symbolMap = {};
+  for (let r = 0; r < st.puzzle.rows; r++)
+    for (let c = 0; c < st.puzzle.cols; c++)
+      if (!grid[r][c].matched) {
+        const sym = grid[r][c].symbol;
+        if (!symbolMap[sym]) symbolMap[sym] = [];
+        symbolMap[sym].push({r, c});
+      }
+  for (const sym in symbolMap) {
+    if (symbolMap[sym].length >= 2) {
+      const [a, b] = symbolMap[sym];
       AUTOPLAY.busy = true;
       setTimeout(() => {
         if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
         flipMemoryCard(a.r, a.c);
-        setTimeout(() => { if (AUTOPLAY.active) flipMemoryCard(b.r, b.c); AUTOPLAY.busy = false; }, gDelay(450, 100));
-      }, gDelay(400, 90));
+        setTimeout(() => { if (AUTOPLAY.active) flipMemoryCard(b.r, b.c); AUTOPLAY.busy = false; }, gDelay(250, 60));
+      }, gDelay(200, 50));
       return;
     }
   }
-
-  // Exploration: flip two random unmatched cards to discover them
-  const shuffled = unmatched.sort(() => Math.random() - 0.5);
-  // Prefer cards we haven't seen yet
-  const unseen = shuffled.filter(c => {
-    const seen = st._botSeen[c.sym];
-    return !seen || !seen.some(p => p.r === c.r && p.c === c.c);
-  });
-  const pool = unseen.length >= 2 ? unseen : shuffled;
-  const c1 = pool[0], c2 = pool[1] || pool[0];
-  if (c1.r === c2.r && c1.c === c2.c) return; // same card, skip
-
-  AUTOPLAY.busy = true;
-  setTimeout(() => {
-    if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
-    flipMemoryCard(c1.r, c1.c);
-    // Record what we "see"
-    const s1 = grid[c1.r][c1.c].symbol;
-    if (!st._botSeen[s1]) st._botSeen[s1] = [];
-    if (!st._botSeen[s1].some(p => p.r === c1.r && p.c === c1.c)) st._botSeen[s1].push({r: c1.r, c: c1.c});
-    st._botFlips++;
-
-    setTimeout(() => {
-      if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
-      flipMemoryCard(c2.r, c2.c);
-      const s2 = grid[c2.r][c2.c].symbol;
-      if (!st._botSeen[s2]) st._botSeen[s2] = [];
-      if (!st._botSeen[s2].some(p => p.r === c2.r && p.c === c2.c)) st._botSeen[s2].push({r: c2.r, c: c2.c});
-      st._botFlips++;
-      AUTOPLAY.busy = false;
-    }, gDelay(500, 120));
-  }, gDelay(450, 100));
 }
 
-// --- MAZE ---
 function botMaze(st) {
   if (st.finished) return;
   const path = st.puzzle.optimalPath;
@@ -542,10 +465,8 @@ function botMaze(st) {
   if (pathIdx >= 0 && pathIdx < path.length - 1) {
     const next = path[pathIdx + 1];
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) moveMazePlayer(next.r - pr, next.c - pc); AUTOPLAY.busy = false; }, gDelay(140, 35));
-  } else {
-    botMazeBFS(st);
-  }
+    setTimeout(() => { if (AUTOPLAY.active) moveMazePlayer(next.r - pr, next.c - pc); AUTOPLAY.busy = false; }, gDelay(80, 20));
+  } else { botMazeBFS(st); }
 }
 
 function botMazeBFS(st) {
@@ -558,7 +479,7 @@ function botMazeBFS(st) {
     const {r,c,path} = queue.shift();
     if (r === rows - 1 && c === cols - 1 && path.length > 0) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) moveMazePlayer(path[0].dr, path[0].dc); AUTOPLAY.busy = false; }, gDelay(140, 35));
+      setTimeout(() => { if (AUTOPLAY.active) moveMazePlayer(path[0].dr, path[0].dc); AUTOPLAY.busy = false; }, gDelay(80, 20));
       return;
     }
     for (const d of dirs) {
@@ -570,13 +491,12 @@ function botMazeBFS(st) {
   }
 }
 
-// --- MOSAIC ---
 function botMosaic(st) {
   const checkBtn = document.querySelector('[onclick="checkMosaicSolution()"]');
   const tokenBtns = document.querySelectorAll('.mosaic-token:not(.placed)');
   if (tokenBtns.length === 0 && checkBtn) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) checkMosaicSolution(); AUTOPLAY.busy = false; }, gDelay(600, 150));
+    setTimeout(() => { if (AUTOPLAY.active) checkMosaicSolution(); AUTOPLAY.busy = false; }, gDelay(350, 80));
     return;
   }
   if (tokenBtns.length > 0) {
@@ -586,90 +506,68 @@ function botMosaic(st) {
       setTimeout(() => {
         if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
         tokenBtns[0].click();
-        setTimeout(() => { if (AUTOPLAY.active) emptyCells[0].click(); AUTOPLAY.busy = false; }, gDelay(350, 80));
-      }, gDelay(400, 100));
+        setTimeout(() => { if (AUTOPLAY.active) emptyCells[0].click(); AUTOPLAY.busy = false; }, gDelay(200, 50));
+      }, gDelay(250, 60));
     }
   }
 }
 
-// --- NUMCRUNCH — thinking delay then type ---
+// --- NUMCRUNCH — solve first guess ---
 function botNumcrunch(st) {
-  if (st.gameOver || st.won) return;
-  if (st.revealInProgress) return;
+  if (st.gameOver || st.won || st.revealInProgress) return;
   if (st.currentGuess.length > 0) return;
   AUTOPLAY.busy = true;
   const eq = st.puzzle.equation;
-  let delay = gDelay(2200, 600); // significant thinking time
+  let delay = gDelay(500, 120);
   for (const ch of eq) {
-    delay += gDelay(170, 45);
+    delay += gDelay(100, 25);
     const key = ch === '\u00d7' ? '*' : ch === '\u00f7' ? '/' : ch;
     ((k, d) => { setTimeout(() => { if (AUTOPLAY.active) numcrunchKeyPress(k); }, d); })(key, delay);
   }
-  delay += gDelay(350, 80);
+  delay += gDelay(200, 50);
   setTimeout(() => { if (AUTOPLAY.active) numcrunchKeyPress('ENTER'); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- COLORCODE (Mastermind) — multi-guess for realism ---
+// --- COLORCODE — solve first guess for 100/100 ---
 function botColorcode(st) {
   if (st.gameOver) return;
   if (!st.currentGuess || !st.currentGuess.some(c => c === null || c === undefined)) return;
-
-  // Decide when to guess correctly
-  if (st._botSolveRow === undefined) {
-    st._botSolveRow = 2 + Math.floor(Math.random() * 2); // row 2-3
-    st._botSolveRow = Math.min(st._botSolveRow, st.puzzle.maxGuesses - 1);
-  }
-
   const code = st.puzzle.code, colors = st.puzzle.colors, row = st.currentRow;
-  let target;
-  if (row >= st._botSolveRow) {
-    target = code;
-  } else {
-    // Random plausible guess (but use some correct colors for partial matches)
-    target = code.map((c, i) => {
-      if (Math.random() < 0.3) return c; // 30% chance each slot is correct — creates partial feedback
-      return colors[Math.floor(Math.random() * colors.length)];
-    });
-  }
-
   AUTOPLAY.busy = true;
-  let delay = gDelay(600, 150);
-  for (let slot = 0; slot < target.length; slot++) {
-    delay += gDelay(250, 60);
-    const ci = colors.indexOf(target[slot]);
+  let delay = gDelay(350, 80);
+  for (let slot = 0; slot < code.length; slot++) {
+    delay += gDelay(150, 35);
+    const ci = colors.indexOf(code[slot]);
     ((s, c, d) => {
       setTimeout(() => {
         if (!AUTOPLAY.active) return;
         selectColorSlot(row, s);
-        setTimeout(() => { if (AUTOPLAY.active) pickColor(c); }, gDelay(140, 35));
+        setTimeout(() => { if (AUTOPLAY.active) pickColor(c); }, gDelay(80, 20));
       }, d);
     })(slot, ci, delay);
   }
-  delay += gDelay(550, 120);
+  delay += gDelay(300, 70);
   setTimeout(() => { if (AUTOPLAY.active) submitColorCode(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- QUICKMATH — thinking time proportional to difficulty ---
 function botQuickmath(st) {
   if (st.gameOver || !st.currentProblem) return;
   const answer = st.currentProblem.answer;
   if (answer === undefined || answer === null) return;
   const ansStr = String(answer);
   AUTOPLAY.busy = true;
-  // Thinking time scales with answer magnitude
-  let delay = gDelay(500 + Math.min(Math.abs(answer), 100) * 4, 120);
+  let delay = gDelay(300 + Math.min(Math.abs(answer), 50) * 3, 60);
   const input = document.getElementById('qm-input');
   if (input) input.value = '';
   st.userAnswer = '';
   for (const ch of ansStr) {
-    delay += gDelay(110, 30);
+    delay += gDelay(70, 18);
     ((k, d) => { setTimeout(() => { if (AUTOPLAY.active) qmNumPress(k); }, d); })(ch, delay);
   }
-  delay += gDelay(180, 40);
+  delay += gDelay(100, 25);
   setTimeout(() => { if (AUTOPLAY.active) qmSubmitAnswer(); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- PATTERN ---
 function botPattern(st) {
   if (st.gameOver) return;
   const round = st.puzzle.rounds[st.currentRound];
@@ -677,11 +575,10 @@ function botPattern(st) {
   const idx = round.choices.indexOf(round.answer);
   if (idx >= 0) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) selectPatternAnswer(idx); AUTOPLAY.busy = false; }, gDelay(900, 250));
+    setTimeout(() => { if (AUTOPLAY.active) selectPatternAnswer(idx); AUTOPLAY.busy = false; }, gDelay(500, 120));
   }
 }
 
-// --- ODDONEOUT ---
 function botOddoneout(st) {
   if (st.gameOver) return;
   const round = st.puzzle.rounds[st.currentRound];
@@ -689,33 +586,27 @@ function botOddoneout(st) {
   const idx = round.items.indexOf(round.oddItem);
   if (idx >= 0) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) selectOddItem(idx); AUTOPLAY.busy = false; }, gDelay(800, 200));
+    setTimeout(() => { if (AUTOPLAY.active) selectOddItem(idx); AUTOPLAY.busy = false; }, gDelay(450, 100));
   }
 }
 
-// --- ESTIMATION — fuzzy answer (±3-10% error) for realism ---
+// --- ESTIMATION — exact answer for 100/100 ---
 function botEstimation(st) {
   if (st.gameOver) return;
   const round = st.puzzle.rounds ? st.puzzle.rounds[st.currentRound] : null;
   if (!round) return;
-  const answer = round.answer;
   const input = document.getElementById('est-input');
   if (!input) return;
-  // Human-like error: small random offset
-  const errorPct = (Math.random() * 0.08 + 0.02) * (Math.random() < 0.5 ? 1 : -1);
-  const guess = Math.round(answer * (1 + errorPct));
   AUTOPLAY.busy = true;
-  input.value = guess;
+  input.value = round.answer;
   input.dispatchEvent(new Event('input', {bubbles: true}));
-  setTimeout(() => { if (AUTOPLAY.active) submitEstimation(); AUTOPLAY.busy = false; }, gDelay(600, 150));
+  setTimeout(() => { if (AUTOPLAY.active) submitEstimation(); AUTOPLAY.busy = false; }, gDelay(400, 100));
 }
 
-// --- HANOI ---
 function botHanoi(st) {
   if (st.gameOver) return;
   if (!st._botMoves) {
-    st._botMoves = [];
-    st._botMoveIdx = 0;
+    st._botMoves = []; st._botMoveIdx = 0;
     solveHanoi(st.puzzle.discs, 0, 2, 1, st._botMoves);
   }
   if (st._botMoveIdx >= st._botMoves.length) return;
@@ -724,8 +615,8 @@ function botHanoi(st) {
   setTimeout(() => {
     if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
     hanoiTapPeg(move.from);
-    setTimeout(() => { if (AUTOPLAY.active) hanoiTapPeg(move.to); st._botMoveIdx++; AUTOPLAY.busy = false; }, gDelay(250, 60));
-  }, gDelay(300, 70));
+    setTimeout(() => { if (AUTOPLAY.active) hanoiTapPeg(move.to); st._botMoveIdx++; AUTOPLAY.busy = false; }, gDelay(150, 35));
+  }, gDelay(180, 40));
 }
 
 function solveHanoi(n, from, to, aux, moves) {
@@ -735,18 +626,15 @@ function solveHanoi(n, from, to, aux, moves) {
   solveHanoi(n - 1, aux, to, from, moves);
 }
 
-// --- SIMON — delay increases with sequence length ---
 function botSimon(st) {
   if (st.gameOver || st.playing || !st.inputEnabled) return;
   const pos = st.playerInput.length;
   const expected = st.sequence[pos];
   if (expected === undefined) return;
-  const delay = gDelay(280 + pos * 45, 60 + pos * 12);
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) simonPlayerTap(expected); AUTOPLAY.busy = false; }, delay);
+  setTimeout(() => { if (AUTOPLAY.active) simonPlayerTap(expected); AUTOPLAY.busy = false; }, gDelay(200 + pos * 25, 40));
 }
 
-// --- CHAINWORD ---
 function botChainword(st) {
   if (st.gameOver) return;
   const chain = st.chain;
@@ -776,10 +664,10 @@ function botChainword(st) {
   AUTOPLAY.busy = true;
   input.value = word;
   input.dispatchEvent(new Event('input', {bubbles: true}));
-  setTimeout(() => { if (AUTOPLAY.active) submitChainword(); AUTOPLAY.busy = false; }, gDelay(400, 100));
+  setTimeout(() => { if (AUTOPLAY.active) submitChainword(); AUTOPLAY.busy = false; }, gDelay(250, 60));
 }
 
-// --- TYPING — realistic WPM (60-130ms/char with micro-pauses) ---
+// --- TYPING — fast for max WPM ---
 function botTyping(st) {
   if (st.done || st.currentWordIdx >= st.words.length) return;
   const word = st.words[st.currentWordIdx];
@@ -790,8 +678,7 @@ function botTyping(st) {
   input.value = '';
   let delay = 0;
   for (let i = 0; i < word.length; i++) {
-    const isPause = i > 0 && Math.random() < 0.07;
-    delay += isPause ? gDelay(260, 60) : gDelay(90, 25);
+    delay += gDelay(50, 15);
     ((ch, d) => {
       setTimeout(() => {
         if (!AUTOPLAY.active) return;
@@ -801,38 +688,35 @@ function botTyping(st) {
       }, d);
     })(word[i], delay);
   }
-  delay += gDelay(100, 25);
+  delay += gDelay(50, 12);
   setTimeout(() => { if (AUTOPLAY.active) submitTypingWord(st); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- REACTION — gaussian variability, realistic timing ---
+// --- REACTION — fast for max score ---
 function botReaction(st) {
   if (st.done) return;
   if (st.phase === 'waiting' || st.phase === 'result') {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(600, 180));
+    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(350, 80));
     return;
   }
   if (st.phase === 'green') {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(250, 50));
+    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(180, 30));
     return;
   }
-  // Red phase: do nothing
 }
 
-// --- NUMMEMORY — type digit by digit ---
 function botNummemory(st) {
-  if (st.done) return;
-  if (st.phase === 'show' || st.phase === 'feedback') return;
+  if (st.done || st.phase === 'show' || st.phase === 'feedback') return;
   if (st.phase === 'input') {
     const input = document.getElementById('nummem-input');
     if (!input || input.value.length > 0) return;
     AUTOPLAY.busy = true;
     const num = String(st.currentNumber);
-    let delay = gDelay(500, 120); // recall pause
+    let delay = gDelay(250, 60);
     for (let i = 0; i < num.length; i++) {
-      delay += gDelay(200, 50);
+      delay += gDelay(100, 25);
       ((digit, d) => {
         setTimeout(() => {
           if (!AUTOPLAY.active) return;
@@ -841,23 +725,18 @@ function botNummemory(st) {
         }, d);
       })(num[i], delay);
     }
-    delay += gDelay(350, 80);
+    delay += gDelay(200, 50);
     setTimeout(() => { if (AUTOPLAY.active) submitNumMemory(); AUTOPLAY.busy = false; }, delay);
   }
 }
 
-// --- STROOP — cognitive interference delay ---
+// --- STROOP — fast, no interference ---
 function botStroop(st) {
   if (st.done || !st.currentColor) return;
-  // Stroop effect: incongruent = slower
-  const wordEl = document.querySelector('.stroop-word');
-  const congruent = wordEl && wordEl.textContent.trim().toUpperCase() === st.currentColor.name.toUpperCase();
-  const delay = congruent ? gDelay(380, 80) : gDelay(750, 180);
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) pickStroop(st.currentColor.name); AUTOPLAY.busy = false; }, delay);
+  setTimeout(() => { if (AUTOPLAY.active) pickStroop(st.currentColor.name); AUTOPLAY.busy = false; }, gDelay(250, 60));
 }
 
-// --- SLIDING — Manhattan distance heuristic + anti-cycling ---
 function botSliding(st) {
   if (st.done) return;
   if (!st._botHistory) st._botHistory = [];
@@ -865,9 +744,7 @@ function botSliding(st) {
   let bestIdx = -1, bestScore = Infinity;
   for (const idx of neighbors) {
     if (st._botHistory.length > 0 && idx === st._botHistory[st._botHistory.length - 1]) continue;
-    const test = [...st.tiles];
-    test[st.emptyIdx] = test[idx];
-    test[idx] = 0;
+    const test = [...st.tiles]; test[st.emptyIdx] = test[idx]; test[idx] = 0;
     const score = manhattanDist(test, st.size);
     if (score < bestScore) { bestScore = score; bestIdx = idx; }
   }
@@ -875,7 +752,7 @@ function botSliding(st) {
   st._botHistory.push(st.emptyIdx);
   if (st._botHistory.length > 8) st._botHistory.shift();
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) clickSlidingTile(bestIdx); AUTOPLAY.busy = false; }, gDelay(160, 40));
+  setTimeout(() => { if (AUTOPLAY.active) clickSlidingTile(bestIdx); AUTOPLAY.busy = false; }, gDelay(80, 20));
 }
 
 function manhattanDist(tiles, size) {
@@ -888,35 +765,30 @@ function manhattanDist(tiles, size) {
   return d;
 }
 
-// --- SPOTDIFF — scanning time increases ---
 function botSpotdiff(st) {
   if (st.done) return;
   for (const idx of st.diffIndices) {
     if (!st.found.has(idx)) {
-      const scanDelay = gDelay(900 + st.found.size * 500, 200);
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) clickSpotDiff(idx); AUTOPLAY.busy = false; }, scanDelay);
+      setTimeout(() => { if (AUTOPLAY.active) clickSpotDiff(idx); AUTOPLAY.busy = false; }, gDelay(400 + st.found.size * 200, 80));
       return;
     }
   }
 }
 
-// --- SCRAMBLE — thinking time ---
 function botScramble(st) {
   if (st.done || st.gameOver || !st.currentWord) return;
   const input = document.getElementById('scr-input');
   if (!input || input.value.length > 0) return;
   AUTOPLAY.busy = true;
-  const thinkDelay = gDelay(1100 + st.currentWord.length * 120, 300);
   setTimeout(() => {
     if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
     input.value = st.currentWord;
     input.dispatchEvent(new Event('input', {bubbles: true}));
-    setTimeout(() => { if (AUTOPLAY.active) submitScrambleWord(); AUTOPLAY.busy = false; }, gDelay(350, 80));
-  }, thinkDelay);
+    setTimeout(() => { if (AUTOPLAY.active) submitScrambleWord(); AUTOPLAY.busy = false; }, gDelay(200, 50));
+  }, gDelay(500, 120));
 }
 
-// --- MATH24 — significant thinking time ---
 function botMath24(st) {
   if (st.done || st.gameOver || !st.puzzle || !st.puzzle.puzzles) return;
   const nums = st.puzzle.puzzles[st.round];
@@ -931,14 +803,13 @@ function botMath24(st) {
     input.value = st._botSolution;
     input.dispatchEvent(new Event('input', {bubbles: true}));
     st._botSolution = null;
-    setTimeout(() => { if (AUTOPLAY.active) submitMath24(); AUTOPLAY.busy = false; }, gDelay(400, 100));
-  }, gDelay(3500, 900));
+    setTimeout(() => { if (AUTOPLAY.active) submitMath24(); AUTOPLAY.busy = false; }, gDelay(250, 60));
+  }, gDelay(1500, 400));
 }
 
 function findSolution24(nums) {
-  const ops = ['+','-','*','/'];
-  const perms = permutations(nums);
-  for (const p of perms) {
+  const ops = ['+','-','*','/'], perms = permutations(nums);
+  for (const p of perms)
     for (const o1 of ops) for (const o2 of ops) for (const o3 of ops) {
       const exprs = [
         `((${p[0]}${o1}${p[1]})${o2}${p[2]})${o3}${p[3]}`,
@@ -951,7 +822,6 @@ function findSolution24(nums) {
         try { if (Math.abs(Function('"use strict";return(' + expr + ')')() - 24) < 0.001) return expr; } catch(e) {}
       }
     }
-  }
   return null;
 }
 
@@ -965,75 +835,65 @@ function permutations(arr) {
   return res;
 }
 
-// --- AIM — variability based on target size ---
 function botAim(st) {
   if (st.done) return;
   const target = document.querySelector('.aim-target');
   if (target) {
-    const size = target.offsetWidth || 40;
-    const delay = gDelay(320 + (60 - Math.min(size, 60)) * 4, 60);
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) target.click(); AUTOPLAY.busy = false; }, delay);
+    setTimeout(() => { if (AUTOPLAY.active) target.click(); AUTOPLAY.busy = false; }, gDelay(180, 40));
   }
 }
 
-// --- VISMEMORY ---
 function botVismemory(st) {
   if (st.done || st.phase === 'show') return;
   if (st.phase === 'input') {
     for (const idx of st.highlighted) {
       if (!st.found.has(idx)) {
         AUTOPLAY.busy = true;
-        setTimeout(() => { if (AUTOPLAY.active) clickVisMemCell(idx); AUTOPLAY.busy = false; }, gDelay(350, 80));
+        setTimeout(() => { if (AUTOPLAY.active) clickVisMemCell(idx); AUTOPLAY.busy = false; }, gDelay(200, 50));
         return;
       }
     }
   }
 }
 
-// --- CHIMP — delay increases with number value ---
 function botChimp(st) {
   if (st.done) return;
   if (st.phase === 'show') {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) clickChimpCell(1); AUTOPLAY.busy = false; }, gDelay(700, 180));
+    setTimeout(() => { if (AUTOPLAY.active) clickChimpCell(1); AUTOPLAY.busy = false; }, gDelay(400, 100));
     return;
   }
   if (st.phase === 'input') {
     const next = st.nextExpected;
-    const delay = gDelay(220 + next * 45, 40 + next * 10);
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) clickChimpCell(next); AUTOPLAY.busy = false; }, delay);
+    setTimeout(() => { if (AUTOPLAY.active) clickChimpCell(next); AUTOPLAY.busy = false; }, gDelay(150 + next * 20, 30));
   }
 }
 
-// --- ROTATION ---
 function botRotation(st) {
   if (st.done) return;
   const options = document.querySelectorAll('.rotation-option');
   for (const opt of options) {
     if (opt.getAttribute('onclick')?.includes('true')) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) opt.click(); AUTOPLAY.busy = false; }, gDelay(900, 250));
+      setTimeout(() => { if (AUTOPLAY.active) opt.click(); AUTOPLAY.busy = false; }, gDelay(500, 120));
       return;
     }
   }
 }
 
-// --- PATHTRACER — delay increases with path position ---
 function botPathtracer(st) {
   if (st.done || st.phase === 'show') return;
   if (st.phase === 'input') {
     const nextIdx = st.playerPath.length;
     if (nextIdx < st.path.length) {
-      const delay = gDelay(350 + nextIdx * 55, 60 + nextIdx * 12);
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) clickPathCell(st.path[nextIdx]); AUTOPLAY.busy = false; }, delay);
+      setTimeout(() => { if (AUTOPLAY.active) clickPathCell(st.path[nextIdx]); AUTOPLAY.busy = false; }, gDelay(200 + nextIdx * 30, 40));
     }
   }
 }
 
-// --- ASSOCIATION ---
 function botAssociation(st) {
   if (st.done) return;
   const btns = document.querySelectorAll('.assoc-btn');
@@ -1042,13 +902,12 @@ function botAssociation(st) {
     const m = onclick.match(/pickAssociation\('([^']*)','([^']*)'\)/);
     if (m && m[1] === m[2]) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(700, 180));
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(400, 100));
       return;
     }
   }
 }
 
-// --- SORTRACE ---
 function botSortrace(st) {
   if (st.done || st.gameOver || !st.correctOrder || !st.currentItems) return;
   for (let i = 0; i < st.currentItems.length; i++) {
@@ -1056,32 +915,30 @@ function botSortrace(st) {
       const ci = st.currentItems.indexOf(st.correctOrder[i]);
       if (ci > i) {
         AUTOPLAY.busy = true;
-        setTimeout(() => { if (AUTOPLAY.active) moveSortItem(ci, -1); AUTOPLAY.busy = false; }, gDelay(200, 50));
+        setTimeout(() => { if (AUTOPLAY.active) moveSortItem(ci, -1); AUTOPLAY.busy = false; }, gDelay(120, 30));
         return;
       }
     }
   }
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) submitSortRound(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+  setTimeout(() => { if (AUTOPLAY.active) submitSortRound(); AUTOPLAY.busy = false; }, gDelay(300, 70));
 }
 
-// --- RHYTHM ---
 function botRhythm(st) {
   if (st.done || st.phase === 'listen') return;
   if (st.phase === 'tap') {
     if (st.playerTaps.length >= st.beatCount) return;
     if (st.playerTaps.length === 0) {
       AUTOPLAY.busy = true;
-      setTimeout(() => { if (AUTOPLAY.active && st.phase === 'tap') tapRhythm(); AUTOPLAY.busy = false; }, gDelay(150, 40));
+      setTimeout(() => { if (AUTOPLAY.active && st.phase === 'tap') tapRhythm(); AUTOPLAY.busy = false; }, gDelay(100, 25));
       return;
     }
     const tapIdx = st.playerTaps.length;
     if (tapIdx < st.pattern.length) {
       const expectedGap = st.pattern[tapIdx] - st.pattern[tapIdx - 1];
       const elapsed = performance.now() - st.startTime - st.playerTaps[st.playerTaps.length - 1];
-      const remaining = expectedGap - elapsed;
-      if (remaining <= 30) {
-        const jitter = (Math.random() - 0.5) * 50;
+      if (expectedGap - elapsed <= 20) {
+        const jitter = (Math.random() - 0.5) * 30;
         AUTOPLAY.busy = true;
         setTimeout(() => { if (AUTOPLAY.active && st.phase === 'tap') tapRhythm(); AUTOPLAY.busy = false; }, Math.max(0, jitter));
       }
