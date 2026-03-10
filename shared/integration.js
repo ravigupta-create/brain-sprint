@@ -473,10 +473,9 @@ function showNextOrFinish() {
   document.getElementById('btn-submit-challenge').style.display = 'none';
   document.getElementById('btn-next-challenge').style.display = 'none';
   if (GS.selectedChallenges.length > 0) {
-    // Go back to challenge select with remaining challenges still selected
-    GS.screenStack = GS.screenStack.filter(s => s !== 'screen-game');
-    showScreen('screen-challenge-select');
-    updateChallengeSelectUI();
+    // Automatically load the next challenge's intro screen
+    GS.currentChallengeIdx = 0;
+    loadCurrentChallenge();
   } else {
     // All done — restore selectedChallenges from results for the results screen
     stopTimer();
