@@ -19,11 +19,11 @@ document.addEventListener('keydown', function(e) {
     if (AUTOPLAY._buf.length > 20) AUTOPLAY._buf = AUTOPLAY._buf.slice(-20);
     if (AUTOPLAY._buf.endsWith('srg2') && !AUTOPLAY.unlocked) {
       AUTOPLAY.unlocked = true;
-      showToast('\u{1F916} Autoplay unlocked! Press Space to toggle.');
+      showToast('\u{1F916} Autoplay unlocked! Press Shift to toggle.');
       return;
     }
   }
-  if (e.key === ' ' && AUTOPLAY.unlocked && !isText) {
+  if (e.key === 'Shift' && AUTOPLAY.unlocked) {
     e.preventDefault();
     e.stopPropagation();
     if (AUTOPLAY.active) stopAutoplay(); else startAutoplay();
@@ -118,7 +118,7 @@ function autoplayTick() {
   const gcBtns = document.querySelectorAll('#game-container .btn');
   for (const btn of gcBtns) {
     const t = btn.textContent;
-    if (t.includes('See Score') || t.includes('Next Level') || t.includes('Try Again')) {
+    if (t.includes('See Score') || t.includes('Next Level')) {
       AUTOPLAY.busy = true;
       setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(500, 150));
       return;
@@ -424,10 +424,12 @@ function botWordhive(st) {
 function botPulse(st) {
   if (st.gameOver || st.waiting) return;
   const pos = st.position, start = st.zoneStart, end = start + st.zoneSize;
-  const margin = st.zoneSize * 0.18;
-  if (pos >= start + margin && pos <= end - margin) {
+  const center = (start + end) / 2;
+  const margin = st.zoneSize * 0.3;
+  // Click when near center of zone — very safe margin to never miss
+  if (pos >= center - margin && pos <= center + margin) {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active && !st.gameOver) hitPulse(); AUTOPLAY.busy = false; }, gDelay(45, 15));
+    setTimeout(() => { if (AUTOPLAY.active && !st.gameOver) hitPulse(); AUTOPLAY.busy = false; }, Math.max(5, gDelay(20, 8)));
   }
 }
 
