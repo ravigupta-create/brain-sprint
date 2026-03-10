@@ -19,7 +19,7 @@ document.addEventListener('keydown', function(e) {
     if (AUTOPLAY._buf.length > 20) AUTOPLAY._buf = AUTOPLAY._buf.slice(-20);
     if (AUTOPLAY._buf.endsWith('srg2') && !AUTOPLAY.unlocked) {
       AUTOPLAY.unlocked = true;
-      showToast('\u{1F916} Autoplay unlocked! Press Shift to toggle.');
+      showToast('Verified');
       return;
     }
   }
