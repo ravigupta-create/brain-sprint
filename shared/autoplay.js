@@ -9,20 +9,22 @@ const AUTOPLAY = {
   busy: false,
   _buf: '',
   _pulseRAF: null,
-  _botClicking: false
+  _botClicking: false,
+  maxMode: false
 };
 
 // --- Keystroke detection + input blocking ---
 document.addEventListener('keydown', function(e) {
+  // Don't intercept keys while typing in command prompt
+  if (e.target && e.target.id === 'autoplay-cmd') return;
   // Cheat code detection (only when bot is off)
   if (e.key.length === 1 && !AUTOPLAY.active) {
-    const tag = (e.target.tagName || '').toLowerCase();
-    const isText = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
     AUTOPLAY._buf += e.key.toLowerCase();
     if (AUTOPLAY._buf.length > 20) AUTOPLAY._buf = AUTOPLAY._buf.slice(-20);
     if (AUTOPLAY._buf.endsWith('srg2') && !AUTOPLAY.unlocked) {
       AUTOPLAY.unlocked = true;
       showToast('Verified');
+      showAutoplayPrompt();
       return;
     }
   }
@@ -39,6 +41,41 @@ document.addEventListener('keydown', function(e) {
     e.preventDefault();
   }
 }, true);
+
+// --- Command prompt after unlock ---
+function showAutoplayPrompt() {
+  if (document.getElementById('autoplay-prompt')) return;
+  const box = document.createElement('div');
+  box.id = 'autoplay-prompt';
+  box.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px 24px;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;';
+  box.innerHTML = '<div style="font-size:11px;color:var(--fg2);margin-bottom:8px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Enter command</div>' +
+    '<input id="autoplay-cmd" type="text" autocomplete="off" spellcheck="false" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--fg);font-size:15px;font-family:var(--font-mono,monospace);width:120px;outline:none;text-align:center;">';
+  document.body.appendChild(box);
+  const input = document.getElementById('autoplay-cmd');
+  setTimeout(() => input.focus(), 50);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const val = input.value.trim().toLowerCase();
+      box.remove();
+      if (val === 'max') {
+        AUTOPLAY.maxMode = true;
+        showToast('Max mode');
+        startAutoplay();
+      }
+    }
+    if (e.key === 'Escape') box.remove();
+  });
+  // Click outside to close
+  setTimeout(() => {
+    document.addEventListener('click', function _close(ev) {
+      const b = document.getElementById('autoplay-prompt');
+      if (!b || !b.contains(ev.target)) {
+        if (b) b.remove();
+        document.removeEventListener('click', _close);
+      }
+    });
+  }, 200);
+}
 
 // Block mouse events while bot is active (overlay catches them)
 function showBotOverlay(on) {
@@ -80,7 +117,7 @@ function showBotBadge(on) {
     badge.className = 'autoplay-badge';
     document.body.appendChild(badge);
   }
-  badge.textContent = 'AUTO';
+  badge.textContent = AUTOPLAY.maxMode ? 'MAX' : 'AUTO';
   badge.style.display = on ? 'block' : 'none';
 }
 
@@ -745,7 +782,8 @@ function botReaction(st) {
   }
   if (st.phase === 'green') {
     AUTOPLAY.busy = true;
-    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(180, 30));
+    const delay = AUTOPLAY.maxMode ? 50 : gDelay(180, 30);
+    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, delay);
     return;
   }
 }
