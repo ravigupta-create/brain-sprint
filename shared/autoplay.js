@@ -153,6 +153,8 @@ function reactionMaxLoop() {
   if (ch !== 'reaction') return;
   const st = GS.challengeState && GS.challengeState[ch];
   if (!st || st.done || AUTOPLAY.busy) return;
+  // Reset flag when phase leaves green so it's ready for next round
+  if (st.phase !== 'green') { st._botScheduled = false; return; }
   if (st.phase === 'green' && st.greenTime && !st._botScheduled) {
     st._botScheduled = true;
     AUTOPLAY.busy = true;
