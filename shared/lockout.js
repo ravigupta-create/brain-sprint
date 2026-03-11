@@ -99,6 +99,7 @@ function checkLockOnLoad() {
 // ==================== PASSWORD GATE ====================
 let _gateAttempts = 0;
 let _gateTimer = null;
+let _gateAuth = false; // resets on every reload
 
 // Re-check auth when tab gains focus (catches already-open tabs)
 document.addEventListener('visibilitychange', () => {
@@ -107,8 +108,8 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('focus', () => showPasswordGate());
 
 function showPasswordGate() {
-  // Skip if already authenticated this session
-  if (sessionStorage.getItem('bs_auth') === '1') return;
+  // Skip if already authenticated this page load
+  if (_gateAuth) return;
 
   // Check if currently locked out (persists across reloads via localStorage)
   const lockUntil = parseInt(localStorage.getItem('bs_gate_until') || '0');
@@ -177,7 +178,7 @@ function _showGateLockout(until) {
 function tryPasswordGate() {
   const val = document.getElementById('lockout-input').value;
   if (val === 'srg213') {
-    sessionStorage.setItem('bs_auth', '1');
+    _gateAuth = true;
     localStorage.removeItem('bs_gate_attempts');
     localStorage.removeItem('bs_gate_until');
     _gateAttempts = 0;
