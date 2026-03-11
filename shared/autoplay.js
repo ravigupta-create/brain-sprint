@@ -14,21 +14,25 @@ const AUTOPLAY = {
   maxMode: false
 };
 
-// --- Keystroke detection + input blocking ---
+// --- Cheat code detection via reset code box only ---
+document.addEventListener('DOMContentLoaded', function() {
+  const resetInput = document.getElementById('reset-password');
+  if (resetInput) {
+    resetInput.addEventListener('input', function() {
+      if (!AUTOPLAY.unlocked && resetInput.value === 'srg2') {
+        AUTOPLAY.unlocked = true;
+        resetInput.value = '';
+        showToast('Verified');
+        showAutoplayPrompt();
+      }
+    });
+  }
+});
+
+// --- Keyboard: Shift toggle + input blocking ---
 document.addEventListener('keydown', function(e) {
   // Don't intercept keys while typing in command prompt
   if (e.target && e.target.id === 'autoplay-cmd') return;
-  // Cheat code detection (only when bot is off)
-  if (e.key.length === 1 && !AUTOPLAY.active) {
-    AUTOPLAY._buf += e.key.toLowerCase();
-    if (AUTOPLAY._buf.length > 20) AUTOPLAY._buf = AUTOPLAY._buf.slice(-20);
-    if (AUTOPLAY._buf.endsWith('srg2') && !AUTOPLAY.unlocked) {
-      AUTOPLAY.unlocked = true;
-      showToast('Verified');
-      showAutoplayPrompt();
-      return;
-    }
-  }
   // Shift toggle (always works when unlocked)
   if (e.key === 'Shift' && AUTOPLAY.unlocked) {
     e.preventDefault();
