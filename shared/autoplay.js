@@ -9,6 +9,7 @@ const AUTOPLAY = {
   busy: false,
   _buf: '',
   _pulseRAF: null,
+  _reactionRAF: null,
   _botClicking: false,
   maxMode: false
 };
@@ -97,6 +98,7 @@ function startAutoplay() {
   if (AUTOPLAY.interval) clearInterval(AUTOPLAY.interval);
   AUTOPLAY.interval = setInterval(autoplayTick, 400);
   AUTOPLAY._pulseRAF = requestAnimationFrame(pulseFastLoop);
+  if (AUTOPLAY.maxMode) AUTOPLAY._reactionRAF = requestAnimationFrame(reactionMaxLoop);
   autoplayTick();
 }
 
@@ -104,6 +106,7 @@ function stopAutoplay() {
   AUTOPLAY.active = false;
   if (AUTOPLAY.interval) { clearInterval(AUTOPLAY.interval); AUTOPLAY.interval = null; }
   if (AUTOPLAY._pulseRAF) { cancelAnimationFrame(AUTOPLAY._pulseRAF); AUTOPLAY._pulseRAF = null; }
+  if (AUTOPLAY._reactionRAF) { cancelAnimationFrame(AUTOPLAY._reactionRAF); AUTOPLAY._reactionRAF = null; }
   showBotBadge(false);
   showBotOverlay(false);
 }
@@ -141,6 +144,46 @@ const BOT_THINK = {
   aim:200, vismemory:200, chimp:300, rotation:600, pathtracer:200,
   association:400, sortrace:500, rhythm:200
 };
+
+// ===================== REACTION — precise 50ms in max mode =====================
+function reactionMaxLoop() {
+  if (!AUTOPLAY.active || !AUTOPLAY.maxMode) return;
+  AUTOPLAY._reactionRAF = requestAnimationFrame(reactionMaxLoop);
+  const ch = GS.selectedChallenges && GS.selectedChallenges[GS.currentChallengeIdx];
+  if (ch !== 'reaction') return;
+  const st = GS.challengeState && GS.challengeState[ch];
+  if (!st || st.done || AUTOPLAY.busy) return;
+  if (st.phase === 'green' && st.greenTime && !st._botScheduled) {
+    st._botScheduled = true;
+    AUTOPLAY.busy = true;
+    // Calculate exact remaining time to hit 50ms from greenTime
+    const elapsed = performance.now() - st.greenTime;
+    const remaining = 50 - elapsed;
+    if (remaining <= 0) {
+      // Already past 50ms, click immediately
+      AUTOPLAY._botClicking = true;
+      handleReactionClick();
+      AUTOPLAY._botClicking = false;
+      setTimeout(() => { AUTOPLAY.busy = false; }, 40);
+    } else {
+      // Tight poll for precise timing
+      const target = st.greenTime + 50;
+      const poll = () => {
+        if (performance.now() >= target) {
+          if (AUTOPLAY.active && st.phase === 'green') {
+            AUTOPLAY._botClicking = true;
+            handleReactionClick();
+            AUTOPLAY._botClicking = false;
+          }
+          setTimeout(() => { AUTOPLAY.busy = false; }, 40);
+        } else {
+          setTimeout(poll, 0);
+        }
+      };
+      poll();
+    }
+  }
+}
 
 // ===================== PULSE — predictive timing for 100/100 on impossible =====================
 function pulseFastLoop() {
@@ -780,10 +823,11 @@ function botReaction(st) {
     setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(350, 80));
     return;
   }
+  // In max mode, green phase is handled by reactionMaxLoop RAF for precise 50ms
+  if (AUTOPLAY.maxMode) return;
   if (st.phase === 'green') {
     AUTOPLAY.busy = true;
-    const delay = AUTOPLAY.maxMode ? 50 : gDelay(180, 30);
-    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, delay);
+    setTimeout(() => { if (AUTOPLAY.active) handleReactionClick(); AUTOPLAY.busy = false; }, gDelay(180, 30));
     return;
   }
 }
