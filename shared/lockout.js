@@ -100,6 +100,12 @@ function checkLockOnLoad() {
 let _gateAttempts = 0;
 let _gateTimer = null;
 
+// Re-check auth when tab gains focus (catches already-open tabs)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) showPasswordGate();
+});
+window.addEventListener('focus', () => showPasswordGate());
+
 function showPasswordGate() {
   // Skip if already authenticated this session
   if (sessionStorage.getItem('bs_auth') === '1') return;
