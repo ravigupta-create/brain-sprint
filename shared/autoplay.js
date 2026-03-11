@@ -423,14 +423,34 @@ function botEconomy(st) {
       }
       return;
     }
-    const v = vars[vi], step = Math.max((v.max - v.min) / 10, 1);
+    const v = vars[vi], step = Math.max((v.max - v.min) / 20, 1);
     for (let val = v.min; val <= v.max; val += step) {
-      cur[v.key] = Math.round(val * 10) / 10;
+      cur[v.key] = Math.round(val * 100) / 100;
       tryVals(vi + 1, cur);
     }
     cur[v.key] = v.max; tryVals(vi + 1, cur);
   }
   tryVals(0, {});
+  // Hill-climbing refinement: 3 rounds of finer local search around best
+  for (let round = 0; round < 3; round++) {
+    const refined = {...bestVals};
+    for (const v of vars) {
+      const range = (v.max - v.min) / Math.pow(5, round + 1);
+      const fineStep = range / 10;
+      const center = refined[v.key];
+      for (let val = Math.max(v.min, center - range); val <= Math.min(v.max, center + range); val += Math.max(fineStep, 0.01)) {
+        refined[v.key] = Math.round(val * 100) / 100;
+        const all = {};
+        puzzle.variables.forEach(pv => { all[pv.key] = pv.default; });
+        Object.assign(all, refined);
+        if (puzzle.constraints.every(c => c.check(all))) {
+          const out = puzzle.output(all);
+          if (out > bestOutput) { bestOutput = out; bestVals = {...refined}; }
+        }
+      }
+      refined[v.key] = bestVals[v.key]; // reset to best for next variable
+    }
+  }
   AUTOPLAY.busy = true;
   let delay = 0;
   Object.keys(bestVals).forEach(key => {
@@ -770,14 +790,16 @@ function botColorcode(st) {
 
 function botQuickmath(st) {
   if (st.gameOver || !st.currentProblem) return;
+  // Guard: don't re-answer the same problem during 400ms feedback delay
+  if (st._botLastProblem === st.currentProblem.text) return;
   const answer = st.currentProblem.answer;
   if (answer === undefined || answer === null) return;
   const ansStr = String(answer);
+  st._botLastProblem = st.currentProblem.text;
   AUTOPLAY.busy = true;
   let delay = gDelay(300 + Math.min(Math.abs(answer), 50) * 3, 60);
   const input = document.getElementById('qm-input');
   if (input) input.value = '';
-  st.userAnswer = '';
   for (const ch of ansStr) {
     delay += gDelay(70, 18);
     ((k, d) => { setTimeout(() => { if (AUTOPLAY.active) qmNumPress(k); }, d); })(ch, delay);
@@ -959,20 +981,38 @@ function botStroop(st) {
 
 function botSliding(st) {
   if (st.done) return;
-  if (!st._botHistory) st._botHistory = [];
+  // Pre-compute optimal solution path once using IDA*
+  if (!st._botPath && !st._botPathFailed) {
+    st._botPath = solveSlidingIDA(st.tiles, st.size);
+    st._botStep = 0;
+    if (!st._botPath) st._botPathFailed = true;
+  }
+  // Execute pre-computed path
+  if (st._botPath && st._botStep < st._botPath.length) {
+    const tileIdx = st._botPath[st._botStep];
+    AUTOPLAY.busy = true;
+    setTimeout(() => {
+      if (AUTOPLAY.active) clickSlidingTile(tileIdx);
+      st._botStep++;
+      AUTOPLAY.busy = false;
+    }, gDelay(50, 12));
+    return;
+  }
+  // Fallback: improved greedy with visited-state tracking
+  if (!st._visited) st._visited = new Set();
+  const key = st.tiles.join(',');
+  st._visited.add(key);
   const neighbors = getSlidingNeighbors(st.emptyIdx, st.size);
   let bestIdx = -1, bestScore = Infinity;
   for (const idx of neighbors) {
-    if (st._botHistory.length > 0 && idx === st._botHistory[st._botHistory.length - 1]) continue;
     const test = [...st.tiles]; test[st.emptyIdx] = test[idx]; test[idx] = 0;
-    const score = manhattanDist(test, st.size);
+    const testKey = test.join(',');
+    const score = manhattanDist(test, st.size) + (st._visited.has(testKey) ? 1000 : 0);
     if (score < bestScore) { bestScore = score; bestIdx = idx; }
   }
   if (bestIdx === -1) bestIdx = neighbors[Math.floor(Math.random() * neighbors.length)];
-  st._botHistory.push(st.emptyIdx);
-  if (st._botHistory.length > 8) st._botHistory.shift();
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) clickSlidingTile(bestIdx); AUTOPLAY.busy = false; }, gDelay(80, 20));
+  setTimeout(() => { if (AUTOPLAY.active) clickSlidingTile(bestIdx); AUTOPLAY.busy = false; }, gDelay(50, 12));
 }
 
 function manhattanDist(tiles, size) {
@@ -983,6 +1023,114 @@ function manhattanDist(tiles, size) {
     d += Math.abs(Math.floor(i / size) - Math.floor(t / size)) + Math.abs(i % size - t % size);
   }
   return d;
+}
+
+// IDA* solver for sliding puzzle — optimal for 3x3/4x4, weighted for 5x5
+function solveSlidingIDA(tiles, size) {
+  const N = size * size;
+  const goalRow = new Uint8Array(N);
+  const goalCol = new Uint8Array(N);
+  for (let v = 1; v < N; v++) {
+    goalRow[v] = (v - 1) / size | 0;
+    goalCol[v] = (v - 1) % size;
+  }
+
+  function manhattan(state) {
+    let h = 0;
+    for (let i = 0; i < N; i++) {
+      const v = state[i];
+      if (v === 0) continue;
+      h += Math.abs((i / size | 0) - goalRow[v]) + Math.abs(i % size - goalCol[v]);
+    }
+    return h;
+  }
+
+  function linearConflict(state) {
+    let lc = 0;
+    for (let row = 0; row < size; row++) {
+      const base = row * size;
+      for (let i = base; i < base + size; i++) {
+        const v = state[i];
+        if (v === 0 || goalRow[v] !== row) continue;
+        for (let j = i + 1; j < base + size; j++) {
+          const w = state[j];
+          if (w === 0 || goalRow[w] !== row) continue;
+          if (goalCol[v] > goalCol[w]) lc++;
+        }
+      }
+    }
+    for (let col = 0; col < size; col++) {
+      for (let i = col; i < N; i += size) {
+        const v = state[i];
+        if (v === 0 || goalCol[v] !== col) continue;
+        for (let j = i + size; j < N; j += size) {
+          const w = state[j];
+          if (w === 0 || goalCol[w] !== col) continue;
+          if (goalRow[v] > goalRow[w]) lc++;
+        }
+      }
+    }
+    return lc * 2;
+  }
+
+  const W = size <= 4 ? 1 : 2; // weight: optimal for <=4x4, fast suboptimal for 5x5
+  const LIMIT = size <= 3 ? 500000 : size <= 4 ? 10000000 : 20000000;
+
+  const state = new Int8Array(tiles);
+  let empty = -1;
+  for (let i = 0; i < N; i++) { if (state[i] === 0) { empty = i; break; } }
+
+  const initH = manhattan(state) + linearConflict(state);
+  if (initH === 0) return [];
+
+  let nodeCount = 0;
+  let found = false;
+  const path = [];
+
+  const DR = [-1, 1, 0, 0];
+  const DC = [0, 0, -1, 1];
+  const OPP = [1, 0, 3, 2];
+
+  function search(eIdx, g, bound, lastDir) {
+    const hVal = manhattan(state) + linearConflict(state);
+    const f = g + W * hVal;
+    if (f > bound) return f;
+    if (hVal === 0) { found = true; return -1; }
+    if (++nodeCount > LIMIT) return Infinity;
+
+    let minT = Infinity;
+    const eRow = eIdx / size | 0, eCol = eIdx % size;
+
+    for (let dir = 0; dir < 4; dir++) {
+      if (lastDir >= 0 && dir === OPP[lastDir]) continue;
+      const nr = eRow + DR[dir], nc = eCol + DC[dir];
+      if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+      const ni = nr * size + nc;
+
+      state[eIdx] = state[ni];
+      state[ni] = 0;
+      path.push(ni);
+
+      const t = search(ni, g + 1, bound, dir);
+      if (found) return -1;
+      if (t < minT) minT = t;
+
+      state[ni] = state[eIdx];
+      state[eIdx] = 0;
+      path.pop();
+    }
+    return minT;
+  }
+
+  let bound = W * initH;
+  while (bound < Infinity && !found) {
+    nodeCount = 0;
+    const t = search(empty, 0, bound, -1);
+    if (found) return Array.from(path);
+    if (t === Infinity) break;
+    bound = t;
+  }
+  return null;
 }
 
 function botSpotdiff(st) {
@@ -1014,7 +1162,12 @@ function botMath24(st) {
   const nums = st.puzzle.puzzles[st.round];
   if (!nums) return;
   if (!st._botSolution) st._botSolution = findSolution24(nums);
-  if (!st._botSolution) return;
+  if (!st._botSolution) {
+    // No solution found — skip this round instead of getting stuck
+    AUTOPLAY.busy = true;
+    setTimeout(() => { if (AUTOPLAY.active) skipMath24(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+    return;
+  }
   const input = document.getElementById('m24-input');
   if (!input || input.value.length > 0) return;
   AUTOPLAY.busy = true;
