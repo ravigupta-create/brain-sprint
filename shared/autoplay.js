@@ -302,6 +302,7 @@ function autoplayTick() {
   if (!ch) return;
   let st = GS.challengeState[ch];
   if (!st && (ch === 'numgrid' || ch === 'wordhive')) st = GS.challengeState;
+  if (!st && ch === 'mosaic' && typeof mosaicState !== 'undefined' && mosaicState) st = mosaicState;
   if (!st) return;
 
   // Thinking delay
@@ -621,24 +622,95 @@ function botMazeBFS(st) {
 }
 
 function botMosaic(st) {
-  const checkBtn = document.querySelector('[onclick="checkMosaicSolution()"]');
-  const tokenBtns = document.querySelectorAll('.mosaic-token:not(.placed)');
-  if (tokenBtns.length === 0 && checkBtn) {
+  if (!mosaicState || !mosaicState.puzzle) return;
+  const ms = mosaicState;
+  const puzzle = ms.puzzle;
+  const grid = ms.grid;
+  const rows = puzzle.rows, cols = puzzle.cols;
+
+  // Build target grid from zone solution values (once)
+  if (!ms._botTarget) {
+    ms._botTarget = Array.from({length: rows}, () => Array(cols).fill(null));
+    for (const zone of puzzle.zones) {
+      zone.cells.forEach((cell, i) => {
+        ms._botTarget[cell.r][cell.c] = zone.solutionValues[i];
+      });
+    }
+  }
+  const target = ms._botTarget;
+
+  // All cells filled → check solution
+  if (grid.every(row => row.every(v => v !== null))) {
     AUTOPLAY.busy = true;
     setTimeout(() => { if (AUTOPLAY.active) checkMosaicSolution(); AUTOPLAY.busy = false; }, gDelay(350, 80));
     return;
   }
-  if (tokenBtns.length > 0) {
-    const emptyCells = document.querySelectorAll('.mosaic-cell:not(.filled)');
-    if (emptyCells.length > 0) {
-      AUTOPLAY.busy = true;
-      setTimeout(() => {
-        if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
-        tokenBtns[0].click();
-        setTimeout(() => { if (AUTOPLAY.active) emptyCells[0].click(); AUTOPLAY.busy = false; }, gDelay(200, 50));
-      }, gDelay(250, 60));
+
+  // Place linked tokens first (more constrained)
+  for (let ti = 0; ti < puzzle.tokenPool.length; ti++) {
+    if (ms.tokenPlaced[ti]) continue;
+    const tok = puzzle.tokenPool[ti];
+    if (tok.type !== 'linked') continue;
+    const [v1, v2] = tok.values;
+    // Try horizontal: (r,c) and (r,c+1)
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols - 1; c++) {
+        if (grid[r][c] !== null || grid[r][c+1] !== null) continue;
+        if (target[r][c] === v1 && target[r][c+1] === v2) {
+          return botPlaceMosaicToken(ti, r, c, 'horizontal');
+        }
+      }
+    }
+    // Try vertical: (r,c) and (r+1,c)
+    for (let r = 0; r < rows - 1; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (grid[r][c] !== null || grid[r+1][c] !== null) continue;
+        if (target[r][c] === v1 && target[r+1][c] === v2) {
+          return botPlaceMosaicToken(ti, r, c, 'vertical');
+        }
+      }
     }
   }
+
+  // Then place single tokens
+  for (let ti = 0; ti < puzzle.tokenPool.length; ti++) {
+    if (ms.tokenPlaced[ti]) continue;
+    const tok = puzzle.tokenPool[ti];
+    if (tok.type !== 'single') continue;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (grid[r][c] !== null) continue;
+        if (target[r][c] === tok.value) {
+          return botPlaceMosaicToken(ti, r, c, null);
+        }
+      }
+    }
+  }
+}
+
+function botPlaceMosaicToken(tokenIdx, r, c, needOrient) {
+  const tok = mosaicState.puzzle.tokenPool[tokenIdx];
+  AUTOPLAY.busy = true;
+  setTimeout(() => {
+    if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+    selectMosaicToken(tokenIdx);
+    // If linked and wrong orientation, rotate first
+    if (needOrient && tok.type === 'linked' && tok.orientation !== needOrient) {
+      setTimeout(() => {
+        if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+        selectMosaicToken(tokenIdx); // rotates orientation
+        setTimeout(() => {
+          if (AUTOPLAY.active) placeMosaicToken(r, c);
+          AUTOPLAY.busy = false;
+        }, gDelay(100, 25));
+      }, gDelay(100, 25));
+    } else {
+      setTimeout(() => {
+        if (AUTOPLAY.active) placeMosaicToken(r, c);
+        AUTOPLAY.busy = false;
+      }, gDelay(150, 35));
+    }
+  }, gDelay(200, 50));
 }
 
 // --- NUMCRUNCH — solve first guess ---
