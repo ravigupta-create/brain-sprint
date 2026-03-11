@@ -95,3 +95,40 @@ function checkLockOnLoad() {
     _showLockScreen();
   }
 }
+
+// ==================== PASSWORD GATE ====================
+function showPasswordGate() {
+  // Skip if already authenticated this session
+  if (sessionStorage.getItem('bs_auth') === '1') return;
+  const el = document.getElementById('lockout-screen');
+  el.style.display = 'flex';
+  document.getElementById('lockout-input').style.display = '';
+  document.getElementById('lockout-input').value = '';
+  document.getElementById('lockout-input').type = 'password';
+  document.getElementById('lockout-error').textContent = '';
+  document.querySelector('#lockout-screen button').style.display = '';
+  document.querySelector('#lockout-screen div:nth-child(1)').textContent = '🧠';
+  document.querySelector('#lockout-screen div:nth-child(2)').textContent = 'Brain Sprint';
+  document.querySelector('#lockout-screen div:nth-child(3)').textContent = 'Enter password to continue.';
+  document.querySelector('#lockout-screen button').onclick = tryPasswordGate;
+  document.getElementById('lockout-input').onkeydown = (e) => {
+    if (e.key === 'Enter') tryPasswordGate();
+  };
+  setTimeout(() => document.getElementById('lockout-input').focus(), 50);
+}
+
+function tryPasswordGate() {
+  const val = document.getElementById('lockout-input').value;
+  if (val === 'srg213') {
+    sessionStorage.setItem('bs_auth', '1');
+    document.getElementById('lockout-screen').style.display = 'none';
+    document.getElementById('lockout-input').type = 'text';
+  } else {
+    document.getElementById('lockout-error').textContent = 'Wrong password';
+    const inp = document.getElementById('lockout-input');
+    inp.style.animation = 'shake 0.4s';
+    setTimeout(() => inp.style.animation = '', 400);
+    inp.value = '';
+    inp.focus();
+  }
+}

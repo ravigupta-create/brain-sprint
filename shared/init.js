@@ -1,5 +1,6 @@
 // ==================== INIT ====================
 function init() {
+  showPasswordGate();
   checkLockOnLoad();
   initTheme();
   SFX.init();
