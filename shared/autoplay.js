@@ -96,7 +96,7 @@ function gDelay(mean, sd) {
 // Per-challenge thinking time (shorter for max score)
 const BOT_THINK = {
   paradox:1200, blocks:800, economy:1200, escape:1400, wordsearch:800,
-  wordro:600, numgrid:800, wordhive:600, pulse:300, deduction:800,
+  wordro:600, numgrid:800, wordhive:600, pulse:0, deduction:800,
   memory:500, maze:400, mosaic:800, numcrunch:800, colorcode:600,
   quickmath:200, pattern:600, oddoneout:500, estimation:800, hanoi:600,
   simon:300, chainword:600, typing:200, reaction:200, nummemory:200,
@@ -105,7 +105,7 @@ const BOT_THINK = {
   association:400, sortrace:500, rhythm:200
 };
 
-// ===================== PULSE — requestAnimationFrame for frame-perfect precision =====================
+// ===================== PULSE — predictive timing for 100/100 on impossible =====================
 function pulseFastLoop() {
   if (!AUTOPLAY.active) return;
   AUTOPLAY._pulseRAF = requestAnimationFrame(pulseFastLoop);
@@ -113,14 +113,57 @@ function pulseFastLoop() {
   if (ch !== 'pulse') return;
   const st = GS.challengeState && GS.challengeState[ch];
   if (!st || st.gameOver || st.waiting || AUTOPLAY.busy) return;
-  if (!st._botReady) return; // wait for think time
-  const pos = st.position, start = st.zoneStart, end = start + st.zoneSize;
-  const center = (start + end) / 2, margin = st.zoneSize * 0.35;
-  if (pos >= center - margin && pos <= center + margin) {
+
+  // Already hit target → stop clicking, let game end naturally with 100/100
+  if (st.hits >= st.puzzle.targetHits) return;
+
+  const center = st.zoneStart + st.zoneSize / 2;
+
+  // If cursor is currently in zone, click immediately
+  if (st.position >= st.zoneStart && st.position <= st.zoneStart + st.zoneSize) {
     AUTOPLAY.busy = true;
+    AUTOPLAY._botClicking = true;
+    const cursor = document.getElementById('pulse-cursor');
+    if (cursor) cursor.style.left = st.position + '%';
     hitPulse();
+    AUTOPLAY._botClicking = false;
     setTimeout(() => { AUTOPLAY.busy = false; }, 40);
+    return;
   }
+
+  // Predictive: simulate cursor to find when it reaches zone center, schedule precise click
+  const timeMs = botPredictPulseTime(st.position, st.direction, st.speed, center);
+  if (timeMs > 0) {
+    AUTOPLAY.busy = true;
+    const delay = Math.max(1, timeMs - 2); // 2ms early for setTimeout jitter
+    setTimeout(() => {
+      if (!AUTOPLAY.active || st.gameOver || st.waiting) {
+        AUTOPLAY.busy = false;
+        return;
+      }
+      // Force position to zone center for perfect visual precision
+      st.position = center;
+      const cursor = document.getElementById('pulse-cursor');
+      if (cursor) cursor.style.left = center + '%';
+      AUTOPLAY._botClicking = true;
+      hitPulse();
+      AUTOPLAY._botClicking = false;
+      setTimeout(() => { AUTOPLAY.busy = false; }, 40);
+    }, delay);
+  }
+}
+
+// Simulate cursor bounce motion to predict time to reach target position
+function botPredictPulseTime(pos, dir, speed, target) {
+  let p = pos, d = dir;
+  const step = 0.0001; // 0.1ms precision
+  for (let i = 1; i <= 15000; i++) { // max 1.5s
+    p += d * speed * step;
+    if (p >= 98) { p = 98; d = -1; }
+    if (p <= 2) { p = 2; d = 1; }
+    if (Math.abs(p - target) < 0.5) return i * 0.1;
+  }
+  return 50; // fallback
 }
 
 // ===================== MAIN TICK =====================

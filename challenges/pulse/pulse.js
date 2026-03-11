@@ -124,6 +124,10 @@ function showPulseHit() {
   st.hits++;
   SFX.pop();
 
+  // Freeze cursor at exact click position
+  const cursor = document.getElementById('pulse-cursor');
+  if (cursor) cursor.style.left = st.position + '%';
+
   // Flash feedback
   const track = document.getElementById('pulse-track');
   const zone = document.getElementById('pulse-zone');
