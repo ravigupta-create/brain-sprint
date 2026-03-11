@@ -97,9 +97,29 @@ function checkLockOnLoad() {
 }
 
 // ==================== PASSWORD GATE ====================
+let _gateAttempts = 0;
+let _gateTimer = null;
+
 function showPasswordGate() {
   // Skip if already authenticated this session
   if (sessionStorage.getItem('bs_auth') === '1') return;
+
+  // Check if currently locked out (persists across reloads via localStorage)
+  const lockUntil = parseInt(localStorage.getItem('bs_gate_until') || '0');
+  if (Date.now() < lockUntil) {
+    _showGateLockout(lockUntil);
+    return;
+  }
+  // Clear expired lockout
+  localStorage.removeItem('bs_gate_until');
+
+  // Restore attempt count from localStorage so reloading doesn't reset it
+  _gateAttempts = parseInt(localStorage.getItem('bs_gate_attempts') || '0');
+
+  _showGateInput();
+}
+
+function _showGateInput() {
   const el = document.getElementById('lockout-screen');
   el.style.display = 'flex';
   document.getElementById('lockout-input').style.display = '';
@@ -117,14 +137,59 @@ function showPasswordGate() {
   setTimeout(() => document.getElementById('lockout-input').focus(), 50);
 }
 
+function _showGateLockout(until) {
+  const el = document.getElementById('lockout-screen');
+  el.style.display = 'flex';
+  document.getElementById('lockout-input').style.display = 'none';
+  document.querySelector('#lockout-screen button').style.display = 'none';
+  document.querySelector('#lockout-screen div:nth-child(1)').textContent = '🔒';
+  document.querySelector('#lockout-screen div:nth-child(2)').textContent = 'Too Many Attempts';
+  const msgEl = document.querySelector('#lockout-screen div:nth-child(3)');
+  const errEl = document.getElementById('lockout-error');
+
+  function updateTimer() {
+    const remaining = Math.max(0, until - Date.now());
+    if (remaining <= 0) {
+      clearInterval(_gateTimer);
+      _gateTimer = null;
+      localStorage.removeItem('bs_gate_until');
+      localStorage.removeItem('bs_gate_attempts');
+      _gateAttempts = 0;
+      _showGateInput();
+      return;
+    }
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.ceil((remaining % 60000) / 1000);
+    msgEl.textContent = 'Try again in ' + (mins > 0 ? mins + 'm ' : '') + secs + 's';
+    errEl.textContent = '';
+  }
+  updateTimer();
+  if (_gateTimer) clearInterval(_gateTimer);
+  _gateTimer = setInterval(updateTimer, 1000);
+}
+
 function tryPasswordGate() {
   const val = document.getElementById('lockout-input').value;
   if (val === 'srg213') {
     sessionStorage.setItem('bs_auth', '1');
+    localStorage.removeItem('bs_gate_attempts');
+    localStorage.removeItem('bs_gate_until');
+    _gateAttempts = 0;
     document.getElementById('lockout-screen').style.display = 'none';
     document.getElementById('lockout-input').type = 'text';
   } else {
-    document.getElementById('lockout-error').textContent = 'Wrong password';
+    _gateAttempts++;
+    localStorage.setItem('bs_gate_attempts', String(_gateAttempts));
+    if (_gateAttempts >= 4) {
+      // Lock out for 5 minutes
+      const until = Date.now() + 5 * 60 * 1000;
+      localStorage.setItem('bs_gate_until', String(until));
+      _showGateLockout(until);
+      return;
+    }
+    const left = 4 - _gateAttempts;
+    document.getElementById('lockout-error').textContent =
+      'Wrong password (' + left + ' attempt' + (left !== 1 ? 's' : '') + ' left)';
     const inp = document.getElementById('lockout-input');
     inp.style.animation = 'shake 0.4s';
     setTimeout(() => inp.style.animation = '', 400);
