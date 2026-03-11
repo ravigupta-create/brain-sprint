@@ -277,6 +277,23 @@ function autoplayTick() {
       return;
     }
   }
+  // Bot analysis buttons (numbot + wordrobot)
+  for (const id of ['numbot-continue', 'wordrobot-continue']) {
+    const btn = document.getElementById(id);
+    if (btn) {
+      AUTOPLAY.busy = true;
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(500, 120));
+      return;
+    }
+  }
+  for (const id of ['btn-see-numbot', 'btn-see-wordbot']) {
+    const btn = document.getElementById(id);
+    if (btn) {
+      AUTOPLAY.busy = true;
+      setTimeout(() => { if (AUTOPLAY.active) btn.click(); AUTOPLAY.busy = false; }, gDelay(400, 100));
+      return;
+    }
+  }
   const gcBtns = document.querySelectorAll('#game-container .btn');
   for (const btn of gcBtns) {
     const t = btn.textContent;
