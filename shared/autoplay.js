@@ -526,7 +526,7 @@ function botPickWordroWord(st) {
 function botWordro(st) {
   if (st.gameOver || st.won || st.revealInProgress) return;
   if (st.currentGuess.length > 0) return;
-  if (st._botTarget === undefined) st._botTarget = 1 + Math.floor(Math.random() * 2); // 1-2 wrong guesses
+  if (st._botTarget === undefined) st._botTarget = AUTOPLAY.maxMode ? 0 : 1 + Math.floor(Math.random() * 2);
   const word = st.currentRow < st._botTarget ? botPickWordroWord(st) : st.puzzle.word;
   AUTOPLAY.busy = true;
   let delay = gDelay(500, 120);
@@ -621,11 +621,11 @@ function botMemory(st) {
   const grid = st.puzzle.grid;
   const rows = st.puzzle.rows, cols = st.puzzle.cols;
 
-  // Initialize exploration tracking
+  // Initialize exploration tracking (skip in max mode)
   if (!st._botPhase) {
-    st._botPhase = 'explore';
+    st._botPhase = AUTOPLAY.maxMode ? 'match' : 'explore';
     st._botExploreCount = 0;
-    st._botExploreTarget = 2 + Math.floor(Math.random() * 4); // 2-5 exploration rounds
+    st._botExploreTarget = AUTOPLAY.maxMode ? 0 : 2 + Math.floor(Math.random() * 4);
   }
 
   // Collect unmatched cards
@@ -666,7 +666,7 @@ function botMemory(st) {
     if (symbolMap[sym].length >= 2) {
       const [a, b] = symbolMap[sym];
       AUTOPLAY.busy = true;
-      if (Math.random() < 0.1 && unmatched.length > 4) {
+      if (!AUTOPLAY.maxMode && Math.random() < 0.1 && unmatched.length > 4) {
         // "Forget": flip correct first card, wrong second card
         const wrong = unmatched.find(c => c.sym !== sym && !(c.r === a.r && c.c === a.c));
         if (wrong) {
@@ -855,7 +855,7 @@ function botMakeEquation(len) {
 function botNumcrunch(st) {
   if (st.gameOver || st.won || st.revealInProgress) return;
   if (st.currentGuess.length > 0) return;
-  if (st._botTarget === undefined) st._botTarget = 1 + Math.floor(Math.random() * 2); // 1-2 wrong guesses
+  if (st._botTarget === undefined) st._botTarget = AUTOPLAY.maxMode ? 0 : 1 + Math.floor(Math.random() * 2);
   const eq = st.puzzle.equation;
   let guess;
   if (st.currentRow < st._botTarget) {
@@ -878,7 +878,7 @@ function botNumcrunch(st) {
 function botColorcode(st) {
   if (st.gameOver) return;
   if (!st.currentGuess || !st.currentGuess.some(c => c === null || c === undefined)) return;
-  if (st._botTarget === undefined) st._botTarget = 2 + Math.floor(Math.random() * 2); // 2-3 wrong guesses
+  if (st._botTarget === undefined) st._botTarget = AUTOPLAY.maxMode ? 0 : 2 + Math.floor(Math.random() * 2);
   const code = st.puzzle.code, colors = st.puzzle.colors, row = st.currentRow;
   let guessColors;
   if (st.currentRow < st._botTarget) {
@@ -960,10 +960,13 @@ function botEstimation(st) {
   const input = document.getElementById('est-input');
   if (!input) return;
   AUTOPLAY.busy = true;
-  // Add ±5-15% random error for realism
-  const errorPct = (0.05 + Math.random() * 0.10) * (Math.random() < 0.5 ? 1 : -1);
-  let guess = Math.round(round.answer * (1 + errorPct));
-  if (guess <= 0 && round.answer > 0) guess = Math.max(1, Math.round(round.answer * 0.9));
+  // Add ±5-15% random error for realism (exact in max mode)
+  let guess = round.answer;
+  if (!AUTOPLAY.maxMode) {
+    const errorPct = (0.05 + Math.random() * 0.10) * (Math.random() < 0.5 ? 1 : -1);
+    guess = Math.round(round.answer * (1 + errorPct));
+    if (guess <= 0 && round.answer > 0) guess = Math.max(1, Math.round(round.answer * 0.9));
+  }
   input.value = guess;
   input.dispatchEvent(new Event('input', {bubbles: true}));
   setTimeout(() => { if (AUTOPLAY.active) submitEstimation(); AUTOPLAY.busy = false; }, gDelay(600, 150));
@@ -1033,7 +1036,7 @@ function botChainword(st) {
   setTimeout(() => { if (AUTOPLAY.active) submitChainword(); AUTOPLAY.busy = false; }, gDelay(250, 60));
 }
 
-// --- TYPING — realistic human speed (90-150ms per char) ---
+// --- TYPING — realistic human speed, fast in max mode ---
 function botTyping(st) {
   if (st.done || st.currentWordIdx >= st.words.length) return;
   const word = st.words[st.currentWordIdx];
@@ -1042,9 +1045,10 @@ function botTyping(st) {
   if (!st.startTime) input.dispatchEvent(new Event('input', {bubbles: true}));
   AUTOPLAY.busy = true;
   input.value = '';
+  const charDelay = AUTOPLAY.maxMode ? [50, 15] : [110, 35];
   let delay = 0;
   for (let i = 0; i < word.length; i++) {
-    delay += gDelay(110, 35);
+    delay += gDelay(charDelay[0], charDelay[1]);
     ((ch, d) => {
       setTimeout(() => {
         if (!AUTOPLAY.active) return;
@@ -1054,7 +1058,7 @@ function botTyping(st) {
       }, d);
     })(word[i], delay);
   }
-  delay += gDelay(80, 20);
+  delay += gDelay(AUTOPLAY.maxMode ? 50 : 80, AUTOPLAY.maxMode ? 12 : 20);
   setTimeout(() => { if (AUTOPLAY.active) submitTypingWord(st); AUTOPLAY.busy = false; }, delay);
 }
 
@@ -1102,8 +1106,8 @@ function botNummemory(st) {
 function botStroop(st) {
   if (st.done || !st.currentColor) return;
   AUTOPLAY.busy = true;
-  // Add extra delay when color and word don't match (Stroop interference)
-  const incongruent = st.currentWord && st.currentColor.name !== st.currentWord;
+  // Add extra delay when color and word don't match (skip in max mode)
+  const incongruent = !AUTOPLAY.maxMode && st.currentWord && st.currentColor.name !== st.currentWord;
   const baseDelay = incongruent ? gDelay(450, 100) : gDelay(250, 60);
   setTimeout(() => { if (AUTOPLAY.active) pickStroop(st.currentColor.name); AUTOPLAY.busy = false; }, baseDelay);
 }
