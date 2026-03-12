@@ -502,13 +502,34 @@ function botWordsearch(st) {
   setTimeout(() => { AUTOPLAY.busy = false; }, delay);
 }
 
-// --- WORDRO — solve first guess for 100/100 ---
+// --- WORDRO — multi-guess for realism (1-2 wrong then correct) ---
+function botPickWordroWord(st) {
+  const target = st.puzzle.word.toLowerCase();
+  const used = new Set((st.guesses || []).map(g => g.map(t => t.letter).join('').toLowerCase()));
+  if (typeof WORDRO_BANK_SET !== 'undefined') {
+    const candidates = [];
+    for (const w of WORDRO_BANK_SET) {
+      if (w.length === target.length && w !== target && !used.has(w)) {
+        candidates.push(w);
+        if (candidates.length >= 50) break;
+      }
+    }
+    if (candidates.length > 0) return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  const common = ['crane','slate','audio','raise','stare','irate','arose','learn','heart','stone','dance','flame','tiger','lemon','brave'];
+  for (const w of common) {
+    if (w.length === target.length && w !== target && !used.has(w)) return w;
+  }
+  return 'crane';
+}
+
 function botWordro(st) {
   if (st.gameOver || st.won || st.revealInProgress) return;
   if (st.currentGuess.length > 0) return;
+  if (st._botTarget === undefined) st._botTarget = 1 + Math.floor(Math.random() * 2); // 1-2 wrong guesses
+  const word = st.currentRow < st._botTarget ? botPickWordroWord(st) : st.puzzle.word;
   AUTOPLAY.busy = true;
-  const word = st.puzzle.word;
-  let delay = gDelay(400, 100);
+  let delay = gDelay(500, 120);
   for (const ch of word) {
     delay += gDelay(120, 30);
     ((c, d) => { setTimeout(() => { if (AUTOPLAY.active) wordroKeyPress(c.toUpperCase()); }, d); })(ch, delay);
@@ -594,22 +615,69 @@ function botDeduction(st) {
   }
 }
 
-// --- MEMORY — perfect pair matching for 100/100 ---
+// --- MEMORY — exploration phase then matching for realism ---
 function botMemory(st) {
   if (st.locked) return;
   const grid = st.puzzle.grid;
+  const rows = st.puzzle.rows, cols = st.puzzle.cols;
+
+  // Initialize exploration tracking
+  if (!st._botPhase) {
+    st._botPhase = 'explore';
+    st._botExploreCount = 0;
+    st._botExploreTarget = 2 + Math.floor(Math.random() * 4); // 2-5 exploration rounds
+  }
+
+  // Collect unmatched cards
+  const unmatched = [];
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      if (!grid[r][c].matched) unmatched.push({r, c, sym: grid[r][c].symbol});
+  if (unmatched.length === 0) return;
+
+  // Exploration phase: deliberately flip non-matching pairs to "discover" positions
+  if (st._botPhase === 'explore' && st._botExploreCount < st._botExploreTarget && unmatched.length > 4) {
+    const a = unmatched[Math.floor(Math.random() * unmatched.length)];
+    const candidates = unmatched.filter(c => c.sym !== a.sym && !(c.r === a.r && c.c === a.c));
+    if (candidates.length > 0) {
+      const b = candidates[Math.floor(Math.random() * candidates.length)];
+      AUTOPLAY.busy = true;
+      st._botExploreCount++;
+      setTimeout(() => {
+        if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+        flipMemoryCard(a.r, a.c);
+        setTimeout(() => {
+          if (AUTOPLAY.active) flipMemoryCard(b.r, b.c);
+          AUTOPLAY.busy = false;
+        }, gDelay(400, 90));
+      }, gDelay(350, 80));
+      return;
+    }
+  }
+  st._botPhase = 'match';
+
+  // Occasionally "forget" — flip a wrong second card (10% chance)
   const symbolMap = {};
-  for (let r = 0; r < st.puzzle.rows; r++)
-    for (let c = 0; c < st.puzzle.cols; c++)
-      if (!grid[r][c].matched) {
-        const sym = grid[r][c].symbol;
-        if (!symbolMap[sym]) symbolMap[sym] = [];
-        symbolMap[sym].push({r, c});
-      }
+  for (const c of unmatched) {
+    if (!symbolMap[c.sym]) symbolMap[c.sym] = [];
+    symbolMap[c.sym].push(c);
+  }
   for (const sym in symbolMap) {
     if (symbolMap[sym].length >= 2) {
       const [a, b] = symbolMap[sym];
       AUTOPLAY.busy = true;
+      if (Math.random() < 0.1 && unmatched.length > 4) {
+        // "Forget": flip correct first card, wrong second card
+        const wrong = unmatched.find(c => c.sym !== sym && !(c.r === a.r && c.c === a.c));
+        if (wrong) {
+          setTimeout(() => {
+            if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
+            flipMemoryCard(a.r, a.c);
+            setTimeout(() => { if (AUTOPLAY.active) flipMemoryCard(wrong.r, wrong.c); AUTOPLAY.busy = false; }, gDelay(300, 70));
+          }, gDelay(250, 60));
+          return;
+        }
+      }
       setTimeout(() => {
         if (!AUTOPLAY.active) { AUTOPLAY.busy = false; return; }
         flipMemoryCard(a.r, a.c);
@@ -750,14 +818,54 @@ function botPlaceMosaicToken(tokenIdx, r, c, needOrient) {
   }, gDelay(200, 50));
 }
 
-// --- NUMCRUNCH — solve first guess ---
+// --- NUMCRUNCH — multi-guess for realism (1-2 wrong then correct) ---
+function botMakeEquation(len) {
+  // Generate a valid equation of the given length
+  for (let i = 0; i < 300; i++) {
+    const a = Math.floor(Math.random() * 50) + 1;
+    const ops = ['+', '-', '\u00d7'];
+    const oi = Math.floor(Math.random() * 3);
+    const b = Math.floor(Math.random() * 20) + 1;
+    let r;
+    if (oi === 0) r = a + b;
+    else if (oi === 1) r = a - b;
+    else r = a * b;
+    if (r <= 0 || r > 999) continue;
+    const eq = `${a}${ops[oi]}${b}=${r}`;
+    if (eq.length === len) return eq;
+  }
+  // Try two-operator equations
+  for (let i = 0; i < 300; i++) {
+    const a = Math.floor(Math.random() * 9) + 1;
+    const b = Math.floor(Math.random() * 9) + 1;
+    const c = Math.floor(Math.random() * 9) + 1;
+    const ops = ['+', '-'];
+    const o1 = ops[Math.floor(Math.random() * 2)];
+    const o2 = ops[Math.floor(Math.random() * 2)];
+    let r = a;
+    r = o1 === '+' ? r + b : r - b;
+    r = o2 === '+' ? r + c : r - c;
+    if (r <= 0 || r > 99) continue;
+    const eq = `${a}${o1}${b}${o2}${c}=${r}`;
+    if (eq.length === len) return eq;
+  }
+  return null;
+}
+
 function botNumcrunch(st) {
   if (st.gameOver || st.won || st.revealInProgress) return;
   if (st.currentGuess.length > 0) return;
-  AUTOPLAY.busy = true;
+  if (st._botTarget === undefined) st._botTarget = 1 + Math.floor(Math.random() * 2); // 1-2 wrong guesses
   const eq = st.puzzle.equation;
+  let guess;
+  if (st.currentRow < st._botTarget) {
+    guess = botMakeEquation(eq.length);
+    if (!guess || guess === eq) guess = null;
+  }
+  if (!guess) guess = eq;
+  AUTOPLAY.busy = true;
   let delay = gDelay(500, 120);
-  for (const ch of eq) {
+  for (const ch of guess) {
     delay += gDelay(100, 25);
     const key = ch === '\u00d7' ? '*' : ch === '\u00f7' ? '/' : ch;
     ((k, d) => { setTimeout(() => { if (AUTOPLAY.active) numcrunchKeyPress(k); }, d); })(key, delay);
@@ -766,16 +874,30 @@ function botNumcrunch(st) {
   setTimeout(() => { if (AUTOPLAY.active) numcrunchKeyPress('ENTER'); AUTOPLAY.busy = false; }, delay);
 }
 
-// --- COLORCODE — solve first guess for 100/100 ---
+// --- COLORCODE — multi-guess for realism (2-3 wrong then correct) ---
 function botColorcode(st) {
   if (st.gameOver) return;
   if (!st.currentGuess || !st.currentGuess.some(c => c === null || c === undefined)) return;
+  if (st._botTarget === undefined) st._botTarget = 2 + Math.floor(Math.random() * 2); // 2-3 wrong guesses
   const code = st.puzzle.code, colors = st.puzzle.colors, row = st.currentRow;
+  let guessColors;
+  if (st.currentRow < st._botTarget) {
+    // Wrong guess: pick random colors, ensure not accidentally correct
+    guessColors = [];
+    for (let i = 0; i < code.length; i++) {
+      guessColors.push(colors[Math.floor(Math.random() * colors.length)]);
+    }
+    if (guessColors.every((c, i) => c === code[i])) {
+      guessColors[0] = colors[(colors.indexOf(guessColors[0]) + 1) % colors.length];
+    }
+  } else {
+    guessColors = [...code];
+  }
   AUTOPLAY.busy = true;
   let delay = gDelay(350, 80);
-  for (let slot = 0; slot < code.length; slot++) {
+  for (let slot = 0; slot < guessColors.length; slot++) {
     delay += gDelay(150, 35);
-    const ci = colors.indexOf(code[slot]);
+    const ci = colors.indexOf(guessColors[slot]);
     ((s, c, d) => {
       setTimeout(() => {
         if (!AUTOPLAY.active) return;
@@ -830,7 +952,7 @@ function botOddoneout(st) {
   }
 }
 
-// --- ESTIMATION — exact answer for 100/100 ---
+// --- ESTIMATION — human-like with ±5-15% error ---
 function botEstimation(st) {
   if (st.gameOver) return;
   const round = st.puzzle.rounds ? st.puzzle.rounds[st.currentRound] : null;
@@ -838,9 +960,13 @@ function botEstimation(st) {
   const input = document.getElementById('est-input');
   if (!input) return;
   AUTOPLAY.busy = true;
-  input.value = round.answer;
+  // Add ±5-15% random error for realism
+  const errorPct = (0.05 + Math.random() * 0.10) * (Math.random() < 0.5 ? 1 : -1);
+  let guess = Math.round(round.answer * (1 + errorPct));
+  if (guess <= 0 && round.answer > 0) guess = Math.max(1, Math.round(round.answer * 0.9));
+  input.value = guess;
   input.dispatchEvent(new Event('input', {bubbles: true}));
-  setTimeout(() => { if (AUTOPLAY.active) submitEstimation(); AUTOPLAY.busy = false; }, gDelay(400, 100));
+  setTimeout(() => { if (AUTOPLAY.active) submitEstimation(); AUTOPLAY.busy = false; }, gDelay(600, 150));
 }
 
 function botHanoi(st) {
@@ -907,7 +1033,7 @@ function botChainword(st) {
   setTimeout(() => { if (AUTOPLAY.active) submitChainword(); AUTOPLAY.busy = false; }, gDelay(250, 60));
 }
 
-// --- TYPING — fast for max WPM ---
+// --- TYPING — realistic human speed (90-150ms per char) ---
 function botTyping(st) {
   if (st.done || st.currentWordIdx >= st.words.length) return;
   const word = st.words[st.currentWordIdx];
@@ -918,7 +1044,7 @@ function botTyping(st) {
   input.value = '';
   let delay = 0;
   for (let i = 0; i < word.length; i++) {
-    delay += gDelay(50, 15);
+    delay += gDelay(110, 35);
     ((ch, d) => {
       setTimeout(() => {
         if (!AUTOPLAY.active) return;
@@ -928,7 +1054,7 @@ function botTyping(st) {
       }, d);
     })(word[i], delay);
   }
-  delay += gDelay(50, 12);
+  delay += gDelay(80, 20);
   setTimeout(() => { if (AUTOPLAY.active) submitTypingWord(st); AUTOPLAY.busy = false; }, delay);
 }
 
@@ -972,11 +1098,14 @@ function botNummemory(st) {
   }
 }
 
-// --- STROOP — fast, no interference ---
+// --- STROOP — with cognitive interference delay on incongruent trials ---
 function botStroop(st) {
   if (st.done || !st.currentColor) return;
   AUTOPLAY.busy = true;
-  setTimeout(() => { if (AUTOPLAY.active) pickStroop(st.currentColor.name); AUTOPLAY.busy = false; }, gDelay(250, 60));
+  // Add extra delay when color and word don't match (Stroop interference)
+  const incongruent = st.currentWord && st.currentColor.name !== st.currentWord;
+  const baseDelay = incongruent ? gDelay(450, 100) : gDelay(250, 60);
+  setTimeout(() => { if (AUTOPLAY.active) pickStroop(st.currentColor.name); AUTOPLAY.busy = false; }, baseDelay);
 }
 
 function botSliding(st) {
