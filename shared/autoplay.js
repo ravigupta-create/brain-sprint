@@ -1114,12 +1114,33 @@ function botStroop(st) {
 
 function botSliding(st) {
   if (st.done) return;
-  // Pre-compute optimal solution path once using IDA*
-  if (!st._botPath && !st._botPathFailed) {
+  // Prefer the worker so main-thread animation stays smooth.
+  if (!st._botPath && !st._botPathFailed && !st._botPathPending) {
+    if (typeof Solvers !== 'undefined' && Solvers.isAvailable()) {
+      st._botPathPending = true;
+      const tilesCopy = Array.from(st.tiles);
+      Solvers.run('sliding-ida', { tiles: tilesCopy, size: st.size }, { timeoutMs: 20000 })
+        .then((path) => {
+          st._botPath = path || null;
+          st._botStep = 0;
+          if (!st._botPath) st._botPathFailed = true;
+          st._botPathPending = false;
+        })
+        .catch(() => {
+          // Fall back to synchronous IDA* on this call — small penalty for one puzzle.
+          st._botPath = solveSlidingIDA(st.tiles, st.size);
+          st._botStep = 0;
+          if (!st._botPath) st._botPathFailed = true;
+          st._botPathPending = false;
+        });
+      // Yield this tick while worker computes; the greedy fallback below will act next tick.
+      return;
+    }
     st._botPath = solveSlidingIDA(st.tiles, st.size);
     st._botStep = 0;
     if (!st._botPath) st._botPathFailed = true;
   }
+  if (st._botPathPending) return; // worker still solving
   // Execute pre-computed path
   if (st._botPath && st._botStep < st._botPath.length) {
     const tileIdx = st._botPath[st._botStep];

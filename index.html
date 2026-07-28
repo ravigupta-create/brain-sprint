@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brain Sprint — Daily Challenge</title>
+<meta name="theme-color" content="#6366f1">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+<link rel="apple-touch-icon" href="icon-192.svg">
 
 <!-- Shared CSS -->
 <link rel="stylesheet" href="shared/shared.css">
@@ -397,6 +400,7 @@
     <div class="section-title">Your Stats</div>
     <div id="stats-xp-bar"></div>
     <div class="stats-grid" id="stats-grid"></div>
+    <div id="stats-elo"></div>
     <div id="streak-calendar"></div>
     <div class="section-sub" style="margin-top:16px">Last 7 Days</div>
     <div class="streak-bar" id="streak-bar"></div>
@@ -423,6 +427,9 @@
 <script src="shared/core.js"></script>
 <script src="shared/achievements.js"></script>
 <script src="shared/xp.js"></script>
+<script src="shared/elo.js"></script>
+<script src="shared/ghost.js"></script>
+<script src="shared/worker-client.js"></script>
 <script src="shared/lockout.js"></script>
 <script src="shared/wordlists.js"></script>
 
@@ -474,5 +481,13 @@
 <script src="shared/stats.js"></script>
 <script src="shared/init.js"></script>
 <script src="shared/autoplay.js"></script>
+<script>
+  // PWA registration — only over http/https (skip file://). Non-blocking.
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>

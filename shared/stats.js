@@ -68,6 +68,12 @@ function renderStatsScreen() {
     xpBarEl.innerHTML = renderXPBar();
   }
 
+  // Elo rating panel
+  const eloEl = document.getElementById('stats-elo');
+  if (eloEl && typeof renderEloSection === 'function') {
+    eloEl.innerHTML = renderEloSection();
+  }
+
   // Streak calendar (current month)
   renderStreakCalendar();
 

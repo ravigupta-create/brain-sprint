@@ -57,9 +57,14 @@ function drawSliding(state) {
   const { size, tiles, moves } = state;
   const tileSize = Math.min(70, Math.floor(320 / size));
 
+  const hintOk = typeof Solvers !== 'undefined' && Solvers.isAvailable();
+  const hintDisabled = state._hintBusy ? 'disabled' : '';
+  const hintLabel = state._hintBusy ? 'Solving…' : (state._hintNext != null ? '💡 Play hint' : '💡 Hint');
+
   let html = `<div class="sliding-game">
     <div class="sliding-info">
       <span>Moves: <strong id="sliding-moves">${moves}</strong></span>
+      ${hintOk ? `<button class="btn btn-secondary sliding-hint-btn" onclick="requestSlidingHint()" ${hintDisabled} style="margin-left:8px;padding:4px 10px;font-size:12px">${hintLabel}</button>` : ''}
     </div>
     <div class="sliding-grid" style="grid-template-columns:repeat(${size},${tileSize}px);grid-template-rows:repeat(${size},${tileSize}px);gap:3px">`;
 
@@ -68,11 +73,45 @@ function drawSliding(state) {
       html += `<div class="sliding-cell sliding-empty" data-idx="${idx}"></div>`;
     } else {
       const isCorrect = tile === idx + 1;
-      html += `<div class="sliding-cell sliding-tile ${isCorrect ? 'sliding-correct' : ''}" data-idx="${idx}" onclick="clickSlidingTile(${idx})" style="width:${tileSize}px;height:${tileSize}px;font-size:${tileSize > 50 ? 20 : 14}px">${tile}</div>`;
+      const isHint = state._hintNext === idx;
+      html += `<div class="sliding-cell sliding-tile ${isCorrect ? 'sliding-correct' : ''} ${isHint ? 'sliding-hint' : ''}" data-idx="${idx}" onclick="clickSlidingTile(${idx})" style="width:${tileSize}px;height:${tileSize}px;font-size:${tileSize > 50 ? 20 : 14}px">${tile}</div>`;
     }
   });
-  html += `</div></div>`;
+  html += `</div>`;
+  if (state._hintMsg) html += `<div class="sliding-hint-msg" style="text-align:center;margin-top:8px;font-size:12px;color:var(--fg2)">${state._hintMsg}</div>`;
+  html += `</div>`;
   c.innerHTML = html;
+}
+
+// Ask the worker for the next optimal move. Highlights the tile to click.
+// Non-blocking; UI stays responsive while the solver runs off-thread.
+function requestSlidingHint() {
+  const state = GS.challengeState.sliding;
+  if (!state || state.done || state._hintBusy) return;
+  if (typeof Solvers === 'undefined' || !Solvers.isAvailable()) return;
+  state._hintBusy = true;
+  state._hintMsg = 'Solver working…';
+  drawSliding(state);
+  const tilesCopy = Array.from(state.tiles);
+  const started = performance.now();
+  Solvers.run('sliding-ida', { tiles: tilesCopy, size: state.size }, { timeoutMs: 20000 })
+    .then((path) => {
+      state._hintBusy = false;
+      if (!path || path.length === 0) {
+        state._hintNext = null;
+        state._hintMsg = 'Already solved.';
+      } else {
+        state._hintNext = path[0]; // index of tile to click next
+        const ms = Math.round(performance.now() - started);
+        state._hintMsg = `Play the highlighted tile. Optimal remaining: ${path.length} moves. (solved in ${ms}ms)`;
+      }
+      if (!state.done) drawSliding(state);
+    })
+    .catch((err) => {
+      state._hintBusy = false;
+      state._hintMsg = 'Hint unavailable (' + (err.message || err) + ').';
+      if (!state.done) drawSliding(state);
+    });
 }
 
 function clickSlidingTile(idx) {
@@ -90,6 +129,10 @@ function clickSlidingTile(idx) {
   state.emptyIdx = idx;
   state.moves++;
   SFX.click();
+
+  // Clear any stale hint after a move
+  state._hintNext = null;
+  state._hintMsg = null;
 
   drawSliding(state);
 

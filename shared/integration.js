@@ -410,6 +410,11 @@ function beginChallenge() {
   if (GS.currentChallengeIdx === 0 && !GS.timerRunning) {
     startTimer();
   }
+  // Begin per-challenge ghost recording so we can race the user's best time.
+  // (Deferred by a tick so the challenge has already rendered the game container.)
+  if (typeof Ghost !== 'undefined' && GS.timerEnabled) {
+    setTimeout(() => { try { Ghost.begin(ch, GS.difficulty); } catch (_) {} }, 0);
+  }
   switch(ch) {
     case 'paradox': renderParadox(getParadoxPuzzle()); break;
     case 'blocks': renderBlocks(getBlocksPuzzle()); break;

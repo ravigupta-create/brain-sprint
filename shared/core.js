@@ -96,6 +96,17 @@ function showChallengeSummary(config) {
   let pbInfo = null;
   if (ch && diff) pbInfo = savePersonalBest(ch, diff, config.score);
 
+  // Update Elo rating (idempotent, silent-safe)
+  let eloInfo = null;
+  if (ch && diff && typeof updateRating === 'function') {
+    try { eloInfo = updateRating(ch, diff, config.score); } catch (_) {}
+  }
+
+  // Finalize ghost recording if a run was in progress
+  if (typeof Ghost !== 'undefined') {
+    try { Ghost.finalize(config.score); } catch (_) {}
+  }
+
   let html = '<div class="cs-panel">';
   html += `<span class="cs-emoji">${config.emoji}</span>`;
   html += `<div class="cs-score">${config.score}<span>/100</span></div>`;
@@ -104,6 +115,16 @@ function showChallengeSummary(config) {
     html += `<div class="cs-pb-badge">New Personal Best!</div>`;
   }
   if (diffLabel) html += `<div class="cs-diff-badge ${diff}">${diffLabel}</div>`;
+  if (eloInfo) {
+    const d = eloInfo.delta;
+    const sign = d > 0 ? '+' : (d < 0 ? '' : '±');
+    const color = d > 0 ? 'var(--green,#6aaa64)' : d < 0 ? 'var(--red,#e11d48)' : 'var(--fg2)';
+    html += `<div class="cs-elo-chip" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;margin-top:6px;font-size:12px;font-weight:700;color:var(--fg2);background:var(--bg2);border:1px solid var(--border);border-radius:999px">
+      <span>Rating</span>
+      <span style="color:var(--fg);font-weight:800">${eloInfo.next}</span>
+      <span style="color:${color}">${sign}${d}</span>
+    </div>`;
+  }
   if (config.stats && config.stats.length > 0) {
     html += '<div class="cs-stats">';
     config.stats.forEach(s => {
@@ -215,6 +236,9 @@ function goBack() {
   if (GS.screenStack.length > 1) {
     GS.screenStack.pop();
     const prev = GS.screenStack[GS.screenStack.length - 1];
+    if (typeof Ghost !== 'undefined' && prev !== 'screen-game') {
+      try { Ghost.cancel(); } catch (_) {}
+    }
     showScreen(prev);
   }
 }
@@ -381,6 +405,10 @@ function goToDifficulty() {
   // Pre-select last difficulty
   const prefs = getPrefs();
   if (prefs.lastDiff) selectDifficulty(prefs.lastDiff);
+  // Mark the Elo-suggested tile
+  if (typeof markSuggestedDifficultyTile === 'function') {
+    try { markSuggestedDifficultyTile(); } catch (_) {}
+  }
 }
 
 function selectDifficulty(diff) {
@@ -695,6 +723,7 @@ function selectFullSprint() {
 
 function goToLanding() {
   stopTimer();
+  if (typeof Ghost !== 'undefined') { try { Ghost.cancel(); } catch (_) {} }
   document.getElementById('timer-display').style.display = 'none';
   GS.selectedChallenges = [];
   GS.screenStack = ['screen-landing', 'screen-difficulty', 'screen-challenge-select'];
