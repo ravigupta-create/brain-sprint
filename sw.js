@@ -1,13 +1,15 @@
 // Brain Sprint service worker — precache-first, offline-capable.
 // Bump CACHE_VERSION when any precached file changes.
-const CACHE_VERSION = 'brain-sprint-v1';
+const CACHE_VERSION = 'brain-sprint-v2';
 
 const PRECACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.svg',
-  './icon-512.svg',
+  './apple-touch-icon.png',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
   './words.txt',
 
   // shared
@@ -117,9 +119,11 @@ self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_VERSION).then((cache) =>
       // addAll is atomic — any missing file aborts install. Use individual adds so we
-      // still get a working install if one asset is temporarily unavailable.
+      // still get a working install if one asset is temporarily unavailable. Log failures
+      // so a typo in PRECACHE surfaces during dev instead of "just" breaking offline.
       Promise.all(PRECACHE.map((url) =>
-        cache.add(new Request(url, { cache: 'reload' })).catch(() => null)
+        cache.add(new Request(url, { cache: 'reload' }))
+          .catch((err) => { console.warn('[SW] precache failed for', url, err); return null; })
       ))
     ).then(() => self.skipWaiting())
   );
@@ -140,13 +144,16 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return; // never intercept cross-origin
 
   // HTML: network-first so updates ship promptly, fall back to cache offline.
+  // Never cache non-OK HTML (avoids permanently serving a stale 404/500 offline).
   const isHTML = req.mode === 'navigate' ||
     (req.headers.get('accept') || '').includes('text/html');
   if (isHTML) {
     e.respondWith(
       fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_VERSION).then((c) => c.put(req, copy)).catch(() => {});
+        if (res && res.ok && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put(req, copy)).catch(() => {});
+        }
         return res;
       }).catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
     );

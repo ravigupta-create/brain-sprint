@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#6366f1">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
-<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 
 <!-- Shared CSS -->
 <link rel="stylesheet" href="shared/shared.css">
@@ -483,9 +483,34 @@
 <script src="shared/autoplay.js"></script>
 <script>
   // PWA registration — only over http/https (skip file://). Non-blocking.
+  // updateViaCache:'none' forces the browser to always revalidate sw.js instead of
+  // reusing an HTTP-cached copy (which can persist ~24h on some browsers).
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+        // When an update is found, wait until it's installed, then prompt to refresh.
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              // A new SW is waiting — offer a one-tap refresh via existing toast.
+              if (typeof showToast === 'function') {
+                showToast('New version available. Refresh to update.', 6000);
+              }
+              // Auto-activate on next navigation via SKIP_WAITING message.
+              try { nw.postMessage({ type: 'SKIP_WAITING' }); } catch (e) { console.warn('SW skipWaiting msg failed', e); }
+            }
+          });
+        });
+      }).catch((e) => console.warn('SW register failed', e));
+      // Reload once the new SW takes control so the user sees the update immediately.
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
     });
   }
 </script>

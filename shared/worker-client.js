@@ -63,7 +63,17 @@ const Solvers = (function () {
     });
   }
 
-  function isAvailable() { return typeof Worker !== 'undefined'; }
+  // Web Workers require a real origin. Chrome/Safari refuse to construct a Worker
+  // from a file:// document, so guard against that up front — otherwise the hint
+  // button appears and blows up on click.
+  function isAvailable() {
+    if (typeof Worker === 'undefined') return false;
+    try {
+      const proto = (typeof location !== 'undefined' && location.protocol) || '';
+      if (proto === 'file:') return false;
+    } catch (_) {}
+    return true;
+  }
 
   return { run, isAvailable };
 })();

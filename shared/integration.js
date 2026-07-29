@@ -413,7 +413,10 @@ function beginChallenge() {
   // Begin per-challenge ghost recording so we can race the user's best time.
   // (Deferred by a tick so the challenge has already rendered the game container.)
   if (typeof Ghost !== 'undefined' && GS.timerEnabled) {
-    setTimeout(() => { try { Ghost.begin(ch, GS.difficulty); } catch (_) {} }, 0);
+    setTimeout(() => {
+      try { Ghost.begin(ch, GS.difficulty); }
+      catch (e) { console.warn('[ghost] begin failed', e); }
+    }, 0);
   }
   switch(ch) {
     case 'paradox': renderParadox(getParadoxPuzzle()); break;

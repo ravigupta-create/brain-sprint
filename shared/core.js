@@ -96,15 +96,17 @@ function showChallengeSummary(config) {
   let pbInfo = null;
   if (ch && diff) pbInfo = savePersonalBest(ch, diff, config.score);
 
-  // Update Elo rating (idempotent, silent-safe)
+  // Update Elo rating (idempotent, logs on failure so silent regressions surface).
   let eloInfo = null;
   if (ch && diff && typeof updateRating === 'function') {
-    try { eloInfo = updateRating(ch, diff, config.score); } catch (_) {}
+    try { eloInfo = updateRating(ch, diff, config.score); }
+    catch (e) { console.warn('[elo] updateRating failed', { ch, diff, score: config.score }, e); }
   }
 
   // Finalize ghost recording if a run was in progress
   if (typeof Ghost !== 'undefined') {
-    try { Ghost.finalize(config.score); } catch (_) {}
+    try { Ghost.finalize(config.score); }
+    catch (e) { console.warn('[ghost] finalize failed', e); }
   }
 
   let html = '<div class="cs-panel">';
@@ -237,7 +239,8 @@ function goBack() {
     GS.screenStack.pop();
     const prev = GS.screenStack[GS.screenStack.length - 1];
     if (typeof Ghost !== 'undefined' && prev !== 'screen-game') {
-      try { Ghost.cancel(); } catch (_) {}
+      try { Ghost.cancel(); }
+      catch (e) { console.warn('[ghost] cancel-on-back failed', e); }
     }
     showScreen(prev);
   }
@@ -407,7 +410,8 @@ function goToDifficulty() {
   if (prefs.lastDiff) selectDifficulty(prefs.lastDiff);
   // Mark the Elo-suggested tile
   if (typeof markSuggestedDifficultyTile === 'function') {
-    try { markSuggestedDifficultyTile(); } catch (_) {}
+    try { markSuggestedDifficultyTile(); }
+    catch (e) { console.warn('[elo] mark tile failed', e); }
   }
 }
 
@@ -723,7 +727,10 @@ function selectFullSprint() {
 
 function goToLanding() {
   stopTimer();
-  if (typeof Ghost !== 'undefined') { try { Ghost.cancel(); } catch (_) {} }
+  if (typeof Ghost !== 'undefined') {
+    try { Ghost.cancel(); }
+    catch (e) { console.warn('[ghost] cancel failed', e); }
+  }
   document.getElementById('timer-display').style.display = 'none';
   GS.selectedChallenges = [];
   GS.screenStack = ['screen-landing', 'screen-difficulty', 'screen-challenge-select'];
